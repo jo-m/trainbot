@@ -6,39 +6,53 @@ import (
 )
 
 func SearchGrayOpt(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
+	if pat.Bounds().Size().X > img.Bounds().Size().X ||
+		pat.Bounds().Size().Y > img.Bounds().Size().Y {
+		panic("patch too large")
+	}
+
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Rect.Size()),
 	}
 
-	for y := 0; y < searchRect.Dy(); y++ {
-		for x := 0; x < searchRect.Dx(); x++ {
-			offset := image.Pt(x, y)
+	m, n := searchRect.Dx(), searchRect.Dy()
+	du, dv := pat.Rect.Dx(), pat.Rect.Dy()
+
+	for y := 0; y < n; y++ {
+		for x := 0; x < m; x++ {
+			imgWinRect := pat.Bounds().
+				Sub(pat.Bounds().Min).
+				Add(img.Bounds().Min).
+				Add(image.Pt(x, y))
+			imgPat := img.SubImage(imgWinRect).(*image.Gray)
+
+			var dot, sqSumI, sqSumP uint64
+
+			for v := 0; v < dv; v++ {
+				for u := 0; u < du; u++ {
+					pxI := imgPat.GrayAt(
+						imgPat.Bounds().Min.X+u,
+						imgPat.Bounds().Min.Y+v,
+					)
+					pxP := pat.GrayAt(
+						pat.Bounds().Min.X+u,
+						pat.Bounds().Min.Y+v,
+					)
+
+					dot += uint64(pxI.Y) * uint64(pxP.Y)
+					sqSumI += uint64(pxI.Y) * uint64(pxI.Y)
+					sqSumP += uint64(pxP.Y) * uint64(pxP.Y)
+				}
+			}
+
+			abs := math.Sqrt(float64(sqSumI) * float64(sqSumP))
 			var score float64
-			{
-				img := imgPatchWindow(img, pat, offset).(*image.Gray)
-
-				var dot, sqSumI, sqSumP uint64
-
-				for y := 0; y < pat.Rect.Dy(); y++ {
-					for x := 0; x < pat.Rect.Dx(); x++ {
-						pxI := img.GrayAt(img.Bounds().Min.X+x, img.Bounds().Min.Y+y)
-						pxP := pat.GrayAt(pat.Bounds().Min.X+x, pat.Bounds().Min.Y+y)
-
-						dot += uint64(pxI.Y) * uint64(pxP.Y)
-						sqSumI += uint64(pxI.Y) * uint64(pxI.Y)
-						sqSumP += uint64(pxP.Y) * uint64(pxP.Y)
-					}
-				}
-
-				absI := math.Sqrt(float64(sqSumI))
-				absP := math.Sqrt(float64(sqSumP))
-				if absI*absP == 0 {
-					score = 1
-				} else {
-					score = float64(dot) / (absI * absP)
-				}
+			if abs == 0 {
+				score = 1
+			} else {
+				score = float64(dot) / abs
 			}
 
 			if score > maxScore {
