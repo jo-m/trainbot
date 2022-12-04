@@ -20,30 +20,28 @@ func SearchGrayOpt(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	m, n := searchRect.Dx(), searchRect.Dy()
 	du, dv := pat.Rect.Dx(), pat.Rect.Dy()
 
+	is := img.Stride
+	ps := pat.Stride
+
 	for y := 0; y < n; y++ {
 		for x := 0; x < m; x++ {
-			imgWinRect := pat.Bounds().
-				Sub(pat.Bounds().Min).
-				Add(img.Bounds().Min).
-				Add(image.Pt(x, y))
-			imgPat := img.SubImage(imgWinRect).(*image.Gray)
+			winX0 := img.Rect.Min.X + x
+			winY0 := img.Rect.Min.Y + y
+			imgPatStartIx := y*is + x
 
 			var dot, sqSumI, sqSumP uint64
 
 			for v := 0; v < dv; v++ {
 				for u := 0; u < du; u++ {
-					pxI := imgPat.GrayAt(
-						imgPat.Bounds().Min.X+u,
-						imgPat.Bounds().Min.Y+v,
-					)
-					pxP := pat.GrayAt(
-						pat.Bounds().Min.X+u,
-						pat.Bounds().Min.Y+v,
-					)
+					pxIi := ((winY0+v)-winY0)*is + ((winX0+u)-winX0)*1
+					pxI := img.Pix[imgPatStartIx+pxIi]
 
-					dot += uint64(pxI.Y) * uint64(pxP.Y)
-					sqSumI += uint64(pxI.Y) * uint64(pxI.Y)
-					sqSumP += uint64(pxP.Y) * uint64(pxP.Y)
+					pxPi := ((pat.Rect.Min.Y+v)-pat.Rect.Min.Y)*ps + ((pat.Rect.Min.X+u)-pat.Rect.Min.X)*1
+					pxP := pat.Pix[pxPi]
+
+					dot += uint64(pxI) * uint64(pxP)
+					sqSumI += uint64(pxI) * uint64(pxI)
+					sqSumP += uint64(pxP) * uint64(pxP)
 				}
 			}
 
