@@ -160,12 +160,12 @@ func Benchmark_ScoreRGBACos(b *testing.B) {
 	}
 }
 
-func Test_SearchGray_ScoreGrayCos(t *testing.T) {
+func Test_SearchGray(t *testing.T) {
 	img := imutil.ToGray(testutil.LoadImg(t, testImgPath))
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
 
-	x, y, score := SearchGray(img, pat.(*image.Gray), ScoreGrayCos)
+	x, y, score := SearchGray(img, pat.(*image.Gray))
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
@@ -173,13 +173,13 @@ func Test_SearchGray_ScoreGrayCos(t *testing.T) {
 	// reset pat bounds origin to (0,0)
 	pat = imutil.GrayReset0(pat.(*image.Gray))
 
-	x, y, score = SearchGray(img, pat.(*image.Gray), ScoreGrayCos)
+	x, y, score = SearchGray(img, pat.(*image.Gray))
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 }
 
-func Benchmark_SearchGray_ScoreGrayCos(b *testing.B) {
+func Benchmark_SearchGray(b *testing.B) {
 	imgY, err := imutil.Load(testImgPath)
 	if err != nil {
 		b.Fail()
@@ -191,17 +191,17 @@ func Benchmark_SearchGray_ScoreGrayCos(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		SearchGray(img, pat.(*image.Gray), ScoreGrayCos)
+		SearchGray(img, pat.(*image.Gray))
 	}
 }
 
-func Test_SearchRGBA_ScoreRGBACos(t *testing.T) {
+func Test_SearchRGBA(t *testing.T) {
 	imgY := testutil.LoadImg(t, testImgPath)
 	img := imutil.ToRGBA(imgY)
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
 
-	x, y, score := SearchRGBA(img, pat.(*image.RGBA), ScoreRGBACos)
+	x, y, score := SearchRGBA(img, pat.(*image.RGBA))
 	assert.InDelta(t, 1., score, delta)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
@@ -209,13 +209,13 @@ func Test_SearchRGBA_ScoreRGBACos(t *testing.T) {
 	// reset pat bounds origin to (0,0)
 	pat = imutil.RGBAReset0(pat.(*image.RGBA))
 
-	x, y, score = SearchRGBA(img, pat.(*image.RGBA), ScoreRGBACos)
+	x, y, score = SearchRGBA(img, pat.(*image.RGBA))
 	assert.InDelta(t, 1., score, delta)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 }
 
-func Benchmark_SearchRGBA_ScoreRGBACos(b *testing.B) {
+func Benchmark_SearchRGBA(b *testing.B) {
 	imgY, err := imutil.Load(testImgPath)
 	if err != nil {
 		b.Fail()
@@ -227,6 +227,6 @@ func Benchmark_SearchRGBA_ScoreRGBACos(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		SearchRGBA(img, pat.(*image.RGBA), ScoreRGBACos)
+		SearchRGBA(img, pat.(*image.RGBA))
 	}
 }

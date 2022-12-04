@@ -85,9 +85,7 @@ func ScoreRGBACos(img, pat *image.RGBA, offset image.Point) float64 {
 	return cos
 }
 
-type ScoreGrayFn func(img, pat *image.Gray, offset image.Point) float64
-
-func SearchGray(img, pat *image.Gray, scoreFn ScoreGrayFn) (maxX, maxY int, maxScore float64) {
+func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
@@ -96,7 +94,7 @@ func SearchGray(img, pat *image.Gray, scoreFn ScoreGrayFn) (maxX, maxY int, maxS
 
 	for y := 0; y < searchRect.Dy(); y++ {
 		for x := 0; x < searchRect.Dx(); x++ {
-			score := scoreFn(img, pat, image.Pt(x, y))
+			score := ScoreGrayCos(img, pat, image.Pt(x, y))
 
 			if score > maxScore {
 				maxScore = score
@@ -108,9 +106,7 @@ func SearchGray(img, pat *image.Gray, scoreFn ScoreGrayFn) (maxX, maxY int, maxS
 	return
 }
 
-type ScoreRGBAFn func(img, pat *image.RGBA, offset image.Point) float64
-
-func SearchRGBA(img, pat *image.RGBA, scoreFn ScoreRGBAFn) (maxX, maxY int, maxScore float64) {
+func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
@@ -119,7 +115,7 @@ func SearchRGBA(img, pat *image.RGBA, scoreFn ScoreRGBAFn) (maxX, maxY int, maxS
 
 	for y := 0; y < searchRect.Dy(); y++ {
 		for x := 0; x < searchRect.Dx(); x++ {
-			score := scoreFn(img, pat, image.Pt(x, y))
+			score := ScoreRGBACos(img, pat, image.Pt(x, y))
 
 			if score > maxScore {
 				maxScore = score
