@@ -28,15 +28,11 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 	is := img.Stride
 	ps := pat.Stride
 
-	imgX0, imgY0 := img.Rect.Min.X, img.Rect.Min.Y
-	patX0, patY0 := pat.Rect.Min.X, pat.Rect.Min.Y
-
 	var maxX, maxY C.int
 	var maxScore C.float64
 
 	C.SearchGrayC(
-		C.int(m), C.int(n), C.int(du), C.int(dv), C.int(is), C.int(ps), C.int(imgX0),
-		C.int(imgY0), C.int(patX0), C.int(patY0),
+		C.int(m), C.int(n), C.int(du), C.int(dv), C.int(is), C.int(ps),
 		(*C.uint8_t)(&img.Pix[0]),
 		(*C.uint8_t)(&pat.Pix[0]),
 		(*C.int)(&maxX),
