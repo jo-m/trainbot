@@ -89,7 +89,7 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()),
+		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
 	}
 
 	for y := 0; y < searchRect.Dy(); y++ {
@@ -110,7 +110,7 @@ func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()),
+		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
 	}
 
 	for y := 0; y < searchRect.Dy(); y++ {

@@ -21,7 +21,7 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()),
+		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
 	}
 
 	m, n := searchRect.Dx(), searchRect.Dy()
