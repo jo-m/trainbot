@@ -20,8 +20,7 @@ func SearchGrayOpt(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	m, n := searchRect.Dx(), searchRect.Dy()
 	du, dv := pat.Rect.Dx(), pat.Rect.Dy()
 
-	is := img.Stride
-	ps := pat.Stride
+	is, ps := img.Stride, pat.Stride
 
 	for y := 0; y < n; y++ {
 		for x := 0; x < m; x++ {

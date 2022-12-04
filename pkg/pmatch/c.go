@@ -25,8 +25,7 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 	m, n := searchRect.Dx(), searchRect.Dy()
 	du, dv := pat.Rect.Dx(), pat.Rect.Dy()
 
-	is := img.Stride
-	ps := pat.Stride
+	is, ps := img.Stride, pat.Stride
 
 	var maxX, maxY C.int
 	var maxScore C.float64
