@@ -55,9 +55,10 @@ func Test_ScoreGrayCos(t *testing.T) {
 
 	testScore(t, img, pat.(*image.Gray), 1, ScoreGrayCos)
 
-	// reset pat bounds origin to (0,0)
-	pat = imutil.GrayReset0(pat.(*image.Gray))
-	testScore(t, img, pat.(*image.Gray), 1, ScoreGrayCos)
+	// also resets pat bounds origin to (0,0)
+	patCopy := imutil.ToGray(pat.(*image.Gray))
+
+	testScore(t, img, patCopy, 1, ScoreGrayCos)
 }
 
 func Test_ScoreGrayCos_Panics(t *testing.T) {
@@ -97,6 +98,9 @@ func Benchmark_ScoreGrayCos(b *testing.B) {
 		b.Fail()
 	}
 
+	// make sure pattern lives in a different memory region
+	pat = imutil.ToGray(pat.(*image.Gray))
+
 	for i := 0; i < b.N; i++ {
 		ScoreGrayCos(img, pat.(*image.Gray), image.Pt(x0, y0))
 	}
@@ -112,9 +116,10 @@ func Test_ScoreRGBCos(t *testing.T) {
 
 	testScore(t, img, pat.(*image.RGBA), 1, ScoreRGBACos)
 
-	// reset pat bounds origin to (0,0)
-	pat = imutil.RGBAReset0(pat.(*image.RGBA))
-	testScore(t, img, pat.(*image.RGBA), 1, ScoreRGBACos)
+	// also resets pat bounds origin to (0,0)
+	patCopy := imutil.ToRGBA(pat.(*image.RGBA))
+
+	testScore(t, img, patCopy, 1, ScoreRGBACos)
 }
 
 func Test_ScoreRGBACos_Panics(t *testing.T) {
@@ -155,6 +160,9 @@ func Benchmark_ScoreRGBACos(b *testing.B) {
 		b.Fail()
 	}
 
+	// make sure pattern lives in a different memory region
+	pat = imutil.ToRGBA(pat.(*image.RGBA))
+
 	for i := 0; i < b.N; i++ {
 		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(x0, y0))
 	}
@@ -170,10 +178,10 @@ func Test_SearchGray(t *testing.T) {
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 
-	// reset pat bounds origin to (0,0)
-	pat = imutil.GrayReset0(pat.(*image.Gray))
+	// also resets pat bounds origin to (0,0)
+	patCopy := imutil.ToGray(pat.(*image.Gray))
 
-	x, y, score = SearchGray(img, pat.(*image.Gray))
+	x, y, score = SearchGray(img, patCopy)
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
@@ -189,6 +197,9 @@ func Benchmark_SearchGray(b *testing.B) {
 	if err != nil {
 		b.Fail()
 	}
+
+	// make sure pattern lives in a different memory region
+	pat = imutil.ToGray(pat.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {
 		SearchGray(img, pat.(*image.Gray))
@@ -206,10 +217,10 @@ func Test_SearchRGBA(t *testing.T) {
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 
-	// reset pat bounds origin to (0,0)
-	pat = imutil.RGBAReset0(pat.(*image.RGBA))
+	// also resets pat bounds origin to (0,0)
+	patCopy := imutil.ToRGBA(pat.(*image.RGBA))
 
-	x, y, score = SearchRGBA(img, pat.(*image.RGBA))
+	x, y, score = SearchRGBA(img, patCopy)
 	assert.InDelta(t, 1., score, delta)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
@@ -225,6 +236,9 @@ func Benchmark_SearchRGBA(b *testing.B) {
 	if err != nil {
 		b.Fail()
 	}
+
+	// make sure pattern lives in a different memory region
+	pat = imutil.ToRGBA(pat.(*image.RGBA))
 
 	for i := 0; i < b.N; i++ {
 		SearchRGBA(img, pat.(*image.RGBA))
