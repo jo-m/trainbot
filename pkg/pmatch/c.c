@@ -1,5 +1,7 @@
 #include "c.h"
 
+#include <math.h>
+
 void SearchGrayC(const int m, const int n, const int du, const int dv,
                  const int is, const int ps, const int imgX0, const int imgY0,
                  const int patX0, const int patY0,
@@ -46,4 +48,7 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
       }
     }
   }
+
+  // this was left out above
+  *maxScore = sqrt(*maxScore);
 }
