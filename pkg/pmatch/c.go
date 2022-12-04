@@ -1,6 +1,10 @@
 package pmatch
 
 // #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
+// #cgo CFLAGS: -O2
+// #cgo amd64 CFLAGS: -march=skylake -mtune=skylake
+// #cgo arm CFLAGS: -mcpu=cortex-a53 -mfpu=neon-vfpv4 -mtune=cortex-a53
+// #cgo arm64 CFLAGS: -march=armv8-a+crc -mcpu=cortex-a72 -mtune=cortex-a72
 // #include "c.h"
 import "C"
 import "image"
