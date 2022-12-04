@@ -16,15 +16,16 @@ const testImgPath = "testdata/bird.jpg"
 
 const (
 	x0, y0, w, h = 65, 35, 30, 20
+	delta        = 1e-15
 )
 
-type scoreGrayFn func(img, pat *image.Gray, offset image.Point) float64
+type scoreGrayFn[T any] func(img, pat T, offset image.Point) float64
 
-func testScore(t *testing.T, img, pat *image.Gray, perfectScore float64, scoreFn scoreGrayFn) {
+func testScore[T any](t *testing.T, img, pat T, perfectScore float64, scoreFn scoreGrayFn[T]) {
 	// score at patch origin
 	offset0 := image.Pt(x0, y0)
 	score0 := scoreFn(img, pat, offset0)
-	assert.Equal(t, perfectScore, score0)
+	assert.InDelta(t, perfectScore, score0, delta)
 
 	// score at offset
 	offset1 := image.Pt(x0+1, y0+0)
@@ -45,7 +46,7 @@ func testScore(t *testing.T, img, pat *image.Gray, perfectScore float64, scoreFn
 	assert.Less(t, score4, score3)
 }
 
-func Test_ScoreGrayCos_Simple(t *testing.T) {
+func Test_ScoreGrayCos(t *testing.T) {
 	img := imutil.ToGray(testutil.LoadImg(t, testImgPath))
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
@@ -86,11 +87,11 @@ func Test_ScoreGrayCos_Panics(t *testing.T) {
 }
 
 func Benchmark_ScoreGrayCos(b *testing.B) {
-	imgRGB, err := imutil.Load(testImgPath)
+	imgY, err := imutil.Load(testImgPath)
 	if err != nil {
 		b.Fail()
 	}
-	img := imutil.ToGray(imgRGB)
+	img := imutil.ToGray(imgY)
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
 		b.Fail()
@@ -101,12 +102,70 @@ func Benchmark_ScoreGrayCos(b *testing.B) {
 	}
 }
 
-func Test_Search_ScoreGrayCos(t *testing.T) {
+func Test_ScoreRGBCos(t *testing.T) {
+	imgY := testutil.LoadImg(t, testImgPath)
+	img := imutil.ToRGBA(imgY)
+	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
+	require.NoError(t, err)
+
+	ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(0, 0))
+
+	testScore(t, img, pat.(*image.RGBA), 1, ScoreRGBACos)
+
+	// reset pat bounds origin to (0,0)
+	pat = imutil.RGBAReset0(pat.(*image.RGBA))
+	testScore(t, img, pat.(*image.RGBA), 1, ScoreRGBACos)
+}
+
+func Test_ScoreRGBACos_Panics(t *testing.T) {
+	imgY := testutil.LoadImg(t, testImgPath)
+	img := imutil.ToRGBA(imgY)
+	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
+	require.NoError(t, err)
+
+	assert.Panics(t, func() {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(0, -1))
+	})
+	assert.Panics(t, func() {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(-1, 0))
+	})
+	assert.Panics(t, func() {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(-1, -1))
+	})
+
+	assert.Panics(t, func() {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(0, 200))
+	})
+	assert.Panics(t, func() {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(200, 0))
+	})
+	assert.Panics(t, func() {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(200, 200))
+	})
+}
+
+func Benchmark_ScoreRGBACos(b *testing.B) {
+	imgY, err := imutil.Load(testImgPath)
+	if err != nil {
+		b.Fail()
+	}
+	img := imutil.ToRGBA(imgY)
+	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
+	if err != nil {
+		b.Fail()
+	}
+
+	for i := 0; i < b.N; i++ {
+		ScoreRGBACos(img, pat.(*image.RGBA), image.Pt(x0, y0))
+	}
+}
+
+func Test_SearchGray_ScoreGrayCos(t *testing.T) {
 	img := imutil.ToGray(testutil.LoadImg(t, testImgPath))
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
 
-	x, y, score := Search(img, pat.(*image.Gray), ScoreGrayCos)
+	x, y, score := SearchGray(img, pat.(*image.Gray), ScoreGrayCos)
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
@@ -114,24 +173,60 @@ func Test_Search_ScoreGrayCos(t *testing.T) {
 	// reset pat bounds origin to (0,0)
 	pat = imutil.GrayReset0(pat.(*image.Gray))
 
-	x, y, score = Search(img, pat.(*image.Gray), ScoreGrayCos)
+	x, y, score = SearchGray(img, pat.(*image.Gray), ScoreGrayCos)
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 }
 
-func Benchmark_Search_ScoreGrayCos(b *testing.B) {
-	imgRGB, err := imutil.Load(testImgPath)
+func Benchmark_SearchGray_ScoreGrayCos(b *testing.B) {
+	imgY, err := imutil.Load(testImgPath)
 	if err != nil {
 		b.Fail()
 	}
-	img := imutil.ToGray(imgRGB)
+	img := imutil.ToGray(imgY)
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
 		b.Fail()
 	}
 
 	for i := 0; i < b.N; i++ {
-		Search(img, pat.(*image.Gray), ScoreGrayCos)
+		SearchGray(img, pat.(*image.Gray), ScoreGrayCos)
+	}
+}
+
+func Test_SearchRGBA_ScoreRGBACos(t *testing.T) {
+	imgY := testutil.LoadImg(t, testImgPath)
+	img := imutil.ToRGBA(imgY)
+	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
+	require.NoError(t, err)
+
+	x, y, score := SearchRGBA(img, pat.(*image.RGBA), ScoreRGBACos)
+	assert.InDelta(t, 1., score, delta)
+	assert.Equal(t, x0, x)
+	assert.Equal(t, y0, y)
+
+	// reset pat bounds origin to (0,0)
+	pat = imutil.RGBAReset0(pat.(*image.RGBA))
+
+	x, y, score = SearchRGBA(img, pat.(*image.RGBA), ScoreRGBACos)
+	assert.InDelta(t, 1., score, delta)
+	assert.Equal(t, x0, x)
+	assert.Equal(t, y0, y)
+}
+
+func Benchmark_SearchRGBA_ScoreRGBACos(b *testing.B) {
+	imgY, err := imutil.Load(testImgPath)
+	if err != nil {
+		b.Fail()
+	}
+	img := imutil.ToRGBA(imgY)
+	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
+	if err != nil {
+		b.Fail()
+	}
+
+	for i := 0; i < b.N; i++ {
+		SearchRGBA(img, pat.(*image.RGBA), ScoreRGBACos)
 	}
 }
