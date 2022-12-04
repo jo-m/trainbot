@@ -55,6 +55,13 @@ func ToGray(img image.Image) *image.Gray {
 	return ret
 }
 
+func GrayReset0(img *image.Gray) *image.Gray {
+	ret := image.NewGray(img.Bounds().Sub(img.Bounds().Min))
+	draw.Draw(ret, ret.Bounds(), img, img.Bounds().Min, draw.Src)
+
+	return ret
+}
+
 func Rand(seed int64, w, h int) *image.Gray {
 	src := rand.NewSource(seed)
 	rnd := rand.New(src)
