@@ -2,7 +2,6 @@ package pmatch
 
 import (
 	"image"
-	"math"
 )
 
 func SearchGrayOpt(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
@@ -45,12 +44,12 @@ func SearchGrayOpt(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 				}
 			}
 
-			abs := math.Sqrt(float64(sqSumI) * float64(sqSumP))
+			abs := float64(sqSumI) * float64(sqSumP)
 			var score float64
 			if abs == 0 {
 				score = 1
 			} else {
-				score = float64(dot) / abs
+				score = float64(dot*dot) / abs
 			}
 
 			if score > maxScore {
