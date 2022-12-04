@@ -17,10 +17,12 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
 
       for (int v = 0; v < dv; v++) {
         for (int u = 0; u < du; u++) {
-          const int pxIi = ((winY0 + v) - winY0) * is + ((winX0 + u) - winX0) * 1;
+          const int pxIi =
+              ((winY0 + v) - winY0) * is + ((winX0 + u) - winX0) * 1;
           const int pxI = imgPix[imgPatStartIx + pxIi];
 
-          const int pxPi = ((patY0 + v) - patY0) * ps + ((patX0 + u) - patX0) * 1;
+          const int pxPi =
+              ((patY0 + v) - patY0) * ps + ((patX0 + u) - patX0) * 1;
           const int pxP = patPix[pxPi];
 
           dot += (uint64_t)(pxI) * (uint64_t)(pxP);
