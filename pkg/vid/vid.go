@@ -3,7 +3,6 @@ package vid
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"image"
 	"io"
 	"sync"
@@ -51,11 +50,10 @@ func ProbeSize(path string) (w, h int, err error) {
 }
 
 type Source struct {
-	reader   *io.PipeReader
-	writer   *io.PipeWriter
-	w, h     int
-	pxFormat string
-	buf      []byte
+	reader *io.PipeReader
+	writer *io.PipeWriter
+	w, h   int
+	buf    []byte
 
 	ffmpegErr  error
 	ffmpegLock sync.Mutex
@@ -67,23 +65,17 @@ func NewSource(path string) (*Source, error) {
 		return nil, err
 	}
 
-	pxFormat := vidProbe.PixFmt
-	if pxFormat != "yuvj420p" {
-		return nil, fmt.Errorf("unsupported pix_fmt %s", pxFormat)
-	}
-
 	reader, writer := io.Pipe()
 
-	sz := vidProbe.Width * vidProbe.Height * 4
+	sz := vidProbe.Width * vidProbe.Height * 4 // TODO: this (4) depends on pixel format
 	buf := make([]byte, sz)
 
 	s := Source{
-		reader:   reader,
-		writer:   writer,
-		w:        vidProbe.Width,
-		h:        vidProbe.Height,
-		pxFormat: pxFormat,
-		buf:      buf,
+		reader: reader,
+		writer: writer,
+		w:      vidProbe.Width,
+		h:      vidProbe.Height,
+		buf:    buf,
 	}
 
 	go s.run(path)
