@@ -51,7 +51,7 @@ const (
 	profHeapFile = "prof-heap-%05d.gz"
 )
 
-func main() {
+func parseCheckArgs() (config, image.Rectangle) {
 	c := config{}
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
@@ -70,6 +70,12 @@ func main() {
 	if r.Size().X > rectSizeMax || r.Size().Y > rectSizeMax {
 		p.Fail("rect is too large")
 	}
+
+	return c, r
+}
+
+func main() {
+	c, rect := parseCheckArgs()
 
 	log.Info().Msg("starting")
 
@@ -125,7 +131,7 @@ func main() {
 			failedFrames = 0
 		}
 
-		cropped, err := imutil.Sub(frame, r)
+		cropped, err := imutil.Sub(frame, rect)
 		if err != nil {
 			log.Panic().Err(err).Msg("failed to crop frame")
 		}
