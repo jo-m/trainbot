@@ -71,7 +71,7 @@ func main() {
 		log.Info().Str("file", c.CPUProfile).Msg("writing profile")
 		f, err := os.Create(c.CPUProfile)
 		if err != nil {
-			log.Panic().Err(err).Send()
+			log.Panic().Err(err).Msg("failed to create CPU profile file")
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
@@ -120,12 +120,12 @@ func main() {
 
 		cropped, err := imutil.Sub(frame, r)
 		if err != nil {
-			log.Panic().Err(err).Send()
+			log.Panic().Err(err).Msg("failed to crop frame")
 		}
 
 		err = rec.Frame(cropped, *ts)
 		if err != nil {
-			log.Panic().Err(err).Send()
+			log.Panic().Err(err).Msg("failed to record frame")
 		}
 
 		est.Frame(cropped, *ts)
