@@ -39,12 +39,7 @@ type Estimator struct {
 	prevCount int
 	prevFrame *image.Gray
 
-	// Those slices always have the same length.
-	// dx[i] is the assumed offset between frames[i] and frames[i+1].
-	// scores[i] is the score of that assumed offset.
-	dx           []int
-	scores       []float64 // TODO: maybe remove
-	frames       []image.Image
+	seq          sequence
 	dxAbsLowPass float64
 }
 
@@ -103,18 +98,15 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 }
 
 func (r *Estimator) reset() {
-	r.dx = nil
-	r.scores = nil
-	r.frames = nil
+	r.seq = sequence{}
 	r.dxAbsLowPass = 0
 }
 
 func (r *Estimator) record(dx int, score float64, frame *image.Gray) {
 	imutil.Dump(fmt.Sprintf("imgs/frame%05d.jpg", r.prevCount), r.prevFrame) // TODO
 
-	r.dx = append(r.dx, dx)
-	r.scores = append(r.scores, score)
-	r.frames = append(r.frames, frame)
+	r.seq.dx = append(r.seq.dx, dx)
+	r.seq.frames = append(r.seq.frames, frame)
 }
 
 func iabs(i int) int {
@@ -122,17 +114,6 @@ func iabs(i int) int {
 		return -i
 	}
 	return i
-}
-
-func (r *Estimator) process() {
-	fmt.Println(r.dx)
-	fmt.Println(r.scores)
-	dx, err := cleanupDx(r.dx)
-	if err != nil {
-		log.Panic().Err(err).Send() // TODO: handle properly
-	}
-
-	fmt.Println(dx) // TODO: assemble
 }
 
 // will NOT make a copy of the image
@@ -151,13 +132,13 @@ func (r *Estimator) Frame(frame *image.Gray, ts time.Time) {
 	dx, score := findOffset(r.prevFrame, frame, r.maxDx)
 	log.Debug().Int("prevCount", r.prevCount).Int("dx", dx).Float64("score", score).Msg("received frame")
 
-	isActive := len(r.dx) > 0
+	isActive := len(r.seq.dx) > 0
 	if isActive {
 		r.dxAbsLowPass = r.dxAbsLowPass*0.9 + math.Abs(float64(dx))*0.1
 
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
 			log.Info().Msg("stop recording")
-			r.process()
+			processSequence(r.seq)
 			r.reset()
 			return
 		}
