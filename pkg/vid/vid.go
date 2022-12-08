@@ -62,6 +62,8 @@ type Source struct {
 	fps     float64
 	count   uint64
 
+	verbose bool
+
 	ffmpegErr  error
 	ffmpegLock sync.Mutex
 }
@@ -85,7 +87,7 @@ func parseFPS(fps string) (float64, error) {
 	return a / b, nil
 }
 
-func NewSource(path string) (*Source, error) {
+func NewSource(path string, verbose bool) (*Source, error) {
 	_, vidProbe, err := Probe(path)
 	if err != nil {
 		return nil, err
@@ -110,6 +112,8 @@ func NewSource(path string) (*Source, error) {
 		startTs: vidProbe.Tags.CreationTime,
 		fps:     fps,
 		count:   0,
+
+		verbose: verbose,
 	}
 
 	go s.run(path)
@@ -120,16 +124,18 @@ func NewSource(path string) (*Source, error) {
 func (s *Source) run(path string) {
 	defer s.writer.Close()
 
-	err := ffmpeg.Input(path).
+	input := ffmpeg.Input(path).
 		Output("pipe:",
 			ffmpeg.KwArgs{
 				// TODO: what about pixel format?
 				"format": "rawvideo", "pix_fmt": "rgba",
 			}).
-		WithOutput(s.writer).
-		ErrorToStdOut(). // TODO: remove
-		Run()
+		WithOutput(s.writer)
+	if s.verbose {
+		input = input.ErrorToStdOut()
+	}
 
+	err := input.Run()
 	if err != nil {
 		s.ffmpegLock.Lock()
 		s.ffmpegErr = err
