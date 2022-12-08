@@ -103,6 +103,7 @@ func (r *Estimator) reset() {
 }
 
 func (r *Estimator) record(dx int, ts time.Time, frame image.Image) {
+	// TODO: add sanity check for max memory usage
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.ts = append(r.seq.ts, ts)
 	r.seq.frames = append(r.seq.frames, frame)

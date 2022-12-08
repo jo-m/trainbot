@@ -11,6 +11,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const maxMemoryMB = 1024 * 1024 * 50
+
 type sequence struct {
 	// Those slices always must have the same length.
 	// dx[i] is the assumed offset between frames[i] and frames[i+1].
@@ -84,7 +86,12 @@ func assemble(seq sequence) (*image.RGBA, error) {
 		w += x
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, iabs(w), h))
+	// memory alloc sanity check
+	rect := image.Rect(0, 0, iabs(w), h)
+	if rect.Size().X*rect.Size().Y*4 > maxMemoryMB {
+		return nil, fmt.Errorf("would allocate too much memory: size %dx%d", rect.Size().X, rect.Size().Y)
+	}
+	img := image.NewRGBA(rect)
 
 	// forward
 	if w > 0 {
