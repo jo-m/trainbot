@@ -41,6 +41,7 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
         score = (float64)(dot * dot) / abs;
       }
 
+#pragma omp critical
       if (score > *maxScore) {
         *maxScore = score;
         *maxX = x;
