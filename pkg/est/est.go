@@ -1,7 +1,6 @@
 package est
 
 import (
-	"fmt"
 	"image"
 	"math"
 	"time"
@@ -103,8 +102,6 @@ func (r *Estimator) reset() {
 }
 
 func (r *Estimator) record(dx int, score float64, frame *image.Gray) {
-	imutil.Dump(fmt.Sprintf("imgs/frame%05d.jpg", r.prevCount), r.prevFrame) // TODO
-
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.frames = append(r.seq.frames, frame)
 }

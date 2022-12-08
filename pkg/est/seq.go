@@ -81,8 +81,6 @@ func assemble(seq sequence) (*image.RGBA, error) {
 		w += x
 	}
 
-	fmt.Println(w, seq.dx)
-
 	img := image.NewRGBA(image.Rect(0, 0, iabs(w), h))
 
 	// forward
@@ -136,13 +134,6 @@ func processSequence(seq sequence) error {
 		return fmt.Errorf("unable to assemble image: %w", err)
 	}
 	imutil.Dump("imgs/_assembled.png", img) // TODO
-
-	// TODO: remove
-	img, err = assemble(seq.reversed())
-	if err != nil {
-		return fmt.Errorf("unable to assemble image: %w", err)
-	}
-	imutil.Dump("imgs/_assembled_rev.png", img) // TODO
 
 	return nil
 }
