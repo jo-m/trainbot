@@ -124,7 +124,7 @@ func (s *FileSrc) run(path string) {
 	}
 }
 
-func (s *FileSrc) GetFrame() (*image.RGBA, *time.Time, error) {
+func (s *FileSrc) GetFrame() (image.Image, *time.Time, error) {
 	s.ffmpegLock.Lock()
 	err := s.ffmpegErr
 	s.ffmpegLock.Unlock()

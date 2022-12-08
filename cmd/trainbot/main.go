@@ -82,7 +82,10 @@ func main() {
 			log.Panic().Err(err).Send()
 		}
 
-		cropped := frame.SubImage(r)
+		cropped, err := imutil.Sub(frame, r)
+		if err != nil {
+			log.Panic().Err(err).Send()
+		}
 
 		err = rec.Frame(cropped, *ts)
 		if err != nil {

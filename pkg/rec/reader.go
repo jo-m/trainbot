@@ -41,7 +41,7 @@ func NewReader(dirPath string) (*Reader, error) {
 	return &ret, nil
 }
 
-func (r *Reader) GetFrame() (*image.RGBA, *time.Time, error) {
+func (r *Reader) GetFrame() (image.Image, *time.Time, error) {
 	if r.count >= len(r.meta) {
 		return nil, nil, io.EOF
 	}
@@ -55,12 +55,7 @@ func (r *Reader) GetFrame() (*image.RGBA, *time.Time, error) {
 		return nil, nil, err
 	}
 
-	rgba, ok := img.(*image.RGBA)
-	if ok {
-		return rgba, &meta.TimeUTC, nil
-	}
-
-	return imutil.ToRGBA(img), &meta.TimeUTC, nil
+	return img, &meta.TimeUTC, nil
 }
 
 func (r *Reader) Close() error { return nil }

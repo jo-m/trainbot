@@ -13,7 +13,7 @@ type Src interface {
 	// invocation.
 	// Returns io.EOF after the last frame, after which Close() should be called
 	// on the instance before discarding it.
-	GetFrame() (*image.RGBA, *time.Time, error)
+	GetFrame() (image.Image, *time.Time, error)
 	Close() error
 }
 
