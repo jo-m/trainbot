@@ -120,6 +120,7 @@ func main() {
 			if failedFrames >= failedFramesMax {
 				log.Panic().Msg("retrieving frames failed too many times, exiting")
 			}
+			continue
 		} else {
 			failedFrames = 0
 		}
