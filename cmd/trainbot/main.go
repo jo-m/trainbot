@@ -109,7 +109,7 @@ func main() {
 	e := newEstimator(c.estimatorConfig)
 	var prevGray *image.Gray
 	for i := 0; ; i++ {
-		frame, err := src.GetFrame()
+		frame, _, err := src.GetFrame()
 		if err == io.EOF {
 			break
 		}
