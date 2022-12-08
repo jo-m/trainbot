@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/aamcrae/webcam v0.0.0-20210915060337-934acc13bdc3
 	github.com/alexflint/go-arg v1.4.3
+	github.com/mattn/go-mjpeg v0.0.3
 	github.com/rs/zerolog v1.28.0
 	github.com/stretchr/testify v1.7.1
 	github.com/u2takey/ffmpeg-go v0.4.1
