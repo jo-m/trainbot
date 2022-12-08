@@ -89,9 +89,6 @@ func main() {
 			log.Panic().Err(err).Send()
 		}
 
-		err = est.Frame(imutil.ToGray(cropped), *ts)
-		if err != nil {
-			log.Panic().Err(err).Send()
-		}
+		est.Frame(imutil.ToGray(cropped), *ts)
 	}
 }

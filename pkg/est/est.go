@@ -3,6 +3,7 @@ package est
 import (
 	"fmt"
 	"image"
+	"math"
 	"time"
 
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
@@ -11,7 +12,6 @@ import (
 )
 
 const (
-	magicBad        = 0xDEADDEAD
 	goodScoreNoMove = 0.99
 	goodScoreMove   = 0.95
 )
@@ -33,21 +33,30 @@ func (e *Config) MaxPxPerFrame() int {
 }
 
 type Estimator struct {
-	c     Config
-	maxDx int
+	c            Config
+	minDx, maxDx int
 
 	prevCount int
 	prevFrame *image.Gray
+
+	// Those slices always have the same length.
+	// dx[i] is the assumed offset between frames[i] and frames[i+1].
+	// scores[i] is the score of that assumed offset.
+	dx           []int
+	scores       []float64
+	frames       []image.Image
+	dxAbsLowPass float64
 }
 
 func NewEstimator(c Config) *Estimator {
 	return &Estimator{
 		c:     c,
+		minDx: c.MinPxPerFrame(),
 		maxDx: c.MaxPxPerFrame(),
 	}
 }
 
-func findOffset(prev, curr *image.Gray, maxDx int) (score float64, dx int) {
+func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	if prev.Rect.Size() != curr.Rect.Size() {
 		panic("inconsistent size, this should not happen")
 	}
@@ -90,11 +99,36 @@ func findOffset(prev, curr *image.Gray, maxDx int) (score float64, dx int) {
 	xZero := sliceRect.Min.Sub(subRect.Min).X
 
 	x, _, score := pmatch.SearchGrayC(sub.(*image.Gray), slice.(*image.Gray))
-	return score, x - xZero
+	return x - xZero, score
+}
+
+func (r *Estimator) reset() {
+	r.dx = nil
+	r.scores = nil
+	r.frames = nil
+}
+
+func (r *Estimator) record(dx int, score float64, frame *image.Gray) {
+	imutil.Dump(fmt.Sprintf("imgs/frame%05d.jpg", r.prevCount), r.prevFrame) // TODO
+
+	r.dx = append(r.dx, dx)
+	r.scores = append(r.scores, score)
+	r.frames = append(r.frames, frame)
+}
+
+func iabs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
+}
+
+func (r *Estimator) process() {
+	panic("not implemented")
 }
 
 // will NOT make a copy of the image
-func (r *Estimator) Frame(frame *image.Gray, ts time.Time) error {
+func (r *Estimator) Frame(frame *image.Gray, ts time.Time) {
 	frame = imutil.ToGray(frame)
 	defer func() {
 		r.prevFrame = frame
@@ -103,12 +137,38 @@ func (r *Estimator) Frame(frame *image.Gray, ts time.Time) error {
 
 	if r.prevFrame == nil {
 		// first time
-		return nil
+		return
 	}
 
-	score, dx := findOffset(r.prevFrame, frame, r.maxDx)
-	fmt.Println(r.prevCount, score, dx)
-	imutil.Dump(fmt.Sprintf("imgs/frame%05d.jpg", r.prevCount), r.prevFrame)
+	dx, score := findOffset(r.prevFrame, frame, r.maxDx)
+	log.Debug().Int("prevCount", r.prevCount).Int("dx", dx).Float64("score", score).Msg("received frame")
 
-	return nil
+	isActive := len(r.dx) > 0
+	if isActive {
+		r.dxAbsLowPass = r.dxAbsLowPass*0.9 + math.Abs(float64(dx))*0.1
+
+		if r.dxAbsLowPass < r.c.MinSpeedKPH {
+			log.Info().Msg("stop recording")
+			r.process()
+			r.reset()
+			return
+		}
+
+		r.record(dx, score, r.prevFrame)
+		return
+	} else {
+		if score >= goodScoreNoMove && iabs(dx) < r.minDx {
+			log.Debug().Msg("not moving")
+			return
+		}
+
+		if score >= goodScoreMove && iabs(dx) >= r.maxDx {
+			log.Info().Msg("start recording")
+			r.record(dx, score, r.prevFrame)
+			r.dxAbsLowPass = math.Abs(float64(dx))
+			return
+		}
+	}
+
+	log.Panic().Msg("inconclusive")
 }
