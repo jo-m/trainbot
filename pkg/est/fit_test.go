@@ -78,6 +78,7 @@ func Test_fitDx_rounding(t *testing.T) {
 
 	res, err := fitDx(genTs(len(testData)), testData)
 	require.NoError(t, err)
+	// TODO: could this be improved?
 	assert.Equal(t,
 		[]int{
 			9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 9, 9, 9, 10,
