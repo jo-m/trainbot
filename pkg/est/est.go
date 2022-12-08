@@ -137,7 +137,7 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 		r.dxAbsLowPass = r.dxAbsLowPass*0.9 + math.Abs(float64(dx))*0.1
 
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
-			log.Info().Msg("stop recording")
+			log.Info().Msg("end of sequence")
 			err := processSequence(r.seq)
 			if err != nil {
 				log.Err(err).Msg("unable to process sequence")
@@ -155,12 +155,12 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 		}
 
 		if score >= goodScoreMove && iabs(dx) >= r.maxDx {
-			log.Info().Msg("start recording")
+			log.Info().Msg("start of new sequence")
 			r.record(dx, score, r.prevFrameColor)
 			r.dxAbsLowPass = math.Abs(float64(dx))
 			return
 		}
 	}
 
-	log.Info().Float64("score", score).Int("dx", dx).Msg("inconclusive frame")
+	log.Debug().Float64("score", score).Int("dx", dx).Msg("inconclusive frame")
 }
