@@ -92,6 +92,6 @@ func main() {
 			log.Panic().Err(err).Send()
 		}
 
-		est.Frame(imutil.ToGray(cropped), *ts)
+		est.Frame(cropped, *ts)
 	}
 }

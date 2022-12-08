@@ -35,8 +35,9 @@ type Estimator struct {
 	c            Config
 	minDx, maxDx int
 
-	prevCount int
-	prevFrame *image.Gray
+	prevCount      int
+	prevFrameColor image.Image
+	prevFrameGray  *image.Gray
 
 	seq          sequence
 	dxAbsLowPass float64
@@ -101,7 +102,7 @@ func (r *Estimator) reset() {
 	r.dxAbsLowPass = 0
 }
 
-func (r *Estimator) record(dx int, score float64, frame *image.Gray) {
+func (r *Estimator) record(dx int, score float64, frame image.Image) {
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.frames = append(r.seq.frames, frame)
 }
@@ -113,20 +114,22 @@ func iabs(i int) int {
 	return i
 }
 
-// will NOT make a copy of the image
-func (r *Estimator) Frame(frame *image.Gray, ts time.Time) {
-	frame = imutil.ToGray(frame)
+// will make a copy of the image
+func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
+	frameColor = imutil.ToRGBA(frameColor)
+	frameGray := imutil.ToGray(frameColor)
 	defer func() {
-		r.prevFrame = frame
+		r.prevFrameColor = frameColor
+		r.prevFrameGray = frameGray
 		r.prevCount++
 	}()
 
-	if r.prevFrame == nil {
+	if r.prevFrameColor == nil {
 		// first time
 		return
 	}
 
-	dx, score := findOffset(r.prevFrame, frame, r.maxDx)
+	dx, score := findOffset(r.prevFrameGray, frameGray, r.maxDx)
 	log.Debug().Int("prevCount", r.prevCount).Int("dx", dx).Float64("score", score).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0
@@ -135,12 +138,15 @@ func (r *Estimator) Frame(frame *image.Gray, ts time.Time) {
 
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
 			log.Info().Msg("stop recording")
-			processSequence(r.seq)
+			err := processSequence(r.seq)
+			if err != nil {
+				log.Err(err).Msg("unable to process sequence")
+			}
 			r.reset()
 			return
 		}
 
-		r.record(dx, score, r.prevFrame)
+		r.record(dx, score, r.prevFrameColor)
 		return
 	} else {
 		if score >= goodScoreNoMove && iabs(dx) < r.minDx {
@@ -150,7 +156,7 @@ func (r *Estimator) Frame(frame *image.Gray, ts time.Time) {
 
 		if score >= goodScoreMove && iabs(dx) >= r.maxDx {
 			log.Info().Msg("start recording")
-			r.record(dx, score, r.prevFrame)
+			r.record(dx, score, r.prevFrameColor)
 			r.dxAbsLowPass = math.Abs(float64(dx))
 			return
 		}
