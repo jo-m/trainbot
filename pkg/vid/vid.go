@@ -2,7 +2,6 @@ package vid
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -16,46 +15,7 @@ import (
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
-func Probe(path string) (fileProbe *FFProbeJSON, vidProbe *FFStream, err error) {
-	data, err := ffmpeg.Probe(path)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	fileProbe = &FFProbeJSON{}
-	err = json.Unmarshal([]byte(data), fileProbe)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	c := 0
-	var stream FFStream
-	for _, s := range fileProbe.Streams {
-		if s.CodecType == "video" {
-			c++
-			stream = s
-		}
-	}
-	if c == 0 {
-		return nil, nil, errors.New("no video stream found in file")
-	}
-	if c > 1 {
-		return nil, nil, errors.New("more than one video stream found in file")
-	}
-
-	return fileProbe, &stream, nil
-}
-
-func ProbeSize(path string) (w, h int, err error) {
-	_, vidProbe, err := Probe(path)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return vidProbe.Width, vidProbe.Height, nil
-}
-
-type Source struct {
+type FileSrc struct {
 	reader  *io.PipeReader
 	writer  *io.PipeWriter
 	w, h    int
@@ -69,6 +29,9 @@ type Source struct {
 	ffmpegErr  error
 	ffmpegLock sync.Mutex
 }
+
+// compile time interface check
+var _ Src = (*FileSrc)(nil)
 
 func parseFPS(fps string) (float64, error) {
 	s := strings.SplitN(fps, "/", 2)
@@ -89,7 +52,7 @@ func parseFPS(fps string) (float64, error) {
 	return a / b, nil
 }
 
-func NewSource(path string, verbose bool) (*Source, error) {
+func NewFileSrc(path string, verbose bool) (*FileSrc, error) {
 	_, vidProbe, err := Probe(path)
 	if err != nil {
 		return nil, err
@@ -105,7 +68,7 @@ func NewSource(path string, verbose bool) (*Source, error) {
 	sz := vidProbe.Width * vidProbe.Height * 4 // TODO: this (4) depends on pixel format
 	buf := make([]byte, sz)
 
-	s := Source{
+	s := FileSrc{
 		reader:  reader,
 		writer:  writer,
 		w:       vidProbe.Width,
@@ -123,7 +86,7 @@ func NewSource(path string, verbose bool) (*Source, error) {
 	return &s, nil
 }
 
-func (s *Source) run(path string) {
+func (s *FileSrc) run(path string) {
 	defer s.writer.Close()
 
 	input := ffmpeg.Input(path).
@@ -161,11 +124,7 @@ func (s *Source) run(path string) {
 	}
 }
 
-// GetFrame retrieves a frame from the video.
-// Note that the underlying image buffer is owned by the video source,
-// it must not be changed by the caller and will be overwritten on the next
-// invocation.
-func (s *Source) GetFrame() (*image.RGBA, *time.Time, error) {
+func (s *FileSrc) GetFrame() (*image.RGBA, *time.Time, error) {
 	s.ffmpegLock.Lock()
 	err := s.ffmpegErr
 	s.ffmpegLock.Unlock()
@@ -190,6 +149,6 @@ func (s *Source) GetFrame() (*image.RGBA, *time.Time, error) {
 	}, &ts, nil
 }
 
-func (s *Source) Close() error {
+func (s *FileSrc) Close() error {
 	return s.writer.Close()
 }

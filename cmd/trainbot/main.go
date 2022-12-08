@@ -104,7 +104,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	src, err := vid.NewSource(c.VideoFile, false)
+	src, err := vid.NewSrc(c.VideoFile)
 	if err != nil {
 		log.Panic().Err(err).Send()
 	}

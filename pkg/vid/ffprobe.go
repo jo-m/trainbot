@@ -1,6 +1,12 @@
 package vid
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"time"
+
+	ffmpeg "github.com/u2takey/ffmpeg-go"
+)
 
 type FFProbeJSON struct {
 	Streams []FFStream `json:"streams"`
@@ -88,4 +94,43 @@ type FFFormat struct {
 	BitRate        string `json:"bit_rate"`
 	ProbeScore     int    `json:"probe_score"`
 	Tags           FFTags `json:"tags"`
+}
+
+func Probe(path string) (fileProbe *FFProbeJSON, vidProbe *FFStream, err error) {
+	data, err := ffmpeg.Probe(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fileProbe = &FFProbeJSON{}
+	err = json.Unmarshal([]byte(data), fileProbe)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	c := 0
+	var stream FFStream
+	for _, s := range fileProbe.Streams {
+		if s.CodecType == "video" {
+			c++
+			stream = s
+		}
+	}
+	if c == 0 {
+		return nil, nil, errors.New("no video stream found in file")
+	}
+	if c > 1 {
+		return nil, nil, errors.New("more than one video stream found in file")
+	}
+
+	return fileProbe, &stream, nil
+}
+
+func ProbeSize(path string) (w, h int, err error) {
+	_, vidProbe, err := Probe(path)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return vidProbe.Width, vidProbe.Height, nil
 }
