@@ -8,6 +8,7 @@
 1. Trains have a given min and max speed.
 1. We are looking at the tracks more or less perpendicularly at the chosen image crop region.
    No camera calibration or geometric correction takes place.
+1. Trains are coming from one direction at a time, crossings are not handled properly.
 
 ## V4L Settings
 
