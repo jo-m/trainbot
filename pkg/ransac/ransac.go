@@ -116,6 +116,10 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 			}
 		}
 
+		if len(xIn) < p.MinInliers {
+			continue
+		}
+
 		// fit inliers
 		params, err = fit.Curve1D(
 			fit.Func1D{
