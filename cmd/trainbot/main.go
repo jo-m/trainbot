@@ -39,7 +39,6 @@ func main() {
 	logging.MustInit(c.LogConfig)
 
 	r := image.Rect(0, 0, int(c.RectW), int(c.RectH)).Add(image.Pt(int(c.RectX), int(c.RectY)))
-	// sz := r.Size().X * r.Size().Y
 	if r.Size().X < 100 || r.Size().Y < 100 {
 		p.Fail("rect is too small")
 	}
