@@ -12,6 +12,9 @@ import (
 	"github.com/aamcrae/webcam"
 )
 
+// Skip that many frames immediately after opening the camera.
+const skipInitialFrames = 10
+
 type CamConfig struct {
 	DeviceFile string `arg:"env:PIC_DEV,--pic-dev" default:"/dev/video3" help:"camera video device file path" placeholder:"DEV"`
 
@@ -21,11 +24,6 @@ type CamConfig struct {
 	//   v4l2-ctl --list-formats-ext --device /dev/video2
 	FormatFourCC           string
 	FrameSizeX, FrameSizeY uint32
-
-	// Skip that many frames immediately after opening the camera.
-	// Some cameras do not return valid data in the first few frames, it might
-	// help increasing this if you get errors decoding frames initially.
-	SkipInitialFrames int
 }
 
 type CamSrc struct {
@@ -37,7 +35,7 @@ type CamSrc struct {
 // compile time interface check
 var _ Src = (*CamSrc)(nil)
 
-// converts a FourCC code to string, e.g. 1448695129 to YUYV
+// fourCCToStr converts a FourCC code to string, e.g. 1448695129 to YUYV.
 func fourCCToStr(f webcam.PixelFormat) (string, error) {
 	i := big.NewInt(int64(uint32(f)))
 	b := i.Bytes()
@@ -75,50 +73,57 @@ func checkFormatAvailable(cam *webcam.Webcam, c CamConfig) (webcam.PixelFormat, 
 	return 0, errors.New("unable to find the requested format and/or frame size on the given device")
 }
 
-func NewCamSrc(c CamConfig) (*CamSrc, error) {
+func NewCamSrc(c CamConfig) (ret *CamSrc, fps float64, err error) {
 	cam, err := webcam.Open(c.DeviceFile)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	format, err := checkFormatAvailable(cam, c)
 	if err != nil {
 		cam.Close()
-		return nil, err
+		return nil, 0, err
 	}
 
 	f, w, h, stride, size, err := cam.SetImageFormat(format, uint32(c.FrameSizeX), uint32(c.FrameSizeY))
 	if err != nil {
 		cam.Close()
-		return nil, err
+		return nil, 0, err
 	}
 	if f != format || w != c.FrameSizeX || h != c.FrameSizeY {
 		cam.Close()
-		return nil, errors.New("was not able to set the desired format and/or frame size")
+		return nil, 0, errors.New("was not able to set the desired format and/or frame size")
 	}
 
 	err = cam.StartStreaming()
 	if err != nil {
 		cam.Close()
-		return nil, err
+		return nil, 0, err
 	}
 
-	ret := &CamSrc{
+	ret = &CamSrc{
 		c:      c,
 		cam:    cam,
 		stride: stride,
 		size:   size,
 	}
 
-	for i := 0; i < c.SkipInitialFrames; i++ {
+	// We now skip some initial frames, because
+	// 1. We need some (mediocre) way to estimate FPS.
+	// 2. Some cameras will return garbage in the first frame(s), so let's skip over that.
+	// Initially, we retrieve a frame without measuring time because the camera takes a bit to spin up.
+	ret.getFrame()
+	t0 := time.Now()
+	for i := 0; i < skipInitialFrames; i++ {
 		_, _, err := ret.getFrame()
 		if err != nil {
 			cam.Close()
-			return nil, err
+			return nil, 0, err
 		}
 	}
+	fps = float64(skipInitialFrames) / time.Since(t0).Seconds()
 
-	return ret, nil
+	return ret, fps, nil
 }
 
 func (s *CamSrc) getFrame() ([]byte, *time.Time, error) {
