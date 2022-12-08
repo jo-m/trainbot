@@ -6,6 +6,8 @@
 1. The image is stable and does not move around.
 1. There are no large fast brightness changes. TODO: fix.
 1. Trains have a given min and max speed.
+1. We are looking at the tracks more or less perpendicularly at the chosen image crop region.
+   No camera calibration or geometric correction takes place.
 
 ## V4L Settings
 
