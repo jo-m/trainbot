@@ -1,6 +1,7 @@
 package vid
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
@@ -132,7 +134,23 @@ func (s *Source) run(path string) {
 			}).
 		WithOutput(s.writer)
 	if s.verbose {
-		input = input.ErrorToStdOut()
+		logReader, logWriter := io.Pipe()
+		input.WithErrorOutput(logWriter)
+
+		go func() {
+			defer logReader.Close()
+			defer logWriter.Close()
+
+			input := bufio.NewReaderSize(logReader, 1024)
+			for {
+				line, _, err := input.ReadLine()
+				if err != nil {
+					log.Info().Err(err).Msg("ffmpeg stderr reader terminated")
+				}
+
+				log.Info().Str("line", string(line)).Msg("ffmpeg output")
+			}
+		}()
 	}
 
 	err := input.Run()
