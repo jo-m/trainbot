@@ -116,7 +116,7 @@ func main() {
 		}
 		if err != nil {
 			failedFrames++
-			log.Warn().Err(err).Send()
+			log.Warn().Err(err).Int("failedFrames", failedFrames).Msg("failed to retrieve frame")
 			if failedFrames >= failedFramesMax {
 				log.Panic().Msg("retrieving frames failed too many times, exiting")
 			}
