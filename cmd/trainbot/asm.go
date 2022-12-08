@@ -12,7 +12,7 @@ import (
 const magicBad = 0xDEADBEEF
 
 type estimatorConfig struct {
-	PixelsPerM  float32 `arg:"--px-per-m" default:"50" help:"Pixels per meter, can be reconstructed from sleepers"`
+	PixelsPerM  float32 `arg:"--px-per-m" default:"50" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)"`
 	MinSpeedKPH float32 `arg:"--min-speed-kph" default:"10" help:"Assumed train min speed, km/h"`
 	MaxSpeedKPH float32 `arg:"--max-speed-kph" default:"120" help:"Assumed train max speed, km/h"`
 
