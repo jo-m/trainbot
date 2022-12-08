@@ -10,23 +10,31 @@ compare:
 	go test -v -bench='SearchGray|SearchGrayOpt' ./...
 
 run_videofile:
-	# go tool pprof trainbot prof.gz
+	# go tool pprof trainbot prof-cpu.gz
+	# go tool pprof trainbot prof-heap-XX.gz
 	go build -o trainbot ./cmd/trainbot/
 	./trainbot \
 		--log-pretty \
-		-X 800 -Y 450 -W 300 -H 300 \
-		--cpu-profile prof.gz \
-		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4"
+		--cpu-profile \
+		--heap-profile \
+		\
+		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
+		-X 800 -Y 450 -W 300 -H 300
 
 run_camera:
+	# go tool pprof trainbot prof-cpu.gz
+	# go tool pprof trainbot prof-heap-XX.gz
 	go build -o trainbot ./cmd/trainbot/
 	./trainbot \
 		--log-pretty \
-		-X 800 -Y 590 -W 300 -H 350 \
+		--cpu-profile \
+		--heap-profile \
+		\
 		--camera-device /dev/video2 \
 		--format-fourcc MJPG \
 		--framesz-w 1920 \
-		--framesz-h 1080
+		--framesz-h 1080 \
+		-X 800 -Y 590 -W 300 -H 350
 
 format:
 	cd pkg/pmatch && clang-format -i -style=Google *.h *.c
@@ -42,6 +50,6 @@ check: lint test
 
 clean:
 	rm -f trainbot
-	rm -f prof.gz
+	rm -f prof-*.gz
 	rm -rf imgs
 	mkdir -p imgs

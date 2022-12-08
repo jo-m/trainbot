@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"io"
 	"os"
@@ -36,13 +37,18 @@ type config struct {
 
 	RecBasePath string `arg:"--rec-base-path" help:"Base path to store recordings" default:"imgs"`
 
-	CPUProfile string `arg:"--cpu-profile" help:"Write CPU profile to this file"`
+	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
+	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
 }
 
 const (
-	rectSizeMin     = 100
-	rectSizeMax     = 400
+	rectSizeMin = 100
+	rectSizeMax = 400
+
 	failedFramesMax = 50
+
+	profCPUFile  = "prof-cpu.gz"
+	profHeapFile = "prof-heap-%05d.gz"
 )
 
 func main() {
@@ -67,9 +73,9 @@ func main() {
 
 	log.Info().Msg("starting")
 
-	if c.CPUProfile != "" {
-		log.Info().Str("file", c.CPUProfile).Msg("writing profile")
-		f, err := os.Create(c.CPUProfile)
+	if c.CPUProfile {
+		log.Info().Str("file", profCPUFile).Msg("writing CPU profile")
+		f, err := os.Create(profCPUFile)
 		if err != nil {
 			log.Panic().Err(err).Msg("failed to create CPU profile file")
 		}
@@ -129,5 +135,20 @@ func main() {
 		}
 
 		est.Frame(cropped, *ts)
+
+		if c.HeapProfile && i%1000 == 0 {
+			fname := fmt.Sprintf(profHeapFile, i)
+			f, err := os.Create(fname)
+			if err != nil {
+				log.Err(err).Str("file", fname).Msg("failed to open heap profile file")
+				continue
+			}
+			log.Info().Str("file", fname).Msg("writing heap profile")
+			err = pprof.WriteHeapProfile(f)
+			if err != nil {
+				log.Err(err).Str("file", fname).Msg("failed to write heap profile")
+			}
+			f.Close()
+		}
 	}
 }
