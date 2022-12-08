@@ -19,7 +19,16 @@ type sequence struct {
 	frames []image.Image
 }
 
-// allowed to remove trailing values from dx, but not values from the beginnign
+func (s sequence) reversed() sequence {
+	ret := sequence{}
+	for i, dx := range s.dx {
+		ret.dx = append(ret.dx, -dx)
+		ret.frames = append(ret.frames, s.frames[len(s.frames)-i-1])
+	}
+	return ret
+}
+
+// allowed to remove trailing values from dx, but not values from the beginning
 func cleanupDx(dx []int) ([]int, error) {
 	if len(dx) < 10 {
 		return nil, errors.New("len(x) must be >= 10")
@@ -41,30 +50,57 @@ func cleanupDx(dx []int) ([]int, error) {
 	return dxFit, nil
 }
 
-func assemble(seq sequence) (*image.RGBA, error) {
-	// calculate base width
-	sz := seq.frames[0].Bounds().Size()
-	w := sz.X
-	h := sz.Y
-	for _, x := range seq.dx[1:] {
-		w += iabs(x)
+func isign(x int) int {
+	if x > 0 {
+		return 1
 	}
+	if x < 0 {
+		return -1
+	}
+	return 0
+}
 
+func assemble(seq sequence) (*image.RGBA, error) {
+	fsz := seq.frames[0].Bounds().Size()
 	for _, f := range seq.frames {
 		if f.Bounds().Min.X != 0 ||
 			f.Bounds().Min.Y != 0 ||
-			f.Bounds().Size() != sz {
+			f.Bounds().Size() != fsz {
 			return nil, errors.New("frame bounds or size not consistent")
 		}
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	// calculate base width
+	sign := isign(seq.dx[0])
+	w := fsz.X * sign
+	h := fsz.Y
+	for _, x := range seq.dx[1:] {
+		if isign(x) != sign {
+			return nil, errors.New("dx elements do not have consistent sign")
+		}
+		w += x
+	}
 
-	// TODO: make work the other way around
-	sum := 0
-	for i, f := range seq.frames {
-		draw.Draw(img, f.Bounds().Add(image.Pt(sum, 0)), f, f.Bounds().Min, draw.Src)
-		sum += seq.dx[i]
+	fmt.Println(w, seq.dx)
+
+	img := image.NewRGBA(image.Rect(0, 0, iabs(w), h))
+
+	// forward
+	if w > 0 {
+		pos := 0
+		for i, f := range seq.frames {
+			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
+			pos += seq.dx[i]
+		}
+	} else {
+		// backwards
+		pos := -w - fsz.X
+		fmt.Println(w, fsz.X)
+		for i, f := range seq.frames {
+			fmt.Println(pos, f.Bounds())
+			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
+			pos += seq.dx[i]
+		}
 	}
 
 	return img, nil
@@ -99,8 +135,14 @@ func processSequence(seq sequence) error {
 	if err != nil {
 		return fmt.Errorf("unable to assemble image: %w", err)
 	}
-
 	imutil.Dump("imgs/_assembled.png", img) // TODO
+
+	// TODO: remove
+	img, err = assemble(seq.reversed())
+	if err != nil {
+		return fmt.Errorf("unable to assemble image: %w", err)
+	}
+	imutil.Dump("imgs/_assembled_rev.png", img) // TODO
 
 	return nil
 }
