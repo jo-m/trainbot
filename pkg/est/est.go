@@ -43,7 +43,7 @@ type Estimator struct {
 	// dx[i] is the assumed offset between frames[i] and frames[i+1].
 	// scores[i] is the score of that assumed offset.
 	dx           []int
-	scores       []float64
+	scores       []float64 // TODO: maybe remove
 	frames       []image.Image
 	dxAbsLowPass float64
 }
@@ -106,6 +106,7 @@ func (r *Estimator) reset() {
 	r.dx = nil
 	r.scores = nil
 	r.frames = nil
+	r.dxAbsLowPass = 0
 }
 
 func (r *Estimator) record(dx int, score float64, frame *image.Gray) {
@@ -124,7 +125,14 @@ func iabs(i int) int {
 }
 
 func (r *Estimator) process() {
-	panic("not implemented")
+	fmt.Println(r.dx)
+	fmt.Println(r.scores)
+	dx, err := cleanupDx(r.dx)
+	if err != nil {
+		log.Panic().Err(err).Send() // TODO: handle properly
+	}
+
+	fmt.Println(dx) // TODO: assemble
 }
 
 // will NOT make a copy of the image
