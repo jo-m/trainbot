@@ -3,9 +3,10 @@ package imutil
 import (
 	"errors"
 	"image"
-	_ "image/jpeg"
+	"image/jpeg"
 	"image/png"
 	"os"
+	"strings"
 )
 
 func Load(path string) (image.Image, error) {
@@ -30,7 +31,15 @@ func Dump(path string, img image.Image) error {
 	}
 	defer f.Close()
 
-	return png.Encode(f, img)
+	if strings.HasSuffix(path, ".png") {
+		return png.Encode(f, img)
+	}
+
+	if strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".jpeg") {
+		return jpeg.Encode(f, img, &jpeg.Options{Quality: 90})
+	}
+
+	return errors.New("unknown image suffix")
 }
 
 func Sub(img image.Image, r image.Rectangle) (image.Image, error) {
