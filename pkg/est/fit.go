@@ -1,7 +1,6 @@
 package est
 
 import (
-	"errors"
 	"math"
 
 	"github.com/jo-m/trainbot/pkg/ransac"
@@ -21,6 +20,7 @@ func sign(x float64) float64 {
 	return 0
 }
 
+// the resulting slice must have same length as the input
 func fitDx(dx []int) ([]int, error) {
 	n := len(dx)
 	// convert x to float and generate y values
@@ -60,25 +60,4 @@ func fitDx(dx []int) ([]int, error) {
 	}
 
 	return xfit, nil
-}
-
-func cleanupDx(dx []int) ([]int, error) {
-	if len(dx) < 10 {
-		return nil, errors.New("len(x) must be >= 10")
-	}
-	if dx[0] == 0 {
-		return nil, errors.New("first dx value cannot be 0")
-	}
-
-	// remove trailing zeros
-	for dx[len(dx)-1] == 0 {
-		dx = dx[:len(dx)-1]
-	}
-
-	dxFit, err := fitDx(dx)
-	if err != nil {
-		return nil, err
-	}
-
-	return dxFit, nil
 }
