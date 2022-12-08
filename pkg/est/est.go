@@ -58,7 +58,7 @@ func NewEstimator(c Config) *Estimator {
 
 func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	if prev.Rect.Size() != curr.Rect.Size() {
-		panic("inconsistent size, this should not happen")
+		log.Panic().Msg("inconsistent size, this should not happen")
 	}
 
 	// centered crop from prev frame,
@@ -75,7 +75,7 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 		)
 	sub, err := imutil.Sub(prev, subRect)
 	if err != nil {
-		log.Panic().Err(err).Send()
+		log.Panic().Err(err).Msg("this should not happen")
 	}
 
 	// centered slice crop from next frame,
@@ -91,7 +91,7 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 
 	slice, err := imutil.Sub(curr, sliceRect)
 	if err != nil {
-		log.Panic().Err(err).Send()
+		log.Panic().Err(err).Msg("this should not happen")
 	}
 
 	// we expect this x value found by search
@@ -178,5 +178,5 @@ func (r *Estimator) Frame(frame *image.Gray, ts time.Time) {
 		}
 	}
 
-	log.Panic().Msg("inconclusive")
+	log.Panic().Msg("inconclusive") // TODO
 }
