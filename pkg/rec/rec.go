@@ -27,7 +27,8 @@ type frameMeta struct {
 type AutoRec struct {
 	basePath string
 
-	count     int
+	prevCount int
+	prevTs    time.Time
 	prevFrame *image.RGBA
 	avgScore  float64
 
@@ -73,16 +74,16 @@ func (r *AutoRec) finalize(ts time.Time) error {
 	return nil
 }
 
-func (r *AutoRec) record(frame image.Image, ts time.Time) error {
+func (r *AutoRec) record(prevFrame image.Image, prevTs time.Time) error {
 	meta := frameMeta{
-		Number:   r.count,
-		TimeUTC:  ts,
-		FileName: fmt.Sprintf("frame_%06d.jpg", r.count),
+		Number:   r.prevCount,
+		TimeUTC:  prevTs,
+		FileName: fmt.Sprintf("frame_%06d.jpg", r.prevCount),
 	}
 	r.currentFrames = append(r.currentFrames, meta)
 
 	log.Debug().Str("fileName", meta.FileName).Msg("dumping frame")
-	err := imutil.Dump(path.Join(r.currentPath, meta.FileName), frame)
+	err := imutil.Dump(path.Join(r.currentPath, meta.FileName), prevFrame)
 	if err != nil {
 		log.Err(err).Send()
 		return err
@@ -95,8 +96,9 @@ func (r *AutoRec) Frame(frame image.Image, ts time.Time) error {
 	// create copy
 	frameCopy := imutil.ToRGBA(frame)
 	defer func() {
+		r.prevTs = ts
 		r.prevFrame = frameCopy
-		r.count++
+		r.prevCount++
 	}()
 
 	if r.prevFrame == nil {
@@ -125,7 +127,7 @@ func (r *AutoRec) Frame(frame image.Image, ts time.Time) error {
 			}
 		}
 
-		err := r.record(frame, ts)
+		err := r.record(r.prevFrame, r.prevTs)
 		if err != nil {
 			return err
 		}
