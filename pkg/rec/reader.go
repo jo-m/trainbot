@@ -58,4 +58,10 @@ func (r *Reader) GetFrame() (image.Image, *time.Time, error) {
 	return img, &meta.TimeUTC, nil
 }
 
+// GetFPS implements Src.
+func (r *Reader) GetFPS() float64 {
+	n := len(r.meta)
+	return float64(n) / r.meta[n-1].TimeUTC.Sub(r.meta[0].TimeUTC).Seconds()
+}
+
 func (r *Reader) Close() error { return nil }

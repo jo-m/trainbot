@@ -2,25 +2,20 @@ package vid
 
 import (
 	"image"
-	"strings"
 	"time"
 )
 
+// Src describes a frame source.
 type Src interface {
 	// GetFrame retrieves the next frame.
 	// Note that the underlying image buffer remains owned by the video source,
-	// it must not be changed by the caller and will be overwritten on the next
+	// it must not be changed by the caller and might be overwritten on the next
 	// invocation.
 	// Returns io.EOF after the last frame, after which Close() should be called
 	// on the instance before discarding it.
 	GetFrame() (image.Image, *time.Time, error)
+	// GetFPS returns the current frame rate of this source.
+	GetFPS() float64
+	// Close closes the frame source and frees resources.
 	Close() error
-}
-
-func NewSrc(path string) (src Src, fps float64, err error) {
-	if strings.HasPrefix(path, "/dev/video") {
-		panic("not implemented") // TODO
-	}
-
-	return NewFileSrc(path, false)
 }

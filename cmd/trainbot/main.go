@@ -59,7 +59,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	src, fps, err := vid.NewSrc(c.VideoFile)
+	src, err := vid.NewFileSrc(c.VideoFile, false)
 	if err != nil {
 		log.Panic().Err(err).Send()
 	}
@@ -70,7 +70,7 @@ func main() {
 		MinSpeedKPH: c.MinSpeedKPH,
 		MaxSpeedKPH: c.MinSpeedKPH,
 
-		VideoFPS: fps,
+		VideoFPS: src.GetFPS(),
 	})
 
 	for i := 0; ; i++ {
