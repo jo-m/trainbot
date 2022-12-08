@@ -2,12 +2,23 @@ package est
 
 import (
 	"errors"
+	"math"
 
 	"github.com/jo-m/trainbot/pkg/ransac"
 )
 
 func poly(x float64, ps []float64) float64 {
 	return ps[0] + ps[1]*x*x
+}
+
+func sign(x float64) float64 {
+	if x > 0 {
+		return 1
+	}
+	if x < 0 {
+		return -1
+	}
+	return 0
 }
 
 func fitDx(dx []int) ([]int, error) {
@@ -33,10 +44,19 @@ func fitDx(dx []int) ([]int, error) {
 		return nil, err
 	}
 
-	// TODO: adjust cumsum
+	var roundErr float64 // sum of values we have wrongly rounded away
 	xfit := make([]int, n)
 	for i, y := range yf {
-		xfit[i] = int(poly(y, fit.X))
+		x := poly(y, fit.X)
+		xRound := math.Round(x)
+		roundErr += x - xRound
+
+		if math.Abs(roundErr) >= 1 {
+			xRound += roundErr
+			roundErr -= sign(roundErr)
+		}
+
+		xfit[i] = int(xRound)
 	}
 
 	return xfit, nil

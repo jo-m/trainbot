@@ -1,15 +1,13 @@
 package est
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// go test -count 1 -v -race -timeout 30s -run Test_Ransac github.com/jo-m/trainbot/pkg/est
-
-func Test_cleanupDx(t *testing.T) {
+func Test_cleanupDx_simple(t *testing.T) {
 	testData := []int{
 		34, 34, 34, 34, 34, 26, 0, 34, 1, 1, 0, 0, 20, 0, 34, 34, 34, 34, 25, 34, 34,
 		34, 34, 34, 34, 34, 34, 34, 22, 0, 34, 34, 28, 34, 34, 26, 27, 34, 34, 34, 34,
@@ -21,6 +19,61 @@ func Test_cleanupDx(t *testing.T) {
 
 	clean, err := cleanupDx(testData)
 	require.NoError(t, err)
-	fmt.Println(clean)
-	// TODO: check results
+	assert.Equal(t, 119, len(clean), "nonzero values")
+	assert.Equal(t, 34, clean[10])
+}
+
+func Test_cleanupDx_negative(t *testing.T) {
+	testData := []int{
+		-9, -9, -9, -9, -9, -9, -9, -9, -9, -9,
+		-10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+	}
+
+	clean, err := cleanupDx(testData)
+	require.NoError(t, err)
+	assert.Equal(t, 20, len(clean))
+	assert.Equal(t, -9, clean[5])
+	assert.Equal(t, -10, clean[len(clean)-5])
+}
+
+func Test_cleanupDx_rounding(t *testing.T) {
+	testData := []int{
+		9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+		10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+	}
+
+	clean, err := cleanupDx(testData)
+	require.NoError(t, err)
+	assert.Equal(t,
+		[]int{
+			9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 9, 10,
+			9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11,
+		},
+		clean,
+	)
+}
+
+func Test_cleanupDx_rounding_negative(t *testing.T) {
+	testData := []int{
+		-9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9,
+		-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+	}
+
+	clean, err := cleanupDx(testData)
+	require.NoError(t, err)
+	assert.Equal(t,
+		[]int{
+			-9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -10, -9,
+			-10, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -11, -11,
+		},
+		clean,
+	)
+}
+
+func Test_cleanupDx_errs(t *testing.T) {
+	_, err := cleanupDx([]int{0, 1, 1, 1, 1, 1, 1, 1, 1, 1})
+	assert.Error(t, err)
+
+	_, err = cleanupDx([]int{1, 1, 1, 1, 1, 1, 1, 1})
+	assert.Error(t, err)
 }
