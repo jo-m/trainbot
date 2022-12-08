@@ -10,6 +10,7 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
 	"github.com/jo-m/trainbot/pkg/pmatch"
+	"github.com/jo-m/trainbot/pkg/rec"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
 )
@@ -24,6 +25,8 @@ type config struct {
 	RectY uint `arg:"-Y" help:"Rect to look at, y (top)"`
 	RectW uint `arg:"-W" help:"Rect to look at, width"`
 	RectH uint `arg:"-H" help:"Rect to look at, height"`
+
+	RecBasePath string `arg:"--rec-base-path" help:"Base path to store recordings" default:"imgs"`
 
 	estimatorConfig
 }
@@ -106,10 +109,11 @@ func main() {
 		log.Panic().Err(err).Send()
 	}
 
+	rec := rec.NewAutoRec(c.RecBasePath)
 	e := newEstimator(c.estimatorConfig)
 	var prevGray *image.Gray
 	for i := 0; ; i++ {
-		frame, _, err := src.GetFrame()
+		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
 			break
 		}
@@ -118,8 +122,12 @@ func main() {
 		}
 
 		cropped := frame.SubImage(r)
-		gray := imutil.ToGray(cropped)
+		err = rec.Frame(cropped, *ts)
+		if err != nil {
+			log.Panic().Err(err).Send()
+		}
 
+		gray := imutil.ToGray(cropped)
 		if prevGray != nil {
 			good, dx := findOffset(prevGray, gray, c.maxPxPerFrame())
 			e.Frame(cropped, good, dx)
