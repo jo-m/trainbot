@@ -18,31 +18,50 @@ import (
 type config struct {
 	logging.LogConfig
 
-	VideoFile  string `arg:"--video-file" help:"Video file"`
-	CPUProfile string `arg:"--cpu-profile" help:"Write CPU profile to this file"`
+	VideoFile string `arg:"--video-file" help:"Video file, e.g. video.mp4"`
+
+	CameraDevice       string `arg:"--camera-device" help:"Video4linux device file, e.g. /dev/video0"`
+	CameraFormatFourCC string `arg:"--format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
+	CameraFrameSizeW   int    `arg:"--framesz-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
+	CameraFrameSizeH   int    `arg:"--framesz-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
 
 	RectX uint `arg:"-X" help:"Rect to look at, x (left)"`
 	RectY uint `arg:"-Y" help:"Rect to look at, y (top)"`
 	RectW uint `arg:"-W" help:"Rect to look at, width"`
 	RectH uint `arg:"-H" help:"Rect to look at, height"`
 
-	RecBasePath string `arg:"--rec-base-path" help:"Base path to store recordings" default:"imgs"`
-
 	PixelsPerM  float64 `arg:"--px-per-m" default:"50" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)"`
 	MinSpeedKPH float64 `arg:"--min-speed-kph" default:"10" help:"Assumed train min speed, km/h"`
 	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"120" help:"Assumed train max speed, km/h"`
+
+	RecBasePath string `arg:"--rec-base-path" help:"Base path to store recordings" default:"imgs"`
+
+	CPUProfile string `arg:"--cpu-profile" help:"Write CPU profile to this file"`
 }
+
+const (
+	rectSizeMin     = 100
+	rectSizeMax     = 400
+	failedFramesMax = 50
+)
 
 func main() {
 	c := config{}
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
 
+	if c.CameraDevice == "" && c.VideoFile == "" {
+		p.Fail("no camera device and no video file passed")
+	}
+	if c.CameraDevice != "" && c.VideoFile != "" {
+		p.Fail("cannot pass both camera device and video file")
+	}
+
 	r := image.Rect(0, 0, int(c.RectW), int(c.RectH)).Add(image.Pt(int(c.RectX), int(c.RectY)))
-	if r.Size().X < 100 || r.Size().Y < 100 {
+	if r.Size().X < rectSizeMin || r.Size().Y < rectSizeMin {
 		p.Fail("rect is too small")
 	}
-	if r.Size().X > 300 || r.Size().Y > 300 {
+	if r.Size().X > rectSizeMax || r.Size().Y > rectSizeMax {
 		p.Fail("rect is too large")
 	}
 
@@ -58,9 +77,19 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	src, err := vid.NewFileSrc(c.VideoFile, false)
+	var src vid.Src
+	var err error
+	if c.CameraDevice != "" {
+		src, err = vid.NewCamSrc(vid.CamConfig{
+			DeviceFile: c.CameraDevice,
+			Format:     vid.FourCC(c.CameraFormatFourCC),
+			FrameSize:  image.Point{c.CameraFrameSizeW, c.CameraFrameSizeH},
+		})
+	} else {
+		src, err = vid.NewFileSrc(c.VideoFile, false)
+	}
 	if err != nil {
-		log.Panic().Err(err).Send()
+		log.Panic().Err(err).Str("path", c.CameraDevice+c.VideoFile).Msg("failed to open video source")
 	}
 
 	rec := rec.NewAutoRec(c.RecBasePath)
@@ -72,13 +101,21 @@ func main() {
 		VideoFPS: src.GetFPS(),
 	})
 
+	failedFrames := 0
 	for i := 0; ; i++ {
 		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
+			log.Info().Msg("no more frames")
 			break
 		}
 		if err != nil {
-			log.Panic().Err(err).Send()
+			failedFrames++
+			log.Warn().Err(err).Send()
+			if failedFrames >= failedFramesMax {
+				log.Panic().Msg("retrieving frames failed too many times, exiting")
+			}
+		} else {
+			failedFrames = 0
 		}
 
 		cropped, err := imutil.Sub(frame, r)
