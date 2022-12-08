@@ -78,8 +78,9 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 	src := rand.NewSource(p.Seed)
 	rnd := rand.New(src)
 
-	var bestFit optimize.Location
-	bestErr := math.MaxFloat64
+	bestFit := optimize.Location{
+		F: math.MaxFloat64,
+	}
 
 	// iter
 	// TODO: parallelize?
@@ -107,7 +108,7 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 		xIn, yIn := []float64{}, []float64{}
 		for j := range x {
 			// apply model
-			yModel := model(x[j], params.Location.X)
+			yModel := model(x[j], params.X)
 			// in inlier?
 			if math.Abs(yModel-y[j]) < p.InlierThreshold {
 				xIn = append(xIn, x[j])
@@ -132,16 +133,15 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 		// TODO: check status?
 
 		// Plot(
-		// 	fmt.Sprintf("~/Desktop/fit_%03d_%f.png", i, params.Location.F),
-		// 	xIn, yIn, params.Location.X, model, "f(x) = a + b*x*x")
+		// 	fmt.Sprintf("~/Desktop/fit_%03d_%f.png", i, params.F),
+		// 	xIn, yIn, params.X, model, "f(x) = a + b*x*x")
 
-		if params.Location.F < bestErr {
+		if params.F < bestFit.F {
 			bestFit = params.Location
-			bestErr = params.Location.F
 		}
 	}
 
-	if bestErr == math.MaxFloat64 {
+	if bestFit.F == math.MaxFloat64 {
 		return nil, errors.New("RANSAC unsuccessful")
 	}
 
