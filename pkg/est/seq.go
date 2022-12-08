@@ -144,7 +144,7 @@ func processSequence(seq sequence) error {
 	if err != nil {
 		return fmt.Errorf("unable to assemble image: %w", err)
 	}
-	imutil.Dump("imgs/_assembled.png", img) // TODO
+	imutil.Dump(fmt.Sprintf("imgs/assembled_%s.jpg", seq.ts[0].Format("20060102_150405.999_Z07:00")), img) // TODO
 
 	return nil
 }
