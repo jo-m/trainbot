@@ -14,7 +14,7 @@ run:
 	go build -o trainbot ./cmd/trainbot/
 	./trainbot \
 		--log-pretty \
-		-X 800 -Y 475 -W 300 -H 275 \
+		-X 800 -Y 450 -W 300 -H 300 \
 		--cpu-profile prof.gz \
 		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4"
 
