@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"io"
 	"os"
@@ -15,20 +14,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	// ixels per meter on input image, reconstructed from sleepers
-	pixelsPerM = 50
-	// train min speed, m/s
-	minSpeedMs = 10. * 1000 / 3600
-	// train max speed, m/s
-	maxSpeedMs = 120. * 1000 / 3600
-
-	fps = 30
-
-	minPxPerFrame = minSpeedMs * pixelsPerM / fps
-	maxPxPerFrame = maxSpeedMs * pixelsPerM / fps
-)
-
 type config struct {
 	logging.LogConfig
 
@@ -39,23 +24,26 @@ type config struct {
 	RectY uint `arg:"-Y" help:"Rect to look at, y (top)"`
 	RectW uint `arg:"-W" help:"Rect to look at, width"`
 	RectH uint `arg:"-H" help:"Rect to look at, height"`
+
+	estimatorConfig
 }
 
-func findOffset(prev, curr *image.Gray) (goodEstimate bool, dx int) {
+// TODO: move into estimator
+func findOffset(prev, curr *image.Gray, maxDx int) (goodEstimate bool, dx int) {
 	if prev.Rect.Size() != curr.Rect.Size() {
 		panic("inconsistent size")
 	}
 
 	// centered crop from prev frame,
 	// width is 3x max pixels per frame given by max velocity
-	w := float64(maxPxPerFrame)*3 + 1
+	w := maxDx * 3
 	// and 3/4 of frame height
-	h := float64(prev.Rect.Dy())*3/4 + 1
-	subRect := image.Rect(0, 0, int(w), int(h)).
+	h := int(float64(prev.Rect.Dy())*3/4 + 1)
+	subRect := image.Rect(0, 0, w, h).
 		Add(curr.Rect.Min).
 		Add(
 			curr.Rect.Size().
-				Sub(image.Pt(int(w), int(h))).
+				Sub(image.Pt(int(w), h)).
 				Div(2),
 		)
 	sub, err := imutil.Sub(prev, subRect)
@@ -66,12 +54,11 @@ func findOffset(prev, curr *image.Gray) (goodEstimate bool, dx int) {
 	// centered slice crop from next frame,
 	// width is 1x max pixels per frame given by max velocity
 	// and 3/4 of frame height
-	w = float64(maxPxPerFrame) + 1
-	sliceRect := image.Rect(0, 0, int(w), int(h)).
+	sliceRect := image.Rect(0, 0, maxDx, h).
 		Add(curr.Rect.Min).
 		Add(
 			curr.Rect.Size().
-				Sub(image.Pt(int(w), int(h))).
+				Sub(image.Pt(w, h)).
 				Div(2),
 		)
 
@@ -119,6 +106,7 @@ func main() {
 		log.Panic().Err(err).Send()
 	}
 
+	e := newEstimator(c.estimatorConfig)
 	var prevGray *image.Gray
 	for i := 0; ; i++ {
 		frame, err := src.GetFrame()
@@ -133,12 +121,8 @@ func main() {
 		gray := imutil.ToGray(cropped)
 
 		if prevGray != nil {
-			good, dx := findOffset(prevGray, gray)
-
-			if good && dx > 2 {
-				fmt.Println("Speed [px]:", dx)
-				imutil.Dump(fmt.Sprintf("imgs/img_%06d.png", i), gray)
-			}
+			good, dx := findOffset(prevGray, gray, c.maxPxPerFrame())
+			e.Frame(cropped, good, dx)
 		}
 
 		prevGray = gray
