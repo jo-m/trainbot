@@ -1,0 +1,146 @@
+package main
+
+import (
+	"fmt"
+	"image"
+	"io"
+	"os"
+	"runtime/pprof"
+
+	"github.com/alexflint/go-arg"
+	"github.com/jo-m/trainbot/internal/pkg/imutil"
+	"github.com/jo-m/trainbot/internal/pkg/logging"
+	"github.com/jo-m/trainbot/pkg/pmatch"
+	"github.com/jo-m/trainbot/pkg/vid"
+	"github.com/rs/zerolog/log"
+)
+
+const (
+	// ixels per meter on input image, reconstructed from sleepers
+	pixelsPerM = 50
+	// train min speed, m/s
+	minSpeedMs = 10. * 1000 / 3600
+	// train max speed, m/s
+	maxSpeedMs = 120. * 1000 / 3600
+
+	fps = 30
+
+	minPxPerFrame = minSpeedMs * pixelsPerM / fps
+	maxPxPerFrame = maxSpeedMs * pixelsPerM / fps
+)
+
+type config struct {
+	logging.LogConfig
+
+	VideoFile  string `arg:"--video-file" help:"Video file"`
+	CPUProfile string `arg:"--cpu-profile" help:"Write CPU profile to this file"`
+
+	RectX uint `arg:"-X" help:"Rect to look at, x (left)"`
+	RectY uint `arg:"-Y" help:"Rect to look at, y (top)"`
+	RectW uint `arg:"-W" help:"Rect to look at, width"`
+	RectH uint `arg:"-H" help:"Rect to look at, height"`
+}
+
+func findOffset(prev, curr *image.Gray) (goodEstimate bool, dx int) {
+	if prev.Rect.Size() != curr.Rect.Size() {
+		panic("inconsistent size")
+	}
+
+	// centered crop from prev frame,
+	// width is 3x max pixels per frame given by max velocity
+	w := float64(maxPxPerFrame)*3 + 1
+	// and 3/4 of frame height
+	h := float64(prev.Rect.Dy())*3/4 + 1
+	subRect := image.Rect(0, 0, int(w), int(h)).
+		Add(curr.Rect.Min).
+		Add(
+			curr.Rect.Size().
+				Sub(image.Pt(int(w), int(h))).
+				Div(2),
+		)
+	sub, err := imutil.Sub(prev, subRect)
+	if err != nil {
+		log.Panic().Err(err).Send()
+	}
+
+	// centered slice crop from next frame,
+	// width is 1x max pixels per frame given by max velocity
+	// and 3/4 of frame height
+	w = float64(maxPxPerFrame) + 1
+	sliceRect := image.Rect(0, 0, int(w), int(h)).
+		Add(curr.Rect.Min).
+		Add(
+			curr.Rect.Size().
+				Sub(image.Pt(int(w), int(h))).
+				Div(2),
+		)
+
+	slice, err := imutil.Sub(curr, sliceRect)
+	if err != nil {
+		log.Panic().Err(err).Send()
+	}
+
+	// we expect this x value found by search
+	// if nothing has moved
+	xZero := sliceRect.Min.Sub(subRect.Min).X
+
+	x, _, score := pmatch.SearchGrayC(sub.(*image.Gray), slice.(*image.Gray))
+	return score > 0.95, x - xZero
+}
+
+func main() {
+	c := config{}
+	p := arg.MustParse(&c)
+	logging.MustInit(c.LogConfig)
+
+	r := image.Rect(0, 0, int(c.RectW), int(c.RectH)).Add(image.Pt(int(c.RectX), int(c.RectY)))
+	// sz := r.Size().X * r.Size().Y
+	if r.Size().X < 100 || r.Size().Y < 100 {
+		p.Fail("rect is too small")
+	}
+	if r.Size().X > 300 || r.Size().Y > 300 {
+		p.Fail("rect is too large")
+	}
+
+	log.Info().Msg("starting")
+
+	if c.CPUProfile != "" {
+		log.Info().Str("file", c.CPUProfile).Msg("writing profile")
+		f, err := os.Create(c.CPUProfile)
+		if err != nil {
+			log.Panic().Err(err).Send()
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	src, err := vid.NewSource(c.VideoFile)
+	if err != nil {
+		log.Panic().Err(err).Send()
+	}
+
+	var prevGray *image.Gray
+	for i := 0; ; i++ {
+		frame, err := src.GetFrame()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Panic().Err(err).Send()
+		}
+
+		cropped := frame.SubImage(r)
+		gray := imutil.ToGray(cropped)
+
+		if prevGray != nil {
+			good, dx := findOffset(prevGray, gray)
+
+			if good && dx > 2 {
+				fmt.Println("Speed [px]:", dx)
+				imutil.Dump(fmt.Sprintf("imgs/img_%06d.png", i), gray)
+			}
+		}
+
+		prevGray = gray
+	}
+}
