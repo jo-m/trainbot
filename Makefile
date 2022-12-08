@@ -1,4 +1,4 @@
-.PHONY: test bench compare run format lint check
+.PHONY: test bench compare run format lint check clean
 
 test:
 	go test -count 1 -race -v ./...
@@ -29,3 +29,9 @@ lint:
 	go vet ./...
 
 check: lint test
+
+clean:
+	rm -f trainbot
+	rm -f prof.gz
+	rm -rf imgs
+	mkdir -p imgs
