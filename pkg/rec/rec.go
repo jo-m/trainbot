@@ -2,7 +2,6 @@ package rec
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image"
 	"os"
@@ -33,8 +32,8 @@ type AutoRec struct {
 	prevFrame *image.RGBA
 	avgScore  float64
 
-	currentMeta []frameMeta
-	currentPath string
+	currentFrames []frameMeta
+	currentPath   string
 }
 
 func NewAutoRec(basePath string) *AutoRec {
@@ -52,21 +51,9 @@ func (r *AutoRec) initialize(ts time.Time) error {
 }
 
 func (r *AutoRec) finalize(ts time.Time) error {
-	log.Info().Str("path", r.currentPath).Int("nFrames", len(r.currentMeta)).Msg("finalizing recording")
+	log.Info().Str("path", r.currentPath).Int("nFrames", len(r.currentFrames)).Msg("finalizing recording")
 
-	defer func() {
-		r.currentMeta = nil
-		r.currentPath = ""
-	}()
-
-	fullPath := path.Join(r.currentPath, metaFileName)
-	_, err := os.Stat(fullPath)
-	if !errors.Is(err, os.ErrNotExist) {
-		log.Debug().Str("path", fullPath).Msg("refusing to overwrite")
-		return nil
-	}
-
-	f, err := os.Create(fullPath)
+	f, err := os.Create(path.Join(r.currentPath, metaFileName))
 	if err != nil {
 		log.Err(err).Send()
 		return err
@@ -75,11 +62,14 @@ func (r *AutoRec) finalize(ts time.Time) error {
 
 	enc := json.NewEncoder(f)
 	enc.SetIndent("", "  ")
-	err = enc.Encode(r.currentMeta)
+	err = enc.Encode(r.currentFrames)
 	if err != nil {
 		log.Err(err).Send()
 		return err
 	}
+
+	r.currentFrames = nil
+	r.currentPath = ""
 
 	return nil
 }
@@ -90,16 +80,10 @@ func (r *AutoRec) record(prevFrame image.Image, prevTs time.Time) error {
 		TimeUTC:  prevTs,
 		FileName: fmt.Sprintf("frame_%06d.jpg", r.prevCount),
 	}
-	r.currentMeta = append(r.currentMeta, meta)
+	r.currentFrames = append(r.currentFrames, meta)
 
 	log.Debug().Str("fileName", meta.FileName).Msg("dumping frame")
-	fullPath := path.Join(r.currentPath, meta.FileName)
-	_, err := os.Stat(fullPath)
-	if !errors.Is(err, os.ErrNotExist) {
-		log.Debug().Str("path", fullPath).Msg("refusing to overwrite")
-		return nil
-	}
-	err = imutil.Dump(fullPath, prevFrame)
+	err := imutil.Dump(path.Join(r.currentPath, meta.FileName), prevFrame)
 	if err != nil {
 		log.Err(err).Send()
 		return err
@@ -134,7 +118,7 @@ func (r *AutoRec) Frame(frame image.Image, ts time.Time) error {
 	log.Debug().Float64("score", score).Float64("avgScore", r.avgScore).Send()
 
 	shouldRecord := r.avgScore < scoreThreshold
-	isRecording := len(r.currentMeta) > 0
+	isRecording := len(r.currentFrames) > 0
 	if shouldRecord {
 		if !isRecording {
 			err := r.initialize(ts)
