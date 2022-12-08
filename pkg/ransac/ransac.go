@@ -26,7 +26,7 @@ func sample(rnd *rand.Rand, x, y []float64, n int) ([]float64, []float64) {
 	xret, yret := make([]float64, n), make([]float64, n)
 	for {
 		// random index
-		i := int(rand.Intn(len(x)))
+		i := int(rnd.Intn(len(x)))
 
 		// make sure is without replacement
 		if _, ok := isel[i]; ok {
