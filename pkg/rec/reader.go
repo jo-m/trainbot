@@ -64,4 +64,10 @@ func (r *Reader) GetFPS() float64 {
 	return float64(n) / r.meta[n-1].TimeUTC.Sub(r.meta[0].TimeUTC).Seconds()
 }
 
+// IsLive implements Src.
+func (s *Reader) IsLive() bool {
+	return false
+}
+
+// Close implements Src.
 func (r *Reader) Close() error { return nil }

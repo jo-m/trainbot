@@ -154,6 +154,12 @@ func (s *FileSrc) GetFPS() float64 {
 	return s.fps
 }
 
+// IsLive implements Src.
+func (s *FileSrc) IsLive() bool {
+	return false
+}
+
+// Close implements Src.
 func (s *FileSrc) Close() error {
 	return s.writer.Close()
 }

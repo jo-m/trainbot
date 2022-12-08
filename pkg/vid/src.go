@@ -14,8 +14,13 @@ type Src interface {
 	// Returns io.EOF after the last frame, after which Close() should be called
 	// on the instance before discarding it.
 	GetFrame() (image.Image, *time.Time, error)
+
+	// IsLive returns if the src is a live source (e.g. camera).
+	IsLive() bool
+
 	// GetFPS returns the current frame rate of this source.
 	GetFPS() float64
+
 	// Close closes the frame source and frees resources.
 	Close() error
 }

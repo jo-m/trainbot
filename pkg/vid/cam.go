@@ -217,6 +217,11 @@ func (s *CamSrc) Close() error {
 	return s.cam.Close()
 }
 
+// IsLive implements Src.
+func (s *CamSrc) IsLive() bool {
+	return true
+}
+
 func probeCam(deviceFile string) ([]CamConfig, error) {
 	cam, err := webcam.Open(deviceFile)
 	if err != nil {

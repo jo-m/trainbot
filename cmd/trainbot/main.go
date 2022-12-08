@@ -147,9 +147,11 @@ func main() {
 			log.Panic().Err(err).Msg("failed to crop frame")
 		}
 
-		err = rec.Frame(cropped, *ts)
-		if err != nil {
-			log.Panic().Err(err).Msg("failed to record frame")
+		if src.IsLive() {
+			err = rec.Frame(cropped, *ts)
+			if err != nil {
+				log.Panic().Err(err).Msg("failed to record frame")
+			}
 		}
 
 		est.Frame(cropped, *ts)
