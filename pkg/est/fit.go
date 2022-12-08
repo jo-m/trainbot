@@ -34,8 +34,8 @@ func fitDx(dx []int) ([]int, error) {
 	params := ransac.RansacParams{
 		MinModelPoints:  3,
 		MaxIter:         25,
-		MinInliers:      len(xf) * 3 / 2,
-		InlierThreshold: 2.,
+		MinInliers:      len(xf) / 2,
+		InlierThreshold: 3.,
 		Seed:            0,
 	}
 	// note that x and y are swapped
