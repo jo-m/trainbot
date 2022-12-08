@@ -1,16 +1,32 @@
 package pmatch
 
+// The flags chosen below optimize for the following boards:
+// - arm: Raspberry Pi Zero (W)
+// - arm64: Raspberry Pi 4
+//
+// To show the flags which -march=native would produce, run
+//
+// 	gcc -march=native -E -v - </dev/null 2>&1 | grep cc1
+//
+// For more details, see
+// - https://gist.github.com/fm4dd/c663217935dc17f0fc73c9c81b0aa845
+// - https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
+// - https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
+// - https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
+
 // #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
 // #cgo CFLAGS: -fopenmp
 // #cgo LDFLAGS: -fopenmp
-// #cgo amd64 CFLAGS: -march=skylake -mtune=skylake
-// #cgo arm CFLAGS: -mcpu=cortex-a53 -mfpu=neon-vfpv4 -mtune=cortex-a53
-// #cgo arm64 CFLAGS: -march=armv8-a+crc -mcpu=cortex-a72 -mtune=cortex-a72
-// #cgo LDFLAGS: -lm
+// #cgo amd64 CFLAGS: -march=native
+// #cgo arm CFLAGS: -mcpu=arm1176jzf-s -mfloat-abi=hard -mfpu=vfp -mtune=arm1176jzf-s
+// #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -mtune=cortex-a72
 // #include "c.h"
 import "C"
-import "image"
+import (
+	"image"
+	"math"
+)
 
 func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
@@ -41,5 +57,8 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 		(*C.float64)(&maxScore),
 	)
 
-	return int(maxX), int(maxY), float64(maxScore)
+	// this was left out above
+	score := math.Sqrt(float64(maxScore))
+
+	return int(maxX), int(maxY), score
 }
