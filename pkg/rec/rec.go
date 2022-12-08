@@ -13,10 +13,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const scoreThreshold = 0.99
+const (
+	scoreThreshold = 0.99
+	metaFileName   = "meta.json"
+)
 
 type frameMeta struct {
-	Number   uint64    `json:"nr"`
+	Number   int       `json:"nr"`
 	TimeUTC  time.Time `json:"tsUTC"`
 	FileName string    `json:"fileName"`
 }
@@ -24,7 +27,7 @@ type frameMeta struct {
 type AutoRec struct {
 	basePath string
 
-	count     uint64
+	count     int
 	prevFrame *image.RGBA
 	avgScore  float64
 
@@ -49,7 +52,7 @@ func (r *AutoRec) initialize(ts time.Time) error {
 func (r *AutoRec) finalize(ts time.Time) error {
 	log.Info().Str("path", r.currentPath).Int("nFrames", len(r.currentFrames)).Msg("finalizing recording")
 
-	f, err := os.Create(path.Join(r.currentPath, "meta.json"))
+	f, err := os.Create(path.Join(r.currentPath, metaFileName))
 	if err != nil {
 		log.Err(err).Send()
 		return err
