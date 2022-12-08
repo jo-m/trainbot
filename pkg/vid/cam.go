@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"math/big"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/aamcrae/webcam"
@@ -265,6 +266,16 @@ func DetectCams() ([]CamConfig, error) {
 		}
 		ret = append(ret, configs...)
 	}
+
+	sort.Slice(ret, func(i, j int) bool {
+		a, b := ret[i], ret[j]
+		if a.Format != b.Format {
+			// Prefer MJPEG.
+			return a.Format == FourCCMJPEG
+		}
+
+		return a.FrameSize.X*a.FrameSize.Y >= b.FrameSize.X*b.FrameSize.Y
+	})
 
 	return ret, nil
 }
