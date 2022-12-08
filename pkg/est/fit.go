@@ -22,10 +22,10 @@ func fitDx(dx []int) ([]int, error) {
 
 	params := ransac.RansacParams{
 		MinModelPoints:  3,
-		MaxIter:         10,
-		MinInliers:      len(xf) / 2,
+		MaxIter:         25,
+		MinInliers:      len(xf) * 3 / 2,
 		InlierThreshold: 2.,
-		Seed:            123,
+		Seed:            0,
 	}
 	// note that x and y are swapped
 	fit, err := ransac.Ransac(yf, xf, poly, params)
