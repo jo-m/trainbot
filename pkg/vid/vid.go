@@ -52,15 +52,15 @@ func parseFPS(fps string) (float64, error) {
 	return a / b, nil
 }
 
-func NewFileSrc(path string, verbose bool) (*FileSrc, error) {
+func NewFileSrc(path string, verbose bool) (src *FileSrc, fps float64, err error) {
 	_, vidProbe, err := Probe(path)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	fps, err := parseFPS(vidProbe.RFrameRate)
+	fps, err = parseFPS(vidProbe.RFrameRate)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse fps '%s': %w", vidProbe.RFrameRate, err)
+		return nil, 0, fmt.Errorf("unable to parse fps '%s': %w", vidProbe.RFrameRate, err)
 	}
 
 	reader, writer := io.Pipe()
@@ -83,7 +83,7 @@ func NewFileSrc(path string, verbose bool) (*FileSrc, error) {
 
 	go s.run(path)
 
-	return &s, nil
+	return &s, fps, nil
 }
 
 func (s *FileSrc) run(path string) {

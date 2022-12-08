@@ -17,7 +17,7 @@ type Src interface {
 	Close() error
 }
 
-func NewSrc(path string) (Src, error) {
+func NewSrc(path string) (src Src, fps float64, err error) {
 	if strings.HasPrefix(path, "/dev/video") {
 		panic("not implemented") // TODO
 	}
