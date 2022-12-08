@@ -102,8 +102,9 @@ func (r *Estimator) reset() {
 	r.dxAbsLowPass = 0
 }
 
-func (r *Estimator) record(dx int, score float64, frame image.Image) {
+func (r *Estimator) record(dx int, ts time.Time, frame image.Image) {
 	r.seq.dx = append(r.seq.dx, dx)
+	r.seq.ts = append(r.seq.ts, ts)
 	r.seq.frames = append(r.seq.frames, frame)
 }
 
@@ -156,7 +157,7 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 			return
 		}
 
-		r.record(dx, score, r.prevFrameColor)
+		r.record(dx, ts, r.prevFrameColor)
 		return
 	} else {
 		if score >= goodScoreNoMove && iabs(dx) < r.minDx {
@@ -166,7 +167,7 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 
 		if score >= goodScoreMove && iabs(dx) >= r.maxDx {
 			log.Info().Msg("start of new sequence")
-			r.record(dx, score, r.prevFrameColor)
+			r.record(dx, ts, r.prevFrameColor)
 			r.dxAbsLowPass = math.Abs(float64(dx))
 			return
 		}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"time"
 
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/rs/zerolog/log"
@@ -13,9 +14,10 @@ import (
 type sequence struct {
 	// Those slices always must have the same length.
 	// dx[i] is the assumed offset between frames[i] and frames[i+1].
-	// scores[i] is the score of that assumed offset.
+	// ts[i] is the timestamp of that frame.
 	// All frames must have the same size.
 	dx     []int
+	ts     []time.Time
 	frames []image.Image
 }
 
@@ -24,12 +26,13 @@ func (s sequence) reversed() sequence {
 	for i, dx := range s.dx {
 		ret.dx = append(ret.dx, -dx)
 		ret.frames = append(ret.frames, s.frames[len(s.frames)-i-1])
+		ret.ts = append(ret.ts, s.ts[len(s.ts)-i-1])
 	}
 	return ret
 }
 
 // allowed to remove trailing values from dx, but not values from the beginning
-func cleanupDx(dx []int) ([]int, error) {
+func cleanupDx(dx []int, ts []time.Time) ([]int, error) {
 	if len(dx) < 10 {
 		return nil, errors.New("len(x) must be >= 10")
 	}
@@ -42,7 +45,7 @@ func cleanupDx(dx []int) ([]int, error) {
 		dx = dx[:len(dx)-1]
 	}
 
-	dxFit, err := fitDx(dx)
+	dxFit, err := fitDx(ts, dx)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +115,7 @@ func processSequence(seq sequence) error {
 	// remove trailing zeros
 	for seq.dx[len(seq.dx)-1] == 0 {
 		seq.dx = seq.dx[:len(seq.dx)-1]
+		seq.ts = seq.ts[:len(seq.ts)-1]
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
 
@@ -124,7 +128,7 @@ func processSequence(seq sequence) error {
 	}
 
 	var err error
-	seq.dx, err = fitDx(seq.dx)
+	seq.dx, err = fitDx(seq.ts, seq.dx)
 	if err != nil {
 		return errors.New("was not able to fit the sequence")
 	}

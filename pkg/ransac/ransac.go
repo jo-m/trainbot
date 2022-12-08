@@ -83,7 +83,6 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 	}
 
 	// iter
-	// TODO: parallelize?
 	for i := 0; i < p.MaxIter; i++ {
 		// sample
 		xS, yS := sample(rnd, x, y, p.MinModelPoints)
@@ -102,9 +101,12 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 			log.Err(err).Msg("fit did not converge (sample)")
 			continue
 		}
-		// TODO: check status?
 
-		// inliers
+		// Plot(
+		// 	fmt.Sprintf("~/Desktop/fit_sample_%03d_%f.png", i, params.F),
+		// 	xS, yS, params.X, model, "f(x) = a + b*x*x")
+
+		// select inliers
 		xIn, yIn := []float64{}, []float64{}
 		for j := range x {
 			// apply model
@@ -115,7 +117,6 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 				yIn = append(yIn, y[j])
 			}
 		}
-
 		if len(xIn) < p.MinInliers {
 			continue
 		}
@@ -134,10 +135,11 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 			log.Err(err).Msg("fit did not converge (inliers)")
 			continue
 		}
-		// TODO: check status?
+
+		// TODO: require from input distribution of inliers that they are somewhat linearly distributed
 
 		// Plot(
-		// 	fmt.Sprintf("~/Desktop/fit_%03d_%f.png", i, params.F),
+		// 	fmt.Sprintf("~/Desktop/fit_inliers_%03d_%f.png", i, params.F),
 		// 	xIn, yIn, params.X, model, "f(x) = a + b*x*x")
 
 		if params.F < bestFit.F {

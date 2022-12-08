@@ -2,6 +2,7 @@ package est
 
 import (
 	"math"
+	"time"
 
 	"github.com/jo-m/trainbot/pkg/ransac"
 )
@@ -21,32 +22,36 @@ func sign(x float64) float64 {
 }
 
 // the resulting slice must have same length as the input
-func fitDx(dx []int) ([]int, error) {
+func fitDx(ts []time.Time, dx []int) ([]int, error) {
+	if len(dx) != len(ts) {
+		panic("this should not happen")
+	}
+
 	n := len(dx)
-	// convert x to float and generate y values
-	xf := make([]float64, n)
-	yf := make([]float64, n)
-	for i := range yf {
-		xf[i] = float64(dx[i])
-		yf[i] = float64(i)
+	t0 := ts[0]
+	// convert dx to float and calculate time offset in seconds
+	tsSec := make([]float64, n)  // will contain ts
+	values := make([]float64, n) // will contain dx values
+	for i := range tsSec {
+		tsSec[i] = float64(ts[i].Sub(t0).Seconds())
+		values[i] = float64(dx[i])
 	}
 
 	params := ransac.RansacParams{
 		MinModelPoints:  3,
 		MaxIter:         25,
-		MinInliers:      len(xf) / 2,
+		MinInliers:      len(values) / 2,
 		InlierThreshold: 3.,
 		Seed:            0,
 	}
-	// note that x and y are swapped
-	fit, err := ransac.Ransac(yf, xf, poly, params)
+	fit, err := ransac.Ransac(tsSec, values, poly, params)
 	if err != nil {
 		return nil, err
 	}
 
 	var roundErr float64 // sum of values we have wrongly rounded away
 	xfit := make([]int, n)
-	for i, y := range yf {
+	for i, y := range tsSec {
 		x := poly(y, fit.X)
 		xRound := math.Round(x)
 		roundErr += x - xRound

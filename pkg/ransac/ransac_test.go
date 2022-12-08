@@ -51,7 +51,7 @@ func Test_Ransac(t *testing.T) {
 	fit, err := Ransac(xf, yf, poly, RansacParams{
 		MinModelPoints:  3,
 		MaxIter:         10,
-		MinInliers:      len(xf) * 2 / 3,
+		MinInliers:      len(xf) / 2,
 		InlierThreshold: 2.,
 		Seed:            123,
 	})
@@ -84,7 +84,7 @@ func Benchmark_Ransac(b *testing.B) {
 		_, err := Ransac(xf, yf, poly, RansacParams{
 			MinModelPoints:  3,
 			MaxIter:         10,
-			MinInliers:      len(xf) * 2 / 3,
+			MinInliers:      len(xf) / 2,
 			InlierThreshold: 2.,
 			Seed:            123,
 		})
