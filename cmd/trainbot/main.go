@@ -9,7 +9,7 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/pkg/pmatch"
+	"github.com/jo-m/trainbot/pkg/est"
 	"github.com/jo-m/trainbot/pkg/rec"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
@@ -28,54 +28,9 @@ type config struct {
 
 	RecBasePath string `arg:"--rec-base-path" help:"Base path to store recordings" default:"imgs"`
 
-	estimatorConfig
-}
-
-// TODO: move into estimator
-func findOffset(prev, curr *image.Gray, maxDx int) (goodEstimate bool, dx int) {
-	if prev.Rect.Size() != curr.Rect.Size() {
-		panic("inconsistent size")
-	}
-
-	// centered crop from prev frame,
-	// width is 3x max pixels per frame given by max velocity
-	w := maxDx * 3
-	// and 3/4 of frame height
-	h := int(float64(prev.Rect.Dy())*3/4 + 1)
-	subRect := image.Rect(0, 0, w, h).
-		Add(curr.Rect.Min).
-		Add(
-			curr.Rect.Size().
-				Sub(image.Pt(int(w), h)).
-				Div(2),
-		)
-	sub, err := imutil.Sub(prev, subRect)
-	if err != nil {
-		log.Panic().Err(err).Send()
-	}
-
-	// centered slice crop from next frame,
-	// width is 1x max pixels per frame given by max velocity
-	// and 3/4 of frame height
-	sliceRect := image.Rect(0, 0, maxDx, h).
-		Add(curr.Rect.Min).
-		Add(
-			curr.Rect.Size().
-				Sub(image.Pt(w, h)).
-				Div(2),
-		)
-
-	slice, err := imutil.Sub(curr, sliceRect)
-	if err != nil {
-		log.Panic().Err(err).Send()
-	}
-
-	// we expect this x value found by search
-	// if nothing has moved
-	xZero := sliceRect.Min.Sub(subRect.Min).X
-
-	x, _, score := pmatch.SearchGrayC(sub.(*image.Gray), slice.(*image.Gray))
-	return score > 0.95, x - xZero
+	PixelsPerM  float64 `arg:"--px-per-m" default:"50" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)"`
+	MinSpeedKPH float64 `arg:"--min-speed-kph" default:"10" help:"Assumed train min speed, km/h"`
+	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"120" help:"Assumed train max speed, km/h"`
 }
 
 func main() {
@@ -104,14 +59,20 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	src, err := vid.NewSrc(c.VideoFile)
+	src, fps, err := vid.NewSrc(c.VideoFile)
 	if err != nil {
 		log.Panic().Err(err).Send()
 	}
 
 	rec := rec.NewAutoRec(c.RecBasePath)
-	e := newEstimator(c.estimatorConfig)
-	var prevGray *image.Gray
+	est := est.NewEstimator(est.Config{
+		PixelsPerM:  c.PixelsPerM,
+		MinSpeedKPH: c.MinSpeedKPH,
+		MaxSpeedKPH: c.MinSpeedKPH,
+
+		VideoFPS: fps,
+	})
+
 	for i := 0; ; i++ {
 		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
@@ -122,17 +83,15 @@ func main() {
 		}
 
 		cropped := frame.SubImage(r)
+
 		err = rec.Frame(cropped, *ts)
 		if err != nil {
 			log.Panic().Err(err).Send()
 		}
 
-		gray := imutil.ToGray(cropped)
-		if prevGray != nil {
-			good, dx := findOffset(prevGray, gray, c.maxPxPerFrame())
-			e.Frame(cropped, good, dx)
+		err = est.Frame(imutil.ToGray(cropped), *ts)
+		if err != nil {
+			log.Panic().Err(err).Send()
 		}
-
-		prevGray = gray
 	}
 }
