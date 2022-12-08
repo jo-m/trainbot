@@ -137,7 +137,7 @@ func processSequence(seq sequence) error {
 	var err error
 	seq.dx, err = fitDx(seq.ts, seq.dx)
 	if err != nil {
-		return errors.New("was not able to fit the sequence")
+		return fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
 
 	img, err := assemble(seq)
