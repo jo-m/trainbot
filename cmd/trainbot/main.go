@@ -19,7 +19,7 @@ import (
 type config struct {
 	logging.LogConfig
 
-	VideoFile string `arg:"--video-file" help:"Video file, e.g. video.mp4"`
+	VideoFile string `arg:"--video-file" help:"Video file or directory, e.g. video.mp4 or imgs/20221208_093141.065_+01:00"`
 
 	CameraDevice       string `arg:"--camera-device" help:"Video4linux device file, e.g. /dev/video0"`
 	CameraFormatFourCC string `arg:"--format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
@@ -98,7 +98,18 @@ func main() {
 			FrameSize:  image.Point{c.CameraFrameSizeW, c.CameraFrameSizeH},
 		})
 	} else {
-		src, err = vid.NewFileSrc(c.VideoFile, false)
+		var stat os.FileInfo
+		stat, err = os.Stat(c.VideoFile)
+		if err != nil {
+			log.Panic().Err(err).Str("path", c.VideoFile).Msg("stat failed")
+		}
+		if stat.IsDir() {
+			// image file directory
+			src, err = rec.NewReader(c.VideoFile)
+		} else {
+			// video file
+			src, err = vid.NewFileSrc(c.VideoFile, false)
+		}
 	}
 	if err != nil {
 		log.Panic().Err(err).Str("path", c.CameraDevice+c.VideoFile).Msg("failed to open video source")
