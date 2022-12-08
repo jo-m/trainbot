@@ -114,6 +114,21 @@ func iabs(i int) int {
 	return i
 }
 
+// Finalize tries to assemble any remaining frames and resets the instance.
+func (r *Estimator) Finalize() {
+	if len(r.seq.dx) == 0 {
+		log.Info().Msg("nothing to assemble")
+		return
+	}
+
+	log.Info().Msg("end of sequence")
+	err := processSequence(r.seq)
+	if err != nil {
+		log.Err(err).Msg("unable to process sequence")
+	}
+	r.reset()
+}
+
 // will make a copy of the image
 func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 	frameColor = imutil.ToRGBA(frameColor)
@@ -137,12 +152,7 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 		r.dxAbsLowPass = r.dxAbsLowPass*0.9 + math.Abs(float64(dx))*0.1
 
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
-			log.Info().Msg("end of sequence")
-			err := processSequence(r.seq)
-			if err != nil {
-				log.Err(err).Msg("unable to process sequence")
-			}
-			r.reset()
+			r.Finalize()
 			return
 		}
 

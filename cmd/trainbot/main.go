@@ -123,6 +123,7 @@ func main() {
 
 		VideoFPS: src.GetFPS(),
 	})
+	defer est.Finalize()
 
 	failedFrames := 0
 	for i := 0; ; i++ {
