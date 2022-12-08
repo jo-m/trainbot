@@ -162,5 +162,5 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 		}
 	}
 
-	log.Panic().Msg("inconclusive") // TODO
+	log.Info().Float64("score", score).Int("dx", dx).Msg("inconclusive frame")
 }
