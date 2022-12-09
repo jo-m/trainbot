@@ -119,7 +119,7 @@ func main() {
 	est := est.NewEstimator(est.Config{
 		PixelsPerM:  c.PixelsPerM,
 		MinSpeedKPH: c.MinSpeedKPH,
-		MaxSpeedKPH: c.MinSpeedKPH,
+		MaxSpeedKPH: c.MaxSpeedKPH,
 
 		VideoFPS: src.GetFPS(),
 	})
