@@ -167,7 +167,7 @@ func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
 			return
 		}
 
-		if score >= goodScoreMove && iabs(dx) >= r.maxDx {
+		if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
 			log.Info().Msg("start of new sequence")
 			r.record(dx, ts, r.prevFrameColor)
 			r.dxAbsLowPass = math.Abs(float64(dx))
