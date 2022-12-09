@@ -103,9 +103,7 @@ func assemble(seq sequence) (*image.RGBA, error) {
 	} else {
 		// backwards
 		pos := -w - fsz.X
-		fmt.Println(w, fsz.X)
 		for i, f := range seq.frames {
-			fmt.Println(pos, f.Bounds())
 			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
 			pos += seq.dx[i]
 		}
