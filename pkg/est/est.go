@@ -76,7 +76,8 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	// centered slice crop from next frame,
 	// width is 1x max pixels per frame given by max velocity
 	// and 3/4 of frame height
-	sliceRect := image.Rect(0, 0, maxDx, h).
+	w = maxDx
+	sliceRect := image.Rect(0, 0, w, h).
 		Add(curr.Rect.Min).
 		Add(
 			curr.Rect.Size().
