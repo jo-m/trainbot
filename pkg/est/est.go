@@ -24,11 +24,11 @@ type Config struct {
 }
 
 func (e *Config) MinPxPerFrame() int {
-	return int(e.MinSpeedKPH*e.PixelsPerM/e.VideoFPS) - 1
+	return int(e.MinSpeedKPH/3.6*e.PixelsPerM/e.VideoFPS) - 1
 }
 
 func (e *Config) MaxPxPerFrame() int {
-	return int(e.MaxSpeedKPH*e.PixelsPerM/e.VideoFPS) + 1
+	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/e.VideoFPS) + 1
 }
 
 type Estimator struct {
