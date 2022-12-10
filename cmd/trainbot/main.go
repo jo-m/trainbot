@@ -22,9 +22,9 @@ type config struct {
 	VideoFile string `arg:"--video-file" help:"Video file or directory, e.g. video.mp4 or imgs/20221208_093141.065_+01:00"`
 
 	CameraDevice       string `arg:"--camera-device" help:"Video4linux device file, e.g. /dev/video0"`
-	CameraFormatFourCC string `arg:"--format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
-	CameraFrameSizeW   int    `arg:"--framesz-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
-	CameraFrameSizeH   int    `arg:"--framesz-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
+	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
+	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
+	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
 
 	RectX uint `arg:"-X" help:"Rect to look at, x (left)"`
 	RectY uint `arg:"-Y" help:"Rect to look at, y (top)"`
@@ -79,7 +79,7 @@ func openSrc(c config) (vid.Src, error) {
 		return vid.NewCamSrc(vid.CamConfig{
 			DeviceFile: c.CameraDevice,
 			Format:     vid.FourCC(c.CameraFormatFourCC),
-			FrameSize:  image.Point{c.CameraFrameSizeW, c.CameraFrameSizeH},
+			FrameSize:  image.Point{c.CameraW, c.CameraH},
 		})
 	}
 

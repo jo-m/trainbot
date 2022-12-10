@@ -20,13 +20,13 @@ const (
 type config struct {
 	logging.LogConfig
 
-	LiveReload bool   `arg:"--live-reload,env:LIVE_RELOAD" default:"false" help:"Live reload WWW static files"`
+	LiveReload bool   `arg:"--live-reload,env:LIVE_RELOAD" default:"false" help:"Do not bake in WWW static files (browser window reload is still needed)"`
 	ListenAddr string `arg:"--listen-addr,env:LISTEN_ADDR" default:"localhost:8080" help:"Address and port to listen on"`
 
 	CameraDevice       string `arg:"--camera-device" help:"Video4linux device file, e.g. /dev/video0"`
-	CameraFormatFourCC string `arg:"--format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
-	CameraFrameSizeW   int    `arg:"--framesz-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
-	CameraFrameSizeH   int    `arg:"--framesz-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
+	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
+	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
+	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
 }
 
 func parseCheckArgs() config {
@@ -54,7 +54,7 @@ func main() {
 	src, err := vid.NewCamSrc(vid.CamConfig{
 		DeviceFile: c.CameraDevice,
 		Format:     vid.FourCC(c.CameraFormatFourCC),
-		FrameSize:  image.Point{c.CameraFrameSizeW, c.CameraFrameSizeH},
+		FrameSize:  image.Point{c.CameraW, c.CameraH},
 	})
 	if err != nil {
 		log.Panic().Err(err).Str("path", c.CameraDevice).Msg("failed to open video source")
