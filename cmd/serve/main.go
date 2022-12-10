@@ -1,84 +1,36 @@
 package main
 
 import (
-	"embed"
-	"encoding/json"
 	"fmt"
-	"io/fs"
 	"net/http"
 
-	"github.com/jo-m/trainbot/pkg/vid"
-	"github.com/mattn/go-mjpeg"
+	"github.com/alexflint/go-arg"
+	"github.com/jo-m/trainbot/internal/pkg/logging"
+	"github.com/jo-m/trainbot/pkg/server"
+	"github.com/rs/zerolog/log"
 )
 
-//go:embed wwwdata
-var wwwData embed.FS
+type config struct {
+	logging.LogConfig
 
-func handleClick(resp http.ResponseWriter, req *http.Request) {
-	reqData := struct {
-		X float64
-		Y float64
-	}{}
-
-	err := json.NewDecoder(req.Body).Decode(&reqData)
-	if err != nil {
-		resp.WriteHeader(http.StatusBadRequest)
-		resp.Write([]byte(fmt.Sprintf("Invalid request: %s", err.Error())))
-		return
-	}
-
-	fmt.Println("click", reqData)
-	resp.WriteHeader(http.StatusNoContent)
-}
-
-func buildServer(strm *mjpeg.Stream) *http.ServeMux {
-	data, err := fs.Sub(wwwData, "wwwdata")
-	if err != nil {
-		panic(err)
-	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/stream.mjpeg", strm.ServeHTTP)
-	mux.HandleFunc("/click", handleClick)
-	mux.Handle("/", http.FileServer(http.FS(data)))
-
-	return mux
+	LiveReload bool   `arg:"--live-reload,env:LIVE_RELOAD" default:"false" help:"Live reload WWW static files"`
+	ListenAddr string `arg:"--listen-addr,env:LISTEN_ADDR" default:"localhost:8080" help:"Address and port to listen on"`
 }
 
 func main() {
-	configs, err := vid.DetectCams()
+	c := config{}
+	arg.MustParse(&c)
+	logging.MustInit(c.LogConfig)
+
+	log.Info().Interface("config", c).Msg("starting")
+
+	srv, err := server.NewServer(!c.LiveReload)
 	if err != nil {
-		panic(err)
-	}
-	if len(configs) == 0 {
-		panic("no cameras detected")
+		log.Panic().Err(err).Msg("unable to initialize server")
 	}
 
-	src, err := vid.NewCamSrc(configs[0])
-	if err != nil {
-		panic(err)
-	}
+	log.Info().Str("url", fmt.Sprintf("http://%s", c.ListenAddr)).Msg("serving")
+	http.ListenAndServe(c.ListenAddr, srv.GetMux())
 
-	strm := mjpeg.NewStream()
-	mux := buildServer(strm)
-
-	// Copies the stream from camera to HTTP handler.
-	go func() {
-		for i := uint64(0); ; i++ {
-			frame, fmt, _, err := src.GetFrameRaw()
-			if err != nil {
-				panic(err)
-			}
-			if fmt != "MJPG" {
-				panic("invalid stream format")
-			}
-
-			// Drop frames.
-			if i%3 == 0 {
-				strm.Update(frame)
-			}
-		}
-	}()
-
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(c.ListenAddr, srv.GetMux())
 }

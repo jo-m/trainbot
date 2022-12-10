@@ -77,7 +77,7 @@ func parseCheckArgs() (config, image.Rectangle) {
 func main() {
 	c, rect := parseCheckArgs()
 
-	log.Info().Msg("starting")
+	log.Info().Interface("config", c).Msg("starting")
 
 	if c.CPUProfile {
 		log.Info().Str("file", profCPUFile).Msg("writing CPU profile")
