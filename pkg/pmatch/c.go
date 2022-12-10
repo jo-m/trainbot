@@ -21,7 +21,7 @@ package pmatch
 // #cgo amd64 CFLAGS: -fopenmp
 // #cgo amd64 LDFLAGS: -fopenmp
 //
-// #cgo arm CFLAGS: -mcpu=arm1176jzf-s -mfloat-abi=hard -mfpu=vfp -mtune=arm1176jzf-s
+// #cgo arm CFLAGS: -mfloat-abi=hard -mfpu=vfp -marm -march=armv6kz+fp
 //
 // #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
 //
