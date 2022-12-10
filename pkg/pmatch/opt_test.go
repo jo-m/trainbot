@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
-	"github.com/jo-m/trainbot/internal/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_SearchGrayOpt(t *testing.T) {
-	img := imutil.ToGray(testutil.LoadImg(t, testImgPath))
+	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
 
@@ -30,11 +29,7 @@ func Test_SearchGrayOpt(t *testing.T) {
 }
 
 func Benchmark_SearchGrayOpt(b *testing.B) {
-	imgY, err := imutil.Load(testImgPath)
-	if err != nil {
-		b.Fail()
-	}
-	img := imutil.ToGray(imgY)
+	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
 		b.Fail()
