@@ -6,9 +6,8 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
                  const uint8_t* const imgPix, const uint8_t* const patPix,
                  /* return parameters */
                  int* maxX, int* maxY, float64* maxScore) {
-#pragma omp parallel for
+#pragma omp parallel for collapse(2)
   for (int y = 0; y < n; y++) {
-#pragma omp parallel for
     for (int x = 0; x < m; x++) {
       const int imgPatStartIx = y * is + x;
 
