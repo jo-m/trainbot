@@ -27,7 +27,6 @@ func NewServer(embed bool) (*Server, error) {
 		return nil, err
 	}
 
-	mux.HandleFunc("/click", s.handleClick)
 	mux.HandleFunc("/cameras", s.handleCameras)
 	mux.HandleFunc("/stream.mjpeg", s.stream.ServeHTTP)
 

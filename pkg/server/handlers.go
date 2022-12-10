@@ -30,32 +30,3 @@ func (s *Server) handleCameras(resp http.ResponseWriter, req *http.Request) {
 		log.Err(err).Send()
 	}
 }
-
-// http POST localhost:8080/click X:=1 Y:=2
-func (s *Server) handleClick(resp http.ResponseWriter, req *http.Request) {
-	reqData := struct {
-		X float64
-		Y float64
-	}{}
-
-	if req.Header.Get(contentTypeHeader) != jsonMimeType {
-		log.Warn().Msg("bad request (missing header)")
-
-		resp.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(resp, "Missing content-type header")
-		return
-	}
-
-	err := json.NewDecoder(req.Body).Decode(&reqData)
-	if err != nil {
-		log.Err(err).Msg("bad request")
-
-		resp.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(resp, "Invalid request: %s", err.Error())
-		return
-	}
-
-	log.Info().Interface("data", reqData).Msg("click")
-
-	resp.WriteHeader(http.StatusNoContent)
-}

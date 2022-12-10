@@ -33,25 +33,6 @@
 			}
 		}
 
-		function sendStreamClick(event) {
-			const imgCoord = elementToImgCoordinates(event)
-
-			const msg = {
-				X: imgCoord.x,
-				Y: imgCoord.y
-			}
-
-			fetch(new Request('/click'), {
-					method: "POST",
-					headers: {
-						"Content-Type":"application/json",
-					},
-					body: JSON.stringify(msg)
-			}).then().catch(function(error){
-				console.log("request failed:", error)
-			})
-		}
-
 		const selectionState = {
 			active: false,
 			rect: {
@@ -132,9 +113,7 @@
 		}
 
 		window.onload = function(){
-			document.querySelector("#stream").addEventListener("click", sendStreamClick)
 			document.querySelector("#detectCameras").addEventListener("click", detectCamerasClick)
-
 			document.querySelector("#stream").addEventListener("click", updateStreamRect)
 
 			renderState()
