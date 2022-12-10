@@ -14,13 +14,17 @@ package pmatch
 // - https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
 // - https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
 
-// #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
+// #cgo CFLAGS: -Wall -Werror -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
-// #cgo CFLAGS: -fopenmp
-// #cgo LDFLAGS: -fopenmp
+//
 // #cgo amd64 CFLAGS: -march=native
+// #cgo amd64 CFLAGS: -fopenmp
+// #cgo amd64 LDFLAGS: -fopenmp
+//
 // #cgo arm CFLAGS: -mcpu=arm1176jzf-s -mfloat-abi=hard -mfpu=vfp -mtune=arm1176jzf-s
-// #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -mtune=cortex-a72
+//
+// #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
+//
 // #include "c.h"
 import "C"
 import (
