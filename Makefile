@@ -1,4 +1,4 @@
-.PHONY: format lint test bench check build_host build_docker clean
+.PHONY: format lint test bench check build_host build_docker clean run_confighelper run_camera
 
 DOCKER_BUILDER_IMG_TAG = trainbot-builder
 DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
@@ -67,3 +67,12 @@ clean:
 	rm -rf out/
 	rm -f prof-*.gz
 	rm -rf imgs/
+
+run_confighelper:
+	go run ./cmd/confighelper/ --camera-device /dev/video2
+
+run_camera:
+	go run ./cmd/trainbot \
+		--log-pretty \
+		--camera-device /dev/video2 --camera-format-fourcc MJPG --camera-w 1920 --camera-h 1080 \
+		-X 800 -Y 600 -W 300 -H 350

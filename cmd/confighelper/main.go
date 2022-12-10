@@ -31,6 +31,7 @@ type config struct {
 
 func parseCheckArgs() config {
 	c := config{}
+	c.LogPretty = true
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
 
