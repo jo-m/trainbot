@@ -23,38 +23,6 @@ type sequence struct {
 	frames []image.Image
 }
 
-func (s sequence) reversed() sequence {
-	ret := sequence{}
-	for i, dx := range s.dx {
-		ret.dx = append(ret.dx, -dx)
-		ret.frames = append(ret.frames, s.frames[len(s.frames)-i-1])
-		ret.ts = append(ret.ts, s.ts[len(s.ts)-i-1])
-	}
-	return ret
-}
-
-// allowed to remove trailing values from dx, but not values from the beginning
-func cleanupDx(dx []int, ts []time.Time) ([]int, error) {
-	if len(dx) < 10 {
-		return nil, errors.New("len(x) must be >= 10")
-	}
-	if dx[0] == 0 {
-		return nil, errors.New("first dx value cannot be 0")
-	}
-
-	// remove trailing zeros
-	for dx[len(dx)-1] == 0 {
-		dx = dx[:len(dx)-1]
-	}
-
-	dxFit, err := fitDx(ts, dx)
-	if err != nil {
-		return nil, err
-	}
-
-	return dxFit, nil
-}
-
 func isign(x int) int {
 	if x > 0 {
 		return 1

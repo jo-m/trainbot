@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testImgPath = "testdata/bird.jpg"
-
 const (
 	x0, y0, w, h = 65, 35, 30, 20
 	delta        = 1e-15
