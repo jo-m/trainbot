@@ -15,6 +15,10 @@ type Src interface {
 	// on the instance before discarding it.
 	GetFrame() (image.Image, *time.Time, error)
 
+	// GetFrame retrieves the next frame in the raw pixel format of the source.
+	// Not all sources might implement this.
+	GetFrameRaw() ([]byte, FourCC, *time.Time, error)
+
 	// IsLive returns if the src is a live source (e.g. camera).
 	IsLive() bool
 

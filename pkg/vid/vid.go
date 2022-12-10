@@ -149,6 +149,11 @@ func (s *FileSrc) GetFrame() (image.Image, *time.Time, error) {
 	}, &ts, nil
 }
 
+// GetFrameRaw implements Src.
+func (s *FileSrc) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
+	panic("not implemented")
+}
+
 // GetFPS implements Src.
 func (s *FileSrc) GetFPS() float64 {
 	return s.fps

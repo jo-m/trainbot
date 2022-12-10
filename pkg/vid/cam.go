@@ -274,8 +274,14 @@ func DetectCams() ([]CamConfig, error) {
 
 	sort.Slice(ret, func(i, j int) bool {
 		a, b := ret[i], ret[j]
+
+		// Sort by device file name.
+		if a.DeviceFile != b.DeviceFile {
+			return a.DeviceFile < b.DeviceFile
+		}
+
+		// Prefer MJPEG.
 		if a.Format != b.Format {
-			// Prefer MJPEG.
 			return a.Format == FourCCMJPEG
 		}
 

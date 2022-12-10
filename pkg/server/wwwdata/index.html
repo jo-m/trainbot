@@ -2,14 +2,43 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Trainbot stream config</title>
+	<title>Trainbot stream config helper</title>
 	<script>
-		function streamClick(event) {
+		function detectCamerasClick(event) {
+			fetch(new Request('/cameras')).
+			then(function(resp){
+				resp.json().
+				then(function(cameras){
+					let camOptions = ""
+					for (const cam of cameras) {
+						camOptions += `--camera-device ${cam.DeviceFile} --format-fourcc ${cam.Format} --framesz-w ${cam.FrameSize.X} --framesz-h ${cam.FrameSize.Y}\n`
+					}
+
+					document.querySelector("#cameraOptions").innerHTML = camOptions
+				}).
+				catch(function(error){
+					console.log("json decode failed:", error)
+				})
+			})
+			.catch(function(error){
+				console.log("request failed:", error)
+			})
+		}
+
+		function elementToImgCoordinates(event) {
 			const stream = event.target;
+			return {
+				x: stream.naturalWidth / stream.width * event.layerX,
+				y: stream.naturalHeight / stream.height * event.layerY
+			}
+		}
+
+		function sendStreamClick(event) {
+			const imgCoord = elementToImgCoordinates(event)
 
 			const msg = {
-				X: stream.naturalWidth * event.x / stream.width,
-				Y: stream.naturalHeight * event.y / stream.height
+				X: imgCoord.x,
+				Y: imgCoord.y
 			}
 
 			fetch(new Request('/click'), {
@@ -23,14 +52,119 @@
 			})
 		}
 
+		const selectionState = {
+			active: false,
+			rect: {
+				x0: -1,
+				y0: -1,
+				x1: -1,
+				y1: -1,
+			},
+			img: {
+				x0: -1,
+				y0: -1,
+				x1: -1,
+				y1: -1,
+			},
+		}
+
+		function renderState() {
+			const rect = document.querySelector("#rect")
+			rect.style.left = selectionState.rect.x0+"px"
+			rect.style.top = selectionState.rect.y0+"px"
+			rect.style.width = (selectionState.rect.x1 - selectionState.rect.x0)+"px"
+			rect.style.height = (selectionState.rect.y1 - selectionState.rect.y0)+"px"
+
+			rect.hidden = selectionState.rect.x0 < 0 || selectionState.active
+		}
+
+		function swap(obj, key1, key2) {
+			[obj[key1], obj[key2]] = [obj[key2], obj[key1]]
+		}
+
+		function updateStreamRect(event) {
+			const imgCoord = elementToImgCoordinates(event)
+
+			if (!selectionState.active) {
+				selectionState.rect.x0 = event.layerX
+				selectionState.rect.y0 = event.layerY
+				selectionState.rect.x1 = -1
+				selectionState.rect.y1 = -1
+
+				selectionState.img.x0 = imgCoord.x
+				selectionState.img.y0 = imgCoord.y
+				selectionState.img.x1 = -1
+				selectionState.img.y1 = -1
+
+				document.querySelector("#rectOptions").innerHTML = ""
+				selectionState.active = true
+			} else {
+				selectionState.rect.x1 = event.layerX
+				selectionState.rect.y1 = event.layerY
+
+				selectionState.img.x1 = imgCoord.x
+				selectionState.img.y1 = imgCoord.y
+
+				if (selectionState.rect.x1 < selectionState.rect.x0) {
+					swap(selectionState.rect, "x0", "x1")
+					swap(selectionState.img, "x0", "x1")
+				}
+
+				if (selectionState.rect.y1 < selectionState.rect.y0) {
+					swap(selectionState.rect, "y0", "y1")
+					swap(selectionState.img, "y0", "y1")
+				}
+
+				const [x, y, w, h] = [
+					selectionState.img.x0,
+					selectionState.img.y0,
+					selectionState.img.x1 - selectionState.img.x0,
+					selectionState.img.y1 - selectionState.img.y0
+				]
+				document.querySelector("#rectOptions").innerHTML = `-X ${Math.round(x)} -Y ${Math.round(y)} -W ${Math.round(w)} -H ${Math.round(h)}`
+
+				selectionState.active = false
+			}
+
+			renderState()
+			event.preventDefault()
+			return false
+		}
+
 		window.onload = function(){
-			const stream = document.querySelector("#stream");
-			stream.onclick = streamClick
+			document.querySelector("#stream").addEventListener("click", sendStreamClick)
+			document.querySelector("#detectCameras").addEventListener("click", detectCamerasClick)
+
+			document.querySelector("#stream").addEventListener("click", updateStreamRect)
+
+			renderState()
 		}
 	</script>
+
+	<style>
+		#container{
+			position: relative;
+			user-select: none;
+		}
+
+		#rect {
+			position: absolute;
+			border: 1px solid red;
+		}
+
+		#stream {
+			width: 100%;
+		}
+	</style>
 </head>
 <body>
-	<h1>Videostream</h1>
-    <img id="stream" src="stream.mjpeg" style="max-width: 100%; max-height: 80vh;" />
+	<div id="container">
+		<div id="rect"></div>
+		<img id="stream" src="stream.mjpeg" />
+	</div>
+	<br>
+	<pre id="rectOptions"></pre>
+	<button id="detectCameras">Detect cameras</button>
+	<pre id="cameraOptions"></pre>
 </body>
 </html>

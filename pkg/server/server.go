@@ -1,19 +1,25 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
+	"bytes"
+	"image"
+	"image/jpeg"
 	"net/http"
+
+	"github.com/mattn/go-mjpeg"
 )
 
 type Server struct {
-	mux *http.ServeMux
+	mux    *http.ServeMux
+	stream *mjpeg.Stream
 }
 
 func NewServer(embed bool) (*Server, error) {
 	mux := http.NewServeMux()
 	s := Server{
 		mux: mux,
+
+		stream: mjpeg.NewStream(),
 	}
 
 	wwwRoot, err := getDataRoot(embed)
@@ -22,6 +28,9 @@ func NewServer(embed bool) (*Server, error) {
 	}
 
 	mux.HandleFunc("/click", s.handleClick)
+	mux.HandleFunc("/cameras", s.handleCameras)
+	mux.HandleFunc("/stream.mjpeg", s.stream.ServeHTTP)
+
 	mux.Handle("/", http.FileServer(wwwRoot))
 
 	return &s, nil
@@ -31,19 +40,15 @@ func (s *Server) GetMux() *http.ServeMux {
 	return s.mux
 }
 
-func (s *Server) handleClick(resp http.ResponseWriter, req *http.Request) {
-	reqData := struct {
-		X float64
-		Y float64
-	}{}
-
-	err := json.NewDecoder(req.Body).Decode(&reqData)
+func (s *Server) SetFrame(frame image.Image) error {
+	buf := bytes.Buffer{}
+	err := jpeg.Encode(&buf, frame, nil)
 	if err != nil {
-		resp.WriteHeader(http.StatusBadRequest)
-		resp.Write([]byte(fmt.Sprintf("Invalid request: %s", err.Error())))
-		return
+		return err
 	}
+	return s.stream.Update(buf.Bytes())
+}
 
-	fmt.Println("click", reqData)
-	resp.WriteHeader(http.StatusNoContent)
+func (s *Server) SetFrameRawJPEG(frame []byte) error {
+	return s.stream.Update(frame)
 }

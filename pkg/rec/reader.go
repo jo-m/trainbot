@@ -58,6 +58,11 @@ func (r *Reader) GetFrame() (image.Image, *time.Time, error) {
 	return img, &meta.TimeUTC, nil
 }
 
+// GetFrameRaw implements Src.
+func (r *Reader) GetFrameRaw() ([]byte, vid.FourCC, *time.Time, error) {
+	panic("not implemented")
+}
+
 // GetFPS implements Src.
 func (r *Reader) GetFPS() float64 {
 	n := len(r.meta)

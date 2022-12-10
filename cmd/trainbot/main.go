@@ -74,6 +74,30 @@ func parseCheckArgs() (config, image.Rectangle) {
 	return c, r
 }
 
+func openSrc(c config) (vid.Src, error) {
+	if c.CameraDevice != "" {
+		return vid.NewCamSrc(vid.CamConfig{
+			DeviceFile: c.CameraDevice,
+			Format:     vid.FourCC(c.CameraFormatFourCC),
+			FrameSize:  image.Point{c.CameraFrameSizeW, c.CameraFrameSizeH},
+		})
+	}
+
+	var stat os.FileInfo
+	stat, err := os.Stat(c.VideoFile)
+	if err != nil {
+		log.Err(err).Str("path", c.VideoFile).Msg("stat failed")
+		return nil, err
+	}
+	if stat.IsDir() {
+		// image file directory
+		return rec.NewReader(c.VideoFile)
+	} else {
+		// video file
+		return vid.NewFileSrc(c.VideoFile, false)
+	}
+}
+
 func main() {
 	c, rect := parseCheckArgs()
 
@@ -89,28 +113,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	var src vid.Src
-	var err error
-	if c.CameraDevice != "" {
-		src, err = vid.NewCamSrc(vid.CamConfig{
-			DeviceFile: c.CameraDevice,
-			Format:     vid.FourCC(c.CameraFormatFourCC),
-			FrameSize:  image.Point{c.CameraFrameSizeW, c.CameraFrameSizeH},
-		})
-	} else {
-		var stat os.FileInfo
-		stat, err = os.Stat(c.VideoFile)
-		if err != nil {
-			log.Panic().Err(err).Str("path", c.VideoFile).Msg("stat failed")
-		}
-		if stat.IsDir() {
-			// image file directory
-			src, err = rec.NewReader(c.VideoFile)
-		} else {
-			// video file
-			src, err = vid.NewFileSrc(c.VideoFile, false)
-		}
-	}
+	src, err := openSrc(c)
 	if err != nil {
 		log.Panic().Err(err).Str("path", c.CameraDevice+c.VideoFile).Msg("failed to open video source")
 	}
