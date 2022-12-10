@@ -48,7 +48,7 @@ type CamSrc struct {
 	fpsGuessed   float64
 }
 
-// compile time interface check
+// Compile time interface check.
 var _ Src = (*CamSrc)(nil)
 
 // fourCCToStr converts a FourCC code to string, e.g. 1448695129 to YUYV.

@@ -10,7 +10,7 @@ type YCbCr struct {
 	buf  []byte
 }
 
-// compile time interface check
+// Compile time interface check.
 var _ image.Image = (*YCbCr)(nil)
 
 func (i *YCbCr) ColorModel() color.Model {
@@ -24,7 +24,7 @@ func (i *YCbCr) At(x, y int) color.Color {
 		return color.YCbCr{}
 	}
 	pixIx := (y*i.rect.Max.X + x)
-	// two pixels = four bytes
+	// Two pixels = four bytes.
 	cellIx := (pixIx / 2) * 4
 
 	Y0, Cb, Y1, Cr := i.buf[cellIx+0], i.buf[cellIx+1], i.buf[cellIx+2], i.buf[cellIx+3]

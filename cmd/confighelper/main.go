@@ -1,3 +1,4 @@
+// Package main (confighelper) is a simple web server which helps to find the correct command line arguments for running trainbot.
 package main
 
 import (

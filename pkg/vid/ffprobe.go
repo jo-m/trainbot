@@ -96,6 +96,7 @@ type FFFormat struct {
 	Tags           FFTags `json:"tags"`
 }
 
+// Probe runs ffprobe an a video file.
 func Probe(path string) (fileProbe *FFProbeJSON, vidProbe *FFStream, err error) {
 	data, err := ffmpeg.Probe(path)
 	if err != nil {
@@ -126,6 +127,7 @@ func Probe(path string) (fileProbe *FFProbeJSON, vidProbe *FFStream, err error) 
 	return fileProbe, &stream, nil
 }
 
+// ProbeSize runs ffprobe to determine the frame size of a video file.
 func ProbeSize(path string) (w, h int, err error) {
 	_, vidProbe, err := Probe(path)
 	if err != nil {

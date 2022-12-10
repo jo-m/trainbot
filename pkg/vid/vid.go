@@ -30,7 +30,7 @@ type FileSrc struct {
 	ffmpegLock sync.Mutex
 }
 
-// compile time interface check
+// Compile time interface check.
 var _ Src = (*FileSrc)(nil)
 
 func parseFPS(fps string) (float64, error) {

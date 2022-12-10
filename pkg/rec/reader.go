@@ -19,7 +19,7 @@ type Reader struct {
 	count   int
 }
 
-// compile time interface check
+// Compile time interface check.
 var _ vid.Src = (*Reader)(nil)
 
 func NewReader(dirPath string) (*Reader, error) {

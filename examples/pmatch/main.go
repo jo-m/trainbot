@@ -1,3 +1,4 @@
+// Package main (pmatch) is a simple binary to demonstrate the usage of the pmatch package.
 package main
 
 import (

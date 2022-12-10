@@ -21,7 +21,7 @@ func sign(x float64) float64 {
 	return 0
 }
 
-// the resulting slice must have same length as the input
+// The resulting slice will have the same length as the input.
 func fitDx(ts []time.Time, dx []int) ([]int, error) {
 	if len(dx) != len(ts) {
 		panic("this should not happen")
@@ -29,9 +29,9 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 
 	n := len(dx)
 	t0 := ts[0]
-	// convert dx to float and calculate time offset in seconds
-	tsSec := make([]float64, n)  // will contain ts
-	values := make([]float64, n) // will contain dx values
+	// Convert dx to float and calculate time offset in seconds.
+	tsSec := make([]float64, n)  // Will contain ts.
+	values := make([]float64, n) // Will contain dx values.
 	for i := range tsSec {
 		tsSec[i] = float64(ts[i].Sub(t0).Seconds())
 		values[i] = float64(dx[i])
@@ -49,7 +49,7 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 		return nil, err
 	}
 
-	var roundErr float64 // sum of values we have wrongly rounded away
+	var roundErr float64 // Sum of values we have rounded away.
 	xfit := make([]int, n)
 	for i, y := range tsSec {
 		x := poly(y, fit.X)

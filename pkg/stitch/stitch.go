@@ -43,7 +43,7 @@ func stitch(seq sequence) (*image.RGBA, error) {
 		}
 	}
 
-	// calculate base width
+	// Calculate base width.
 	sign := isign(seq.dx[0])
 	w := fsz.X * sign
 	h := fsz.Y
@@ -54,14 +54,14 @@ func stitch(seq sequence) (*image.RGBA, error) {
 		w += x
 	}
 
-	// memory alloc sanity check
+	// Memory alloc sanity check.
 	rect := image.Rect(0, 0, iabs(w), h)
 	if rect.Size().X*rect.Size().Y*4 > maxMemoryMB {
 		return nil, fmt.Errorf("would allocate too much memory: size %dx%d", rect.Size().X, rect.Size().Y)
 	}
 	img := image.NewRGBA(rect)
 
-	// forward
+	// Forward?
 	if w > 0 {
 		pos := 0
 		for i, f := range seq.frames {
@@ -69,7 +69,7 @@ func stitch(seq sequence) (*image.RGBA, error) {
 			pos += seq.dx[i]
 		}
 	} else {
-		// backwards
+		// Backwards.
 		pos := -w - fsz.X
 		for i, f := range seq.frames {
 			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
@@ -85,14 +85,14 @@ func fitAndStitch(seq sequence) error {
 		log.Panic().Msg("length of frames and dx should be equal, this should not happen")
 	}
 
-	// remove trailing zeros
+	// Remove trailing zeros.
 	for seq.dx[len(seq.dx)-1] == 0 {
 		seq.dx = seq.dx[:len(seq.dx)-1]
 		seq.ts = seq.ts[:len(seq.ts)-1]
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
 
-	// checks
+	// Various sanity checks.
 	if len(seq.dx) < 10 {
 		return errors.New("sequence too short")
 	}

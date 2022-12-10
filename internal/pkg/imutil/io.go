@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Load tries to load an image from a file.
 func Load(path string) (image.Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -24,6 +25,8 @@ func Load(path string) (image.Image, error) {
 	return img, nil
 }
 
+// Dump will dump an image to a file.
+// Format is determined by file ending, PNG and JPEG are supported.
 func Dump(path string, img image.Image) error {
 	f, err := os.Create(path)
 	if err != nil {
@@ -42,6 +45,7 @@ func Dump(path string, img image.Image) error {
 	return errors.New("unknown image suffix")
 }
 
+// Sub tries to call SubImage on the given image.
 func Sub(img image.Image, r image.Rectangle) (image.Image, error) {
 	iface, ok := img.(interface {
 		SubImage(r image.Rectangle) image.Image

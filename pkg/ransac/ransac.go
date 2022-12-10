@@ -25,10 +25,10 @@ func sample(rnd *rand.Rand, x, y []float64, n int) ([]float64, []float64) {
 	isel := map[int]struct{}{}
 	xret, yret := make([]float64, n), make([]float64, n)
 	for {
-		// random index
+		// Random index.
 		i := int(rnd.Intn(len(x)))
 
-		// make sure is without replacement
+		// Make sure is new.
 		if _, ok := isel[i]; ok {
 			continue
 		}
@@ -69,7 +69,6 @@ func (p *RansacParams) Check(nx int) {
 }
 
 func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, error) {
-	// check inputs
 	if len(x) != len(y) {
 		panic("x and y must have same length")
 	}
@@ -82,12 +81,11 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 		F: math.MaxFloat64,
 	}
 
-	// iter
 	for i := 0; i < p.MaxIter; i++ {
-		// sample
+		// Sample
 		xS, yS := sample(rnd, x, y, p.MinModelPoints)
 
-		// fit
+		// Fit
 		params, err := fit.Curve1D(
 			fit.Func1D{
 				F:  model,
@@ -106,12 +104,10 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 		// 	fmt.Sprintf("~/Desktop/fit_sample_%03d_%f.png", i, params.F),
 		// 	xS, yS, params.X, model, "f(x) = a + b*x*x")
 
-		// select inliers
+		// Select inliers
 		xIn, yIn := []float64{}, []float64{}
 		for j := range x {
-			// apply model
 			yModel := model(x[j], params.X)
-			// in inlier?
 			if math.Abs(yModel-y[j]) < p.InlierThreshold {
 				xIn = append(xIn, x[j])
 				yIn = append(yIn, y[j])
@@ -121,7 +117,7 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 			continue
 		}
 
-		// fit inliers
+		// Fit inliers
 		params, err = fit.Curve1D(
 			fit.Func1D{
 				F:  model,
@@ -154,6 +150,7 @@ func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, 
 	return &bestFit, nil
 }
 
+// Plot is a helper to plot the results of a RANSAC iteration.
 func Plot(path string, x, y []float64, ps []float64, fn ModelFn, labelX string) {
 	p := hplot.New()
 	p.X.Label.Text = labelX
