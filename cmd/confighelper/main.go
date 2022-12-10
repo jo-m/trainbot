@@ -13,8 +13,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// go run ./cmd/serve/ --live-reload --log-pretty --camera-device /dev/video2
-
 const (
 	failedFramesMax = 50
 )

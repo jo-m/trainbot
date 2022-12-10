@@ -30,8 +30,9 @@ check: lint test bench
 
 build_host:
 	mkdir -p out
-	go build -o out/trainbot ./cmd/trainbot
-	go build -o out/pmatch ./examples/pmatch
+	go build -ldflags "-linkmode external -extldflags -static" -o out/trainbot ./cmd/trainbot
+	go build -ldflags "-linkmode external -extldflags -static" -o out/confighelper ./cmd/confighelper
+	go build -ldflags "-linkmode external -extldflags -static" -o out/pmatch ./examples/pmatch
 
 build_docker:
 	# Build
@@ -50,10 +51,13 @@ build_docker:
 
 	# Copy
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm6 out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper-arm6 out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm6 out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm64 out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper-arm64 out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm64 out/
 
 	# Remove temporary container

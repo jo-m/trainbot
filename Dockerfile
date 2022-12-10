@@ -69,6 +69,7 @@ ENV CGO_ENABLED=1              \
     GOARCH=arm                 \
     GOARM=6
 RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/trainbot-arm6 ./cmd/trainbot
+RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/confighelper-arm6 ./cmd/confighelper
 RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/pmatch-arm6 ./examples/pmatch
 
 # Build for arm64
@@ -78,6 +79,7 @@ ENV CGO_ENABLED=1              \
     GOARCH=arm64               \
     GOARM=
 RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/trainbot-arm64 ./cmd/trainbot
+RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/confighelper-arm64 ./cmd/confighelper
 RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/pmatch-arm64 ./examples/pmatch
 
 RUN ls -l /out
