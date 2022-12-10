@@ -58,10 +58,10 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 		log.Panic().Msg("inconsistent size, this should not happen")
 	}
 
-	// centered crop from prev frame,
+	// Centered crop from prev frame,
 	// width is 3x max pixels per frame given by max velocity
 	w := maxDx * 3
-	// and 3/4 of frame height
+	// and height 3/4 of frame.
 	h := int(float64(prev.Rect.Dy())*3/4 + 1)
 	subRect := image.Rect(0, 0, w, h).
 		Add(curr.Rect.Min).
@@ -75,9 +75,9 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 		log.Panic().Err(err).Msg("this should not happen")
 	}
 
-	// centered slice crop from next frame,
+	// Centered slice crop from next frame,
 	// width is 1x max pixels per frame given by max velocity
-	// and 3/4 of frame height
+	// and height 3/4 of frame.
 	w = maxDx
 	sliceRect := image.Rect(0, 0, w, h).
 		Add(curr.Rect.Min).
@@ -92,8 +92,7 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 		log.Panic().Err(err).Msg("this should not happen")
 	}
 
-	// we expect this x value found by search
-	// if nothing has moved
+	// We expect this x value to be found by the search if the frame has not moved.
 	xZero := sliceRect.Min.Sub(subRect.Min).X
 
 	x, _, score := pmatch.SearchGrayC(sub.(*image.Gray), slice.(*image.Gray))
@@ -133,7 +132,8 @@ func (r *AutoStitcher) Finalize() {
 	r.reset()
 }
 
-// will make a copy of the image
+// Frame adds a frame to the AutoStitcher.
+// It will retain a full copy of the image.
 func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 	frameColor = imutil.ToRGBA(frameColor)
 	frameGray := imutil.ToGray(frameColor)
@@ -144,7 +144,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 	}()
 
 	if r.prevFrameColor == nil {
-		// first time
+		// First time.
 		return
 	}
 
