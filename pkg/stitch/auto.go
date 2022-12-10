@@ -13,6 +13,8 @@ import (
 const (
 	goodScoreNoMove = 0.99
 	goodScoreMove   = 0.95
+
+	maxSeqLen = 800
 )
 
 type Config struct {
@@ -104,7 +106,6 @@ func (r *AutoStitcher) reset() {
 }
 
 func (r *AutoStitcher) record(dx int, ts time.Time, frame image.Image) {
-	// TODO: add sanity check for max memory usage
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.ts = append(r.seq.ts, ts)
 	r.seq.frames = append(r.seq.frames, frame)
@@ -153,6 +154,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 	isActive := len(r.seq.dx) > 0
 	if isActive {
 		r.dxAbsLowPass = r.dxAbsLowPass*0.9 + math.Abs(float64(dx))*0.1
+
+		// Bail out before we use too much memory.
+		if len(r.seq.dx) > maxSeqLen {
+			r.Finalize()
+			return
+		}
 
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
 			r.Finalize()
