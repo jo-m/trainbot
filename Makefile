@@ -1,53 +1,14 @@
-.PHONY: test bench compare run_videofile run_rec run_camera format lint check clean
+.PHONY: format lint test bench check build_host build_docker clean
 
-test:
-	go test -count 1 -race -v ./...
+DOCKER_BUILDER_IMG_TAG = trainbot-builder
+DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
 
-bench:
-	go test -v -bench=. ./...
+DOCKER_BASE_IMAGE = ubuntu:jammy-20221130
+GO_VERSION = 1.19.4
+GO_ARCHIVE_SHA256 = c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8
+GO_STATICCHECK_VERSION = 2022.1.3
 
-compare:
-	go test -v -bench='SearchGray|SearchGrayOpt' ./...
-
-run_videofile:
-	# go tool pprof trainbot prof-cpu.gz
-	# go tool pprof trainbot prof-heap-XX.gz
-	go build -o trainbot ./cmd/trainbot/
-	./trainbot \
-		--log-pretty \
-		--cpu-profile \
-		--heap-profile \
-		\
-		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
-		-X 800 -Y 450 -W 300 -H 300
-
-run_rec:
-	# go tool pprof trainbot prof-cpu.gz
-	# go tool pprof trainbot prof-heap-XX.gz
-	go build -o trainbot ./cmd/trainbot/
-	./trainbot \
-		--log-pretty \
-		--log-level=debug \
-		--cpu-profile \
-		--heap-profile \
-		\
-		--video-file="imgs/20221208_093141.065_+01:00" \
-		-X 0 -Y 0 -W 300 -H 350
-
-run_camera:
-	# go tool pprof trainbot prof-cpu.gz
-	# go tool pprof trainbot prof-heap-XX.gz
-	go build -o trainbot ./cmd/trainbot/
-	./trainbot \
-		--log-pretty \
-		--cpu-profile \
-		--heap-profile \
-		\
-		--camera-device /dev/video2 \
-		--format-fourcc MJPG \
-		--framesz-w 1920 \
-		--framesz-h 1080 \
-		-X 800 -Y 590 -W 300 -H 350
+DEFAULT: format build_host
 
 format:
 	cd pkg/pmatch && clang-format -i -style=Google *.h *.c
@@ -56,13 +17,49 @@ format:
 
 lint:
 	gofmt -l .; test -z "$$(gofmt -l .)"
-	go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+	go run honnef.co/go/tools/cmd/staticcheck@$(GO_STATICCHECK_VERSION) ./...
 	go vet ./...
 
-check: lint test
+test:
+	go test -race -v ./...
+
+bench:
+	go test -v -bench=. ./...
+
+check: lint test bench
+
+build_host:
+	mkdir -p out
+	go build -o out/trainbot ./cmd/trainbot
+	go build -o out/pmatch ./examples/pmatch
+
+build_docker:
+	# Build
+	docker build \
+		--tag "$(DOCKER_BUILDER_IMG_TAG)"                                 \
+		--build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"              \
+		--build-arg GO_VERSION="$(GO_VERSION)"                            \
+		--build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"              \
+		--build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"    \
+		.
+
+	# Start temporary container
+	mkdir -p out
+	docker rm -f $(DOCKER_TMP_CONTAINER_NAME) || true
+	docker create -ti --name $(DOCKER_TMP_CONTAINER_NAME) $(DOCKER_BUILDER_IMG_TAG)
+
+	# Copy
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm6 out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm6 out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm64 out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm64 out/
+
+	# Remove temporary container
+	docker rm -f $(DOCKER_TMP_CONTAINER_NAME)
 
 clean:
-	rm -f trainbot
+	rm -rf out/
 	rm -f prof-*.gz
-	rm -rf imgs
-	mkdir -p imgs
+	rm -rf imgs/
