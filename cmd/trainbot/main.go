@@ -10,8 +10,8 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/pkg/est"
 	"github.com/jo-m/trainbot/pkg/rec"
+	"github.com/jo-m/trainbot/pkg/stitch"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
 )
@@ -119,14 +119,14 @@ func main() {
 	}
 
 	rec := rec.NewAutoRec(c.RecBasePath)
-	est := est.NewEstimator(est.Config{
+	stitcher := stitch.NewAutoStitcher(stitch.Config{
 		PixelsPerM:  c.PixelsPerM,
 		MinSpeedKPH: c.MinSpeedKPH,
 		MaxSpeedKPH: c.MaxSpeedKPH,
 
 		VideoFPS: src.GetFPS(),
 	})
-	defer est.Finalize()
+	defer stitcher.Finalize()
 
 	failedFrames := 0
 	for i := 0; ; i++ {
@@ -159,7 +159,7 @@ func main() {
 			}
 		}
 
-		est.Frame(cropped, *ts)
+		stitcher.Frame(cropped, *ts)
 
 		if c.HeapProfile && i%1000 == 0 {
 			fname := fmt.Sprintf(profHeapFile, i)

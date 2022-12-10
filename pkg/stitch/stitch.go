@@ -1,4 +1,4 @@
-package est
+package stitch
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func isign(x int) int {
 	return 0
 }
 
-func assemble(seq sequence) (*image.RGBA, error) {
+func stitch(seq sequence) (*image.RGBA, error) {
 	fsz := seq.frames[0].Bounds().Size()
 	for _, f := range seq.frames {
 		if f.Bounds().Min.X != 0 ||
@@ -80,7 +80,7 @@ func assemble(seq sequence) (*image.RGBA, error) {
 	return img, nil
 }
 
-func processSequence(seq sequence) error {
+func fitAndStitch(seq sequence) error {
 	if len(seq.dx) != len(seq.frames) {
 		log.Panic().Msg("length of frames and dx should be equal, this should not happen")
 	}
@@ -106,7 +106,7 @@ func processSequence(seq sequence) error {
 		return fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
 
-	img, err := assemble(seq)
+	img, err := stitch(seq)
 	if err != nil {
 		return fmt.Errorf("unable to assemble image: %w", err)
 	}

@@ -1,4 +1,4 @@
-package est
+package stitch
 
 import (
 	"image"
@@ -31,7 +31,7 @@ func (e *Config) MaxPxPerFrame() int {
 	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/e.VideoFPS) + 1
 }
 
-type Estimator struct {
+type AutoStitcher struct {
 	c            Config
 	minDx, maxDx int
 
@@ -43,8 +43,8 @@ type Estimator struct {
 	dxAbsLowPass float64
 }
 
-func NewEstimator(c Config) *Estimator {
-	return &Estimator{
+func NewAutoStitcher(c Config) *AutoStitcher {
+	return &AutoStitcher{
 		c:     c,
 		minDx: c.MinPxPerFrame(),
 		maxDx: c.MaxPxPerFrame(),
@@ -98,12 +98,12 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	return x - xZero, score
 }
 
-func (r *Estimator) reset() {
+func (r *AutoStitcher) reset() {
 	r.seq = sequence{}
 	r.dxAbsLowPass = 0
 }
 
-func (r *Estimator) record(dx int, ts time.Time, frame image.Image) {
+func (r *AutoStitcher) record(dx int, ts time.Time, frame image.Image) {
 	// TODO: add sanity check for max memory usage
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.ts = append(r.seq.ts, ts)
@@ -117,23 +117,23 @@ func iabs(i int) int {
 	return i
 }
 
-// Finalize tries to assemble any remaining frames and resets the instance.
-func (r *Estimator) Finalize() {
+// Finalize tries to stitch any remaining frames and resets the instance.
+func (r *AutoStitcher) Finalize() {
 	if len(r.seq.dx) == 0 {
 		log.Info().Msg("nothing to assemble")
 		return
 	}
 
 	log.Info().Msg("end of sequence")
-	err := processSequence(r.seq)
+	err := fitAndStitch(r.seq)
 	if err != nil {
-		log.Err(err).Msg("unable to process sequence")
+		log.Err(err).Msg("unable to fit and stitch sequence")
 	}
 	r.reset()
 }
 
 // will make a copy of the image
-func (r *Estimator) Frame(frameColor image.Image, ts time.Time) {
+func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 	frameColor = imutil.ToRGBA(frameColor)
 	frameGray := imutil.ToGray(frameColor)
 	defer func() {

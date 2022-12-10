@@ -1,4 +1,4 @@
-package est
+package stitch
 
 import (
 	"math"
