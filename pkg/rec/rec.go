@@ -106,6 +106,7 @@ func (r *AutoRec) Frame(frame image.Image, ts time.Time) error {
 		return nil
 	}
 
+	// match similarity of past and current frame
 	score := pmatch.ScoreRGBACos(frameCopy, r.prevFrame, image.Pt(0, 0))
 	if r.avgScore == 0 || score < scoreThreshold {
 		// initialize, and/or make sure that we don't miss it if something changes
