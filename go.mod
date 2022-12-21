@@ -5,13 +5,10 @@ go 1.19
 require (
 	github.com/aamcrae/webcam v0.0.0-20210915060337-934acc13bdc3
 	github.com/alexflint/go-arg v1.4.3
-	github.com/arian/go-qoi v0.0.0-20211228130211-c3d35b145905
 	github.com/mattn/go-mjpeg v0.0.3
 	github.com/rs/zerolog v1.28.0
 	github.com/stretchr/testify v1.7.1
-	github.com/takeyourhatoff/qoi v0.0.0-20211222235018-d0e3ca2698e0
 	github.com/u2takey/ffmpeg-go v0.4.1
-	github.com/xfmoulet/qoi v0.2.0
 	go-hep.org/x/hep v0.32.1
 	gonum.org/v1/gonum v0.12.0
 	gonum.org/v1/plot v0.12.0
