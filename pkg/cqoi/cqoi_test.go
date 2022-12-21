@@ -5,12 +5,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Dump_Load(t *testing.T) {
-	img := imutil.RandRGBA(123, 200, 500)
+	img := RandRGBA(123, 200, 500)
 	dir := t.TempDir()
 	fname := path.Join(dir, "img.qoi")
 
@@ -25,7 +24,7 @@ func Test_Dump_Load(t *testing.T) {
 
 func Benchmark_Dump_QOI(b *testing.B) {
 	dir := b.TempDir()
-	img := imutil.RandRGBA(123, 200, 500)
+	img := RandRGBA(123, 200, 500)
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
