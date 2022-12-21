@@ -88,7 +88,7 @@ func Benchmark_ScoreGrayCos(b *testing.B) {
 	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
-		b.Fail()
+		b.Error(err)
 	}
 
 	// make sure pattern lives in a different memory region
@@ -144,7 +144,7 @@ func Benchmark_ScoreRGBACos(b *testing.B) {
 	img := imutil.ToRGBA(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
-		b.Fail()
+		b.Error(err)
 	}
 
 	// make sure pattern lives in a different memory region
@@ -178,7 +178,7 @@ func Benchmark_SearchGray(b *testing.B) {
 	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
-		b.Fail()
+		b.Error(err)
 	}
 
 	// make sure pattern lives in a different memory region
@@ -212,7 +212,7 @@ func Benchmark_SearchRGBA(b *testing.B) {
 	img := imutil.ToRGBA(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
-		b.Fail()
+		b.Error(err)
 	}
 
 	// make sure pattern lives in a different memory region

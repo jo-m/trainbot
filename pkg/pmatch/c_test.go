@@ -32,7 +32,7 @@ func Benchmark_SearchGrayC(b *testing.B) {
 	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
-		b.Fail()
+		b.Error(err)
 	}
 
 	// make sure pattern lives in a different memory region

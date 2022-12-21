@@ -90,7 +90,7 @@ func Benchmark_Ransac(b *testing.B) {
 		})
 
 		if err != nil {
-			b.Fail()
+			b.Error(err)
 		}
 	}
 }
