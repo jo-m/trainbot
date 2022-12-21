@@ -7,10 +7,16 @@ import (
 	"image/png"
 	"os"
 	"strings"
+
+	"github.com/jo-m/trainbot/pkg/cqoi"
 )
 
 // Load tries to load an image from a file.
 func Load(path string) (image.Image, error) {
+	if strings.HasSuffix(path, ".qoi") {
+		return cqoi.Load(path)
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -26,8 +32,12 @@ func Load(path string) (image.Image, error) {
 }
 
 // Dump will dump an image to a file.
-// Format is determined by file ending, PNG and JPEG are supported.
+// Format is determined by file ending, PNG, JPEG and QOI are supported.
 func Dump(path string, img image.Image) error {
+	if strings.HasSuffix(path, ".qoi") {
+		return cqoi.Dump(path, img)
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -39,7 +49,7 @@ func Dump(path string, img image.Image) error {
 	}
 
 	if strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".jpeg") {
-		return jpeg.Encode(f, img, &jpeg.Options{Quality: 90})
+		return jpeg.Encode(f, img, &jpeg.Options{Quality: 98})
 	}
 
 	return errors.New("unknown image suffix")

@@ -11,6 +11,8 @@ github.com/alexflint/go-arg v1.4.3 h1:9rwwEBpMXfKQKceuZfYcwuc/7YY7tWJbFsgG5cAU/u
 github.com/alexflint/go-arg v1.4.3/go.mod h1:3PZ/wp/8HuqRZMUUgu7I+e1qcpUbvmS258mRXkFH4IA=
 github.com/alexflint/go-scalar v1.1.0 h1:aaAouLLzI9TChcPXotr6gUhq+Scr8rl0P9P4PnltbhM=
 github.com/alexflint/go-scalar v1.1.0/go.mod h1:LoFvNMqS1CPrMVltza4LvnGKhaSpc3oyLEBUZVhhS2o=
+github.com/arian/go-qoi v0.0.0-20211228130211-c3d35b145905 h1:4ou9ZXR/EEAszI9IFJccpGKcTwUV8yamcytDMn85Mlk=
+github.com/arian/go-qoi v0.0.0-20211228130211-c3d35b145905/go.mod h1:fCDuuzvagKJGx7XAugNwcQOoACq+fb0ADA6qjNfgSfw=
 github.com/aws/aws-sdk-go v1.38.20 h1:QbzNx/tdfATbdKfubBpkt84OM6oBkxQZRw6+bW2GyeA=
 github.com/aws/aws-sdk-go v1.38.20/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
@@ -92,10 +94,14 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/takeyourhatoff/qoi v0.0.0-20211222235018-d0e3ca2698e0 h1:ynmEFZkZbmDoMODwYg13yx+c8iqMSbBrOcsOwCSavKY=
+github.com/takeyourhatoff/qoi v0.0.0-20211222235018-d0e3ca2698e0/go.mod h1:WE8hPpv/O0eEuKgNgmWXXDq/0eVYagB7iV7dvi6vHkk=
 github.com/u2takey/ffmpeg-go v0.4.1 h1:l5ClIwL3N2LaH1zF3xivb3kP2HW95eyG5xhHE1JdZ9Y=
 github.com/u2takey/ffmpeg-go v0.4.1/go.mod h1:ruZWkvC1FEiUNjmROowOAps3ZcWxEiOpFoHCvk97kGc=
 github.com/u2takey/go-utils v0.3.1 h1:TaQTgmEZZeDHQFYfd+AdUT1cT4QJgJn/XVPELhHw4ys=
 github.com/u2takey/go-utils v0.3.1/go.mod h1:6e+v5vEZ/6gu12w/DC2ixZdZtCrNokVxD0JUklcqdCs=
+github.com/xfmoulet/qoi v0.2.0 h1:+Smrwzy5ptRnPzGm/YHkZfyK9qGUSoOpiEPngGmFv+c=
+github.com/xfmoulet/qoi v0.2.0/go.mod h1:uuPUygmV7o8qy7PhiaGAQX0iLiqoUvFEUKjwUFtlaTQ=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go-hep.org/x/hep v0.32.1 h1:O96fOyMP+4ET8X+Uu38VFdegQb7rL0rjmFqXMCSm4VM=
 go-hep.org/x/hep v0.32.1/go.mod h1:VX3IVUv0Ku5bgWhE+LxRQ1aT7BmWWxSxQu02hfsoeRI=
