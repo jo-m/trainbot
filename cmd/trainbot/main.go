@@ -1,5 +1,5 @@
 // Package main (trainbot) tries to automatically stitch images of passing trains.
-package trainbot
+package main
 
 import (
 	"fmt"
