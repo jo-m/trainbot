@@ -78,7 +78,7 @@ func (r *AutoRec) record(prevFrame image.Image, prevTs time.Time) error {
 	meta := frameMeta{
 		Number:   r.prevCount,
 		TimeUTC:  prevTs,
-		FileName: fmt.Sprintf("frame_%06d.jpg", r.prevCount),
+		FileName: fmt.Sprintf("frame_%06d.qoi", r.prevCount),
 	}
 	r.currentMeta = append(r.currentMeta, meta)
 
