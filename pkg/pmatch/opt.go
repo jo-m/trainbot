@@ -5,7 +5,11 @@ import (
 	"math"
 )
 
-func SearchGrayOpt(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
+// SearchGray searches for the position of a (grayscale) patch in a (grayscale) image,
+// using cosine similarity.
+// Slightly optimized implementation.
+// Panics (due to out of bounds errors) if the patch is larger than the image in any dimension.
+func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {
 		panic("patch too large")

@@ -32,6 +32,10 @@ import (
 	"math"
 )
 
+// SearchGrayC searches for the position of a (grayscale) patch in a (grayscale) image,
+// using cosine similarity.
+// Implemented in Cgo.
+// Panics if the patch is larger than the image in any dimension.
 func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {

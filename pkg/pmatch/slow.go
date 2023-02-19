@@ -1,4 +1,3 @@
-// Package pmatch implements image patch matching and search.
 package pmatch
 
 import (
@@ -26,7 +25,10 @@ func imgPatchWindow(img, pat image.Image, offset image.Point) image.Image {
 	return iface.SubImage(window)
 }
 
-func ScoreGrayCos(img, pat *image.Gray, offset image.Point) float64 {
+// ScoreGrayCosSlow computes the cosine similarity score for a (grayscale) patch
+// on a (grayscale) image.
+// This a completely un-optimized and thus rather slow implementation.
+func ScoreGrayCosSlow(img, pat *image.Gray, offset image.Point) float64 {
 	img = imgPatchWindow(img, pat, offset).(*image.Gray)
 
 	var dot, sqSumI, sqSumP uint64
@@ -51,8 +53,9 @@ func ScoreGrayCos(img, pat *image.Gray, offset image.Point) float64 {
 	return cos
 }
 
+// ScoreRGBACosSlow is like ScoreGrayCosSlow() but for RGBA images.
 // Note that the alpha channel is ignored.
-func ScoreRGBACos(img, pat *image.RGBA, offset image.Point) float64 {
+func ScoreRGBACosSlow(img, pat *image.RGBA, offset image.Point) float64 {
 	img = imgPatchWindow(img, pat, offset).(*image.RGBA)
 
 	var dot, sqSumI, sqSumP uint64
@@ -85,7 +88,11 @@ func ScoreRGBACos(img, pat *image.RGBA, offset image.Point) float64 {
 	return cos
 }
 
-func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
+// SearchGraySlow searches for the position of a (grayscale) patch in a (grayscale) image,
+// using cosine similarity.
+// This a completely un-optimized and thus rather slow implementation.
+// Panics (due to out of bounds errors) if the patch is larger than the image in any dimension.
+func SearchGraySlow(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
@@ -94,7 +101,7 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 
 	for y := 0; y < searchRect.Dy(); y++ {
 		for x := 0; x < searchRect.Dx(); x++ {
-			score := ScoreGrayCos(img, pat, image.Pt(x, y))
+			score := ScoreGrayCosSlow(img, pat, image.Pt(x, y))
 
 			if score > maxScore {
 				maxScore = score
@@ -106,7 +113,9 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 	return
 }
 
-func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
+// SearchRGBASlow is like SearchGraySlow(), but for RGBA images.
+// Note that the alpha channel is ignored.
+func SearchRGBASlow(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
@@ -115,7 +124,7 @@ func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
 
 	for y := 0; y < searchRect.Dy(); y++ {
 		for x := 0; x < searchRect.Dx(); x++ {
-			score := ScoreRGBACos(img, pat, image.Pt(x, y))
+			score := ScoreRGBACosSlow(img, pat, image.Pt(x, y))
 
 			if score > maxScore {
 				maxScore = score

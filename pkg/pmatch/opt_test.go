@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_SearchGrayOpt(t *testing.T) {
+func Test_SearchGray(t *testing.T) {
 	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
 
-	x, y, score := SearchGrayOpt(img, pat.(*image.Gray))
+	x, y, score := SearchGray(img, pat.(*image.Gray))
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
@@ -22,13 +22,13 @@ func Test_SearchGrayOpt(t *testing.T) {
 	// also resets pat bounds origin to (0,0)
 	patCopy := imutil.ToGray(pat.(*image.Gray))
 
-	x, y, score = SearchGrayOpt(img, patCopy)
+	x, y, score = SearchGray(img, patCopy)
 	assert.Equal(t, 1., score)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 }
 
-func Benchmark_SearchGrayOpt(b *testing.B) {
+func Benchmark_SearchGray(b *testing.B) {
 	img := imutil.ToGray(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	if err != nil {
@@ -39,6 +39,6 @@ func Benchmark_SearchGrayOpt(b *testing.B) {
 	pat = imutil.ToGray(pat.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {
-		SearchGrayOpt(img, pat.(*image.Gray))
+		SearchGray(img, pat.(*image.Gray))
 	}
 }
