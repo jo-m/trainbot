@@ -6,8 +6,10 @@ import (
 	"math/rand"
 )
 
+// RandGray creates a random grayscale image with a given seed.
 func RandGray(seed int64, w, h int) *image.Gray {
 	src := rand.NewSource(seed)
+	// #nosec G404
 	rnd := rand.New(src)
 
 	rect := image.Rect(0, 0, w, h)
@@ -23,8 +25,10 @@ func RandGray(seed int64, w, h int) *image.Gray {
 	return img
 }
 
+// RandRGBA creates a random RGBA image with a given seed.
 func RandRGBA(seed int64, w, h int) *image.RGBA {
 	src := rand.NewSource(seed)
+	// #nosec G404
 	rnd := rand.New(src)
 
 	rect := image.Rect(0, 0, w, h)

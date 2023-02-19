@@ -70,7 +70,7 @@ func (r *Reader) GetFPS() float64 {
 }
 
 // IsLive implements Src.
-func (s *Reader) IsLive() bool {
+func (r *Reader) IsLive() bool {
 	return false
 }
 

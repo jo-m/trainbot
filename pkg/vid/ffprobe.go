@@ -67,7 +67,7 @@ type FFStream struct {
 	TimeBase         string        `json:"time_base"`
 	StartPts         int           `json:"start_pts"`
 	StartTime        string        `json:"start_time"`
-	DurationTs       int           `json:"duration_ts"`
+	DurationTS       int           `json:"duration_ts"`
 	Duration         string        `json:"duration"`
 	BitRate          string        `json:"bit_rate"`
 	BitsPerRawSample string        `json:"bits_per_raw_sample,omitempty"`

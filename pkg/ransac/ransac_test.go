@@ -38,8 +38,8 @@ func Test_Ransac(t *testing.T) {
 		29, 25, 34, 10, 0, 6, 0, 34, 0, 34, 1, 24, 34, 34, 35,
 	}
 
-	poly := func(x float64, ps []float64) float64 {
-		return ps[0] + ps[1]*x*x
+	poly := func(x float64, params []float64) float64 {
+		return params[0] + params[1]*x*x
 	}
 	xf := make([]float64, len(testData))
 	yf := make([]float64, len(testData))
@@ -48,7 +48,7 @@ func Test_Ransac(t *testing.T) {
 		yf[i] = float64(testData[i])
 	}
 
-	fit, err := Ransac(xf, yf, poly, RansacParams{
+	fit, err := Ransac(xf, yf, poly, Params{
 		MinModelPoints:  3,
 		MaxIter:         10,
 		MinInliers:      len(xf) / 2,
@@ -81,7 +81,7 @@ func Benchmark_Ransac(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		_, err := Ransac(xf, yf, poly, RansacParams{
+		_, err := Ransac(xf, yf, poly, Params{
 			MinModelPoints:  3,
 			MaxIter:         10,
 			MinInliers:      len(xf) / 2,

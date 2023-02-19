@@ -21,9 +21,9 @@ const skipInitialFrames = 10
 type FourCC string
 
 const (
-	// Motion-JPEG.
+	// FourCCMJPEG means Motion-JPEG.
 	FourCCMJPEG FourCC = "MJPG"
-	// YUYV 4:2:2
+	// FourCCYUYV means YUYV 4:2:2.
 	FourCCYUYV FourCC = "YUYV"
 )
 

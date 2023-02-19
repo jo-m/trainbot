@@ -9,9 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var jsonMimeType string = "application/json"
-var contentTypeHeader string = http.CanonicalHeaderKey("Content-Type")
-
 // http localhost:8080/cameras
 func (s *Server) handleCameras(resp http.ResponseWriter, req *http.Request) {
 	cams, err := vid.DetectCams()

@@ -28,7 +28,7 @@ type AutoRec struct {
 	basePath string
 
 	prevCount int
-	prevTs    time.Time
+	prevTS    time.Time
 	prevFrame *image.RGBA
 	avgScore  float64
 
@@ -47,7 +47,7 @@ func (r *AutoRec) initialize(ts time.Time) error {
 
 	log.Info().Str("path", r.currentPath).Time("ts", ts).Msg("initializing recording")
 
-	return os.MkdirAll(r.currentPath, 0755)
+	return os.MkdirAll(r.currentPath, 0750)
 }
 
 func (r *AutoRec) finalize(ts time.Time) error {
@@ -74,10 +74,10 @@ func (r *AutoRec) finalize(ts time.Time) error {
 	return nil
 }
 
-func (r *AutoRec) record(prevFrame image.Image, prevTs time.Time) error {
+func (r *AutoRec) record(prevFrame image.Image, prevTS time.Time) error {
 	meta := frameMeta{
 		Number:   r.prevCount,
-		TimeUTC:  prevTs,
+		TimeUTC:  prevTS,
 		FileName: fmt.Sprintf("frame_%06d.qoi", r.prevCount),
 	}
 	r.currentMeta = append(r.currentMeta, meta)
@@ -91,12 +91,13 @@ func (r *AutoRec) record(prevFrame image.Image, prevTs time.Time) error {
 	return nil
 }
 
-// will make a copy of the image
 func (r *AutoRec) Frame(frame image.Image, ts time.Time) error {
+	// TODO will make a copy of the image (add to docstring)
+
 	// create copy
 	frameCopy := imutil.ToRGBA(frame)
 	defer func() {
-		r.prevTs = ts
+		r.prevTS = ts
 		r.prevFrame = frameCopy
 		r.prevCount++
 	}()
@@ -128,7 +129,7 @@ func (r *AutoRec) Frame(frame image.Image, ts time.Time) error {
 			}
 		}
 
-		err := r.record(r.prevFrame, r.prevTs)
+		err := r.record(r.prevFrame, r.prevTS)
 		if err != nil {
 			return err
 		}

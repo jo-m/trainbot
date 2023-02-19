@@ -20,7 +20,7 @@ type FileSrc struct {
 	writer  *io.PipeWriter
 	w, h    int
 	buf     []byte
-	startTs time.Time
+	startTS time.Time
 	fps     float64
 	count   uint64
 
@@ -74,7 +74,7 @@ func NewFileSrc(path string, verbose bool) (src *FileSrc, err error) {
 		w:       vidProbe.Width,
 		h:       vidProbe.Height,
 		buf:     buf,
-		startTs: vidProbe.Tags.CreationTime,
+		startTS: vidProbe.Tags.CreationTime,
 		fps:     fps,
 		count:   0,
 
@@ -138,7 +138,7 @@ func (s *FileSrc) GetFrame() (image.Image, *time.Time, error) {
 		return nil, nil, io.EOF
 	}
 
-	ts := s.startTs.Add(time.Second * time.Duration(s.count) / time.Duration(s.fps))
+	ts := s.startTS.Add(time.Second * time.Duration(s.count) / time.Duration(s.fps))
 	s.count++
 
 	rect := image.Rectangle{Max: image.Point{X: s.w, Y: s.h}}

@@ -37,7 +37,7 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 		values[i] = float64(dx[i])
 	}
 
-	params := ransac.RansacParams{
+	params := ransac.Params{
 		MinModelPoints:  3,
 		MaxIter:         25,
 		MinInliers:      len(values) / 2,

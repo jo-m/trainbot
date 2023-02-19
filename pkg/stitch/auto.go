@@ -168,18 +168,18 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 
 		r.record(dx, ts, r.prevFrameColor)
 		return
-	} else {
-		if score >= goodScoreNoMove && iabs(dx) < r.minDx {
-			log.Debug().Msg("not moving")
-			return
-		}
+	}
 
-		if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
-			log.Info().Msg("start of new sequence")
-			r.record(dx, ts, r.prevFrameColor)
-			r.dxAbsLowPass = math.Abs(float64(dx))
-			return
-		}
+	if score >= goodScoreNoMove && iabs(dx) < r.minDx {
+		log.Debug().Msg("not moving")
+		return
+	}
+
+	if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
+		log.Info().Msg("start of new sequence")
+		r.record(dx, ts, r.prevFrameColor)
+		r.dxAbsLowPass = math.Abs(float64(dx))
+		return
 	}
 
 	log.Debug().Float64("score", score).Int("dx", dx).Msg("inconclusive frame")

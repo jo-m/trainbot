@@ -1,12 +1,12 @@
-.PHONY: format lint test bench check build_host build_docker clean run_confighelper run_camera
+.PHONY: format lint test bench check build_host build_docker clean run_confighelper run_camera run_rec
 
 DOCKER_BUILDER_IMG_TAG = trainbot-builder
 DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
 
 DOCKER_BASE_IMAGE = ubuntu:jammy-20221130
-GO_VERSION = 1.19.4
+GO_VERSION = 1.20.1
 GO_ARCHIVE_SHA256 = c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8
-GO_STATICCHECK_VERSION = 2022.1.3
+GO_STATICCHECK_VERSION = 2023.1
 
 DEFAULT: format build_host
 
@@ -17,14 +17,17 @@ format:
 
 lint:
 	gofmt -l .; test -z "$$(gofmt -l .)"
-	go run honnef.co/go/tools/cmd/staticcheck@$(GO_STATICCHECK_VERSION) ./...
 	go vet ./...
+	go run honnef.co/go/tools/cmd/staticcheck@$(GO_STATICCHECK_VERSION) -checks=all ./...
+	go run github.com/mgechev/revive@latest -set_exit_status ./...
+	go run github.com/securego/gosec/v2/cmd/gosec@latest ./...
+	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 test:
 	go test -race -v ./...
 
 bench:
-	go test -v -bench=. ./...
+	go test -v -run= -bench=. ./...
 
 check: lint test bench
 
@@ -75,4 +78,17 @@ run_camera:
 	go run ./cmd/trainbot \
 		--log-pretty \
 		--camera-device /dev/video2 --camera-format-fourcc MJPG --camera-w 1920 --camera-h 1080 \
-		-X 800 -Y 600 -W 300 -H 350
+		-X 1064 -Y 178 -W 366 -H 334
+
+run_rec:
+	# go tool pprof trainbot prof-cpu.gz
+	# go tool pprof trainbot prof-heap-XX.gz
+	go build -o trainbot ./cmd/trainbot/
+	./trainbot \
+		--log-pretty \
+		--log-level=debug \
+		--cpu-profile \
+		--heap-profile \
+		\
+		--video-file="imgs/20221208_092919.709_+01:00" \
+		-X 0 -Y 0 -W 300 -H 350

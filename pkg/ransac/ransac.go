@@ -1,3 +1,4 @@
+// Package ransac contains an implementation of the RANSAC algorithm.
 package ransac
 
 import (
@@ -43,9 +44,17 @@ func sample(rnd *rand.Rand, x, y []float64, n int) ([]float64, []float64) {
 	}
 }
 
-type ModelFn func(x float64, ps []float64) float64
+// ModelFn represents the model to be fitted during RANSAC.
+// It has to be implemented by the user.
+// Example (poly2):
+//
+//	func(x float64, params []float64) float64 {
+//		return params[0] + params[1]*x*x
+//	}
+type ModelFn func(x float64, params []float64) float64
 
-type RansacParams struct {
+// Params contains the meta-parameters for a RANSAC search.
+type Params struct {
 	MinModelPoints  int
 	MaxIter         int
 	MinInliers      int
@@ -53,7 +62,8 @@ type RansacParams struct {
 	Seed            int64
 }
 
-func (p *RansacParams) Check(nx int) {
+// Check validates RANSAC params and will panic if there are invalid settings.
+func (p *Params) Check(nx int) {
 	if p.MinModelPoints == 0 {
 		panic("MinModelPoints cannot be 0")
 	}
@@ -68,13 +78,16 @@ func (p *RansacParams) Check(nx int) {
 	}
 }
 
-func Ransac(x, y []float64, model ModelFn, p RansacParams) (*optimize.Location, error) {
+// Ransac runs the RANSAC algorithm, trying to find model parameters for ModelFn
+// according to the meta parameters.
+func Ransac(x, y []float64, model ModelFn, p Params) (*optimize.Location, error) {
 	if len(x) != len(y) {
 		panic("x and y must have same length")
 	}
 	p.Check(len(x))
 
 	src := rand.NewSource(p.Seed)
+	// #nosec G404
 	rnd := rand.New(src)
 
 	bestFit := optimize.Location{

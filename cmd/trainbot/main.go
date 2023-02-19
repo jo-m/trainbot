@@ -93,10 +93,10 @@ func openSrc(c config) (vid.Src, error) {
 	if stat.IsDir() {
 		// image file directory
 		return rec.NewReader(c.VideoFile)
-	} else {
-		// video file
-		return vid.NewFileSrc(c.VideoFile, false)
 	}
+
+	// video file
+	return vid.NewFileSrc(c.VideoFile, false)
 }
 
 func main() {
