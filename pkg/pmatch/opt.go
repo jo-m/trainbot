@@ -70,3 +70,92 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 
 	return
 }
+
+// CosSimGray returns the cosine similarity score for two (grayscale) images of the same size.
+// Slightly optimized implementation.
+// Panics (due to out of bounds errors) if the sizes don't match.
+func CosSimGray(im0, im1 *image.Gray) (score float64) {
+	if im0.Bounds().Size() != im1.Bounds().Size() {
+		panic("image sizes do not match")
+	}
+
+	du, dv := im1.Rect.Dx(), im1.Rect.Dy()
+	is, ps := im0.Stride, im1.Stride
+
+	var dot, sqSum0, sqSum1 uint64
+
+	for v := 0; v < dv; v++ {
+		px0i := v * is
+		px1i := v * ps
+
+		for u := 0; u < du; u++ {
+			px0 := im0.Pix[px0i]
+			px1 := im1.Pix[px1i]
+
+			dot += uint64(px0) * uint64(px1)
+			sqSum0 += uint64(px0) * uint64(px0)
+			sqSum1 += uint64(px1) * uint64(px1)
+
+			px0i++
+			px1i++
+		}
+	}
+
+	abs := float64(sqSum0) * float64(sqSum1)
+	if abs == 0 {
+		return 1
+	}
+
+	return math.Sqrt(float64(dot*dot) / abs)
+}
+
+// CosSimRGBA is like CosSimGray() but for RGBA images.
+// Note that the alpha channel is ignored.
+func CosSimRGBA(im0, im1 *image.RGBA) (score float64) {
+	if im0.Bounds().Size() != im1.Bounds().Size() {
+		panic("image sizes do not match")
+	}
+
+	du, dv := im1.Rect.Dx(), im1.Rect.Dy()
+	is, ps := im0.Stride, im1.Stride
+
+	var dot, sqSum0, sqSum1 uint64
+
+	for v := 0; v < dv; v++ {
+		px0i := v * is
+		px1i := v * ps
+
+		for u := 0; u < du; u++ {
+			// R
+			px0R := im0.Pix[px0i+0]
+			px1R := im1.Pix[px1i+0]
+			dot += uint64(px0R) * uint64(px1R)
+			sqSum0 += uint64(px0R) * uint64(px0R)
+			sqSum1 += uint64(px1R) * uint64(px1R)
+
+			// B
+			px0B := im0.Pix[px0i+1]
+			px1B := im1.Pix[px1i+1]
+			dot += uint64(px0B) * uint64(px1B)
+			sqSum0 += uint64(px0B) * uint64(px0B)
+			sqSum1 += uint64(px1B) * uint64(px1B)
+
+			// G
+			px0G := im0.Pix[px0i+2]
+			px1G := im1.Pix[px1i+2]
+			dot += uint64(px0G) * uint64(px1G)
+			sqSum0 += uint64(px0G) * uint64(px0G)
+			sqSum1 += uint64(px1G) * uint64(px1G)
+
+			px0i++
+			px1i++
+		}
+	}
+
+	abs := float64(sqSum0) * float64(sqSum1)
+	if abs == 0 {
+		return 1
+	}
+
+	return math.Sqrt(float64(dot*dot) / abs)
+}
