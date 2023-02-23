@@ -1,7 +1,7 @@
 package pmatch
 
 // The flags chosen below optimize for the following platforms:
-// - amd64: Host
+// - amd64: Compiler host
 // - arm64: Raspberry Pi 4
 //
 // To show the flags which -march=native would produce, run
@@ -21,6 +21,8 @@ package pmatch
 // #cgo amd64 LDFLAGS: -fopenmp
 //
 // #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
+// #cgo arm64 CFLAGS: -fopenmp
+// #cgo arm64 LDFLAGS: -fopenmp
 //
 // #include "c.h"
 import "C"
