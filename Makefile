@@ -33,9 +33,9 @@ check: lint test bench
 
 build_host:
 	mkdir -p out
-	go build -ldflags "-linkmode external -extldflags -static" -o out/trainbot ./cmd/trainbot
-	go build -ldflags "-linkmode external -extldflags -static" -o out/confighelper ./cmd/confighelper
-	go build -ldflags "-linkmode external -extldflags -static" -o out/pmatch ./examples/pmatch
+	go build -o out/trainbot ./cmd/trainbot
+	go build -o out/confighelper ./cmd/confighelper
+	go build -o out/pmatch ./examples/pmatch
 
 build_docker:
 	# Build
