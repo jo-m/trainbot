@@ -33,7 +33,7 @@ func main() {
 		panic(err)
 	}
 
-	fn := pmatch.SearchGraySlow
+	fn := pmatch.SearchGrayC
 
 	// test
 	x, y, score := fn(img, pat.(*image.Gray))
