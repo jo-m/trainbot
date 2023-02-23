@@ -17,9 +17,7 @@ RUN export DEBIAN_FRONTEND=noninteractive                   \
     DEBCONF_NONINTERACTIVE_SEEN=true                     && \
     apt-get update && apt-get install -yq                   \
         gcc-aarch64-linux-gnu                               \
-        gcc-arm-linux-gnueabihf                             \
-        libc6-dev-arm64-cross                               \
-        libc6-dev-armhf-cross                            && \
+        libc6-dev-arm64-cross                            && \
     apt-get clean                                        && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -61,16 +59,6 @@ ENV CGO_ENABLED=1  \
 RUN make check
 RUN make build_host
 RUN mv out/* /out/
-
-# Build for arm6
-ENV CGO_ENABLED=1              \
-    CC=arm-linux-gnueabihf-gcc \
-    GOOS=linux                 \
-    GOARCH=arm                 \
-    GOARM=6
-RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/trainbot-arm6 ./cmd/trainbot
-RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/confighelper-arm6 ./cmd/confighelper
-RUN go build -ldflags "-linkmode external -extldflags -static" -o /out/pmatch-arm6 ./examples/pmatch
 
 # Build for arm64
 ENV CGO_ENABLED=1              \

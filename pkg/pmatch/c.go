@@ -1,7 +1,7 @@
 package pmatch
 
-// The flags chosen below optimize for the following boards:
-// - arm: Raspberry Pi Zero (W)
+// The flags chosen below optimize for the following platforms:
+// - amd64: Host
 // - arm64: Raspberry Pi 4
 //
 // To show the flags which -march=native would produce, run
@@ -11,7 +11,6 @@ package pmatch
 // For more details, see
 // - https://gist.github.com/fm4dd/c663217935dc17f0fc73c9c81b0aa845
 // - https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
-// - https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
 // - https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
 
 // #cgo CFLAGS: -Wall -Werror -Wextra -pedantic -std=c99
@@ -20,8 +19,6 @@ package pmatch
 // #cgo amd64 CFLAGS: -march=native
 // #cgo amd64 CFLAGS: -fopenmp
 // #cgo amd64 LDFLAGS: -fopenmp
-//
-// #cgo arm CFLAGS: -mfloat-abi=hard -mfpu=vfp -marm -march=armv6kz+fp
 //
 // #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
 //

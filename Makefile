@@ -56,9 +56,6 @@ build_docker:
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm6 out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper-arm6 out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm6 out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm64 out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper-arm64 out/
 	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm64 out/
