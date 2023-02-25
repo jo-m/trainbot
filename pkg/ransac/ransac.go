@@ -53,8 +53,8 @@ func sample(rnd *rand.Rand, x, y []float64, n int) ([]float64, []float64) {
 //	}
 type ModelFn func(x float64, params []float64) float64
 
-// Params contains the meta-parameters for a RANSAC search.
-type Params struct {
+// MetaParams contains the meta-parameters for a RANSAC search.
+type MetaParams struct {
 	MinModelPoints  int
 	MaxIter         int
 	MinInliers      int
@@ -63,7 +63,7 @@ type Params struct {
 }
 
 // Check validates RANSAC params and will panic if there are invalid settings.
-func (p *Params) Check(nx int) {
+func (p *MetaParams) Check(nx int) {
 	if p.MinModelPoints == 0 {
 		panic("MinModelPoints cannot be 0")
 	}
@@ -80,7 +80,7 @@ func (p *Params) Check(nx int) {
 
 // Ransac runs the RANSAC algorithm, trying to find model parameters for ModelFn
 // according to the meta parameters.
-func Ransac(x, y []float64, model ModelFn, p Params) (*optimize.Location, error) {
+func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, error) {
 	if len(x) != len(y) {
 		panic("x and y must have same length")
 	}
