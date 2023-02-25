@@ -38,7 +38,8 @@ func Test_Ransac(t *testing.T) {
 		29, 25, 34, 10, 0, 6, 0, 34, 0, 34, 1, 24, 34, 34, 35,
 	}
 
-	poly := func(x float64, params []float64) float64 {
+	const modelNParams = 2
+	model := func(x float64, params []float64) float64 {
 		return params[0] + params[1]*x*x
 	}
 	xf := make([]float64, len(testData))
@@ -48,7 +49,7 @@ func Test_Ransac(t *testing.T) {
 		yf[i] = float64(testData[i])
 	}
 
-	fit, err := Ransac(xf, yf, poly, 2, MetaParams{
+	fit, err := Ransac(xf, yf, model, modelNParams, MetaParams{
 		MinModelPoints:  3,
 		MaxIter:         10,
 		MinInliers:      len(xf) / 2,
@@ -75,11 +76,12 @@ func Test_Ransac2(t *testing.T) {
 		690.20, 709.56, 980.63, 749.58, 572.2,
 	}
 
+	const modelNParams = 3
 	model := func(x float64, params []float64) float64 {
 		return params[0] + params[1]*x + 0.5*params[2]*x*x
 	}
 
-	fit, err := Ransac(x, y, model, 3, MetaParams{
+	fit, err := Ransac(x, y, model, modelNParams, MetaParams{
 		MinModelPoints:  4,
 		MaxIter:         20,
 		MinInliers:      len(x) / 2,
