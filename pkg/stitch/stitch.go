@@ -34,6 +34,9 @@ func isign(x int) int {
 }
 
 func stitch(seq sequence) (*image.RGBA, error) {
+	t0 := time.Now()
+	defer log.Trace().Dur("dur", time.Since(t0)).Msg("stitch() duration")
+
 	fsz := seq.frames[0].Bounds().Size()
 	for _, f := range seq.frames {
 		if f.Bounds().Min.X != 0 ||
@@ -81,6 +84,9 @@ func stitch(seq sequence) (*image.RGBA, error) {
 }
 
 func fitAndStitch(seq sequence) error {
+	t0 := time.Now()
+	defer log.Trace().Dur("dur", time.Since(t0)).Msg("fitAndStitch() duration")
+
 	if len(seq.dx) != len(seq.frames) {
 		log.Panic().Msg("length of frames and dx should be equal, this should not happen")
 	}

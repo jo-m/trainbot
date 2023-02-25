@@ -54,6 +54,9 @@ func NewAutoStitcher(c Config) *AutoStitcher {
 }
 
 func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
+	t0 := time.Now()
+	defer log.Trace().Dur("dur", time.Since(t0)).Msg("findOffset() duration")
+
 	if prev.Rect.Size() != curr.Rect.Size() {
 		log.Panic().Msg("inconsistent size, this should not happen")
 	}
@@ -135,6 +138,9 @@ func (r *AutoStitcher) Finalize() {
 // Frame adds a frame to the AutoStitcher.
 // It will retain a full copy of the image.
 func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
+	t0 := time.Now()
+	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
+
 	frameColor = imutil.ToRGBA(frameColor)
 	frameGray := imutil.ToGray(frameColor)
 	defer func() {

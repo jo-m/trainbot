@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jo-m/trainbot/pkg/ransac"
+	"github.com/rs/zerolog/log"
 )
 
 func poly(x float64, ps []float64) float64 {
@@ -23,6 +24,9 @@ func sign(x float64) float64 {
 
 // The resulting slice will have the same length as the input.
 func fitDx(ts []time.Time, dx []int) ([]int, error) {
+	start := time.Now()
+	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
+
 	if len(dx) != len(ts) {
 		panic("this should not happen")
 	}
