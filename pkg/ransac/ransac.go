@@ -99,7 +99,7 @@ func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, er
 		xS, yS := sample(rnd, x, y, p.MinModelPoints)
 
 		// Fit
-		params, err := fit.Curve1D(
+		hypoParams, err := fit.Curve1D(
 			fit.Func1D{
 				F:  model,
 				X:  xS,
@@ -114,13 +114,13 @@ func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, er
 		}
 
 		// Plot(
-		// 	fmt.Sprintf("~/Desktop/fit_sample_%03d_%f.png", i, params.F),
-		// 	xS, yS, params.X, model, "f(x) = a + b*x*x")
+		// 	fmt.Sprintf("~/Desktop/fit_sample_%03d_%f.png", i, hypoParams.F),
+		// 	xS, yS, hypoParams.X, model, "f(x) = a + b*x*x")
 
 		// Select inliers
 		xIn, yIn := []float64{}, []float64{}
 		for j := range x {
-			yModel := model(x[j], params.X)
+			yModel := model(x[j], hypoParams.X)
 			if math.Abs(yModel-y[j]) < p.InlierThreshold {
 				xIn = append(xIn, x[j])
 				yIn = append(yIn, y[j])
@@ -131,7 +131,7 @@ func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, er
 		}
 
 		// Fit inliers
-		params, err = fit.Curve1D(
+		hypoParams, err = fit.Curve1D(
 			fit.Func1D{
 				F:  model,
 				X:  xIn,
@@ -148,11 +148,11 @@ func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, er
 		// TODO: require from input distribution of inliers that they are somewhat linearly distributed
 
 		// Plot(
-		// 	fmt.Sprintf("~/Desktop/fit_inliers_%03d_%f.png", i, params.F),
-		// 	xIn, yIn, params.X, model, "f(x) = a + b*x*x")
+		// 	fmt.Sprintf("~/Desktop/fit_inliers_%03d_%f.png", i, hypoParams.F),
+		// 	xIn, yIn, hypoParams.X, model, "f(x) = a + b*x*x")
 
-		if params.F < bestFit.F {
-			bestFit = params.Location
+		if hypoParams.F < bestFit.F {
+			bestFit = hypoParams.Location
 		}
 	}
 
