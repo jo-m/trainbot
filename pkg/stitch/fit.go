@@ -35,40 +35,40 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 
 	n := len(dx)
 	t0 := ts[0]
-	// Convert dx to float and calculate time offset in seconds.
-	tsSec := make([]float64, n)  // Will contain ts.
-	values := make([]float64, n) // Will contain dx values.
-	for i := range tsSec {
-		tsSec[i] = float64(ts[i].Sub(t0).Seconds())
-		values[i] = float64(dx[i])
+	// Convert dx to float and calculate relative time.
+	tsF := make([]float64, n) // Will contain zero-based time in seconds.
+	dxF := make([]float64, n) // Will contain dx values.
+	for i := range tsF {
+		tsF[i] = float64(ts[i].Sub(t0).Seconds())
+		dxF[i] = float64(dx[i])
 	}
 
 	params := ransac.MetaParams{
 		MinModelPoints:  4,
 		MaxIter:         25,
-		MinInliers:      len(values) / 2,
+		MinInliers:      len(dxF) / 2,
 		InlierThreshold: 3.,
 		Seed:            0,
 	}
-	fit, err := ransac.Ransac(tsSec, values, model, modelNParams, params)
+	fit, err := ransac.Ransac(tsF, dxF, model, modelNParams, params)
 	if err != nil {
 		return nil, err
 	}
 
 	var roundErr float64 // Sum of values we have rounded away.
-	xfit := make([]int, n)
-	for i, y := range tsSec {
-		x := model(y, fit.X)
-		xRound := math.Round(x)
-		roundErr += x - xRound
+	dxFit := make([]int, n)
+	for i, tsF := range tsF {
+		dxF := model(tsF, fit.X)
+		dxRound := math.Round(dxF)
+		roundErr += dxF - dxRound
 
 		if math.Abs(roundErr) >= 1 {
-			xRound += roundErr
+			dxRound += roundErr
 			roundErr -= sign(roundErr)
 		}
 
-		xfit[i] = int(xRound)
+		dxFit[i] = int(dxRound)
 	}
 
-	return xfit, nil
+	return dxFit, nil
 }
