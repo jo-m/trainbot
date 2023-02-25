@@ -60,6 +60,38 @@ func Test_Ransac(t *testing.T) {
 	require.InDelta(t, 0, fit.X[1], 0.001)
 }
 
+func Test_Ransac2(t *testing.T) {
+	x := []float64{
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+		21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+		39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+	}
+	y := []float64{
+		-97.78, 28.13, -168.58, 50.80, 61.93, 56.98, 82.35, 301.81, 106.61, 41.08,
+		129.21, 140.78, 155.03, 167.81, 180.02, 382.00, 204.80, 218.80, 230.70,
+		247.93, 262.02, 275.77, 286.56, 301.00, 315.51, 333.54, 347.28, 361.53,
+		377.77, 393.67, 411.54, 424.81, 444.14, 456.44, 476.06, 494.24, 511.96,
+		289.42, 584.95, 562.87, 465.45, 599.09, 617.92, 634.42, 653.89, 674.67,
+		690.20, 709.56, 980.63, 749.58, 572.2,
+	}
+
+	model := func(x float64, params []float64) float64 {
+		return params[0] + params[1]*x + 0.5*params[2]*x*x
+	}
+
+	fit, err := Ransac(x, y, model, 3, MetaParams{
+		MinModelPoints:  4,
+		MaxIter:         20,
+		MinInliers:      len(x) / 2,
+		InlierThreshold: 5.,
+		Seed:            123,
+	})
+	require.NoError(t, err)
+	require.InDelta(t, 20, fit.X[0], 5)
+	require.InDelta(t, 10, fit.X[1], 1)
+	require.InDelta(t, 0.2, fit.X[2], 0.015)
+}
+
 func Benchmark_Ransac(b *testing.B) {
 	testData := []int{
 		34, 34, 34, 34, 34, 26, 0, 34, 1, 1, 0, 0, 20, 0, 34, 34, 34, 34, 25, 34, 34,
