@@ -49,7 +49,7 @@ func sample(rnd *rand.Rand, x, y []float64, n int) ([]float64, []float64) {
 // Example (poly2):
 //
 //	func(x float64, params []float64) float64 {
-//		return params[0] + params[1]*x*x
+//		return params[0] + params[1]*x + params[2]*x*x
 //	}
 type ModelFn func(x float64, params []float64) float64
 
@@ -80,9 +80,12 @@ func (p *MetaParams) Check(nx int) {
 
 // Ransac runs the RANSAC algorithm, trying to find model parameters for ModelFn
 // according to the meta parameters.
-func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, error) {
+func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize.Location, error) {
 	if len(x) != len(y) {
 		panic("x and y must have same length")
+	}
+	if nParams < 1 {
+		panic("the model must have at least one param")
 	}
 	p.Check(len(x))
 
@@ -101,10 +104,10 @@ func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, er
 		// Fit
 		hypoParams, err := fit.Curve1D(
 			fit.Func1D{
-				F:  model,
-				X:  xS,
-				Y:  yS,
-				Ps: []float64{1, 1},
+				F: model,
+				N: nParams,
+				X: xS,
+				Y: yS,
 			},
 			nil, &optimize.NelderMead{},
 		)
@@ -133,10 +136,10 @@ func Ransac(x, y []float64, model ModelFn, p MetaParams) (*optimize.Location, er
 		// Fit inliers
 		hypoParams, err = fit.Curve1D(
 			fit.Func1D{
-				F:  model,
-				X:  xIn,
-				Y:  yIn,
-				Ps: []float64{1, 1},
+				F: model,
+				N: nParams,
+				X: xIn,
+				Y: yIn,
 			},
 			nil, &optimize.NelderMead{},
 		)

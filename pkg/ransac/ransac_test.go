@@ -48,7 +48,7 @@ func Test_Ransac(t *testing.T) {
 		yf[i] = float64(testData[i])
 	}
 
-	fit, err := Ransac(xf, yf, poly, MetaParams{
+	fit, err := Ransac(xf, yf, poly, 2, MetaParams{
 		MinModelPoints:  3,
 		MaxIter:         10,
 		MinInliers:      len(xf) / 2,
@@ -81,7 +81,7 @@ func Benchmark_Ransac(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		_, err := Ransac(xf, yf, poly, MetaParams{
+		_, err := Ransac(xf, yf, poly, 2, MetaParams{
 			MinModelPoints:  3,
 			MaxIter:         10,
 			MinInliers:      len(xf) / 2,

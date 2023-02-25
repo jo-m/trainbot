@@ -8,7 +8,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func poly(x float64, ps []float64) float64 {
+const modelNParams = 2
+
+func model(x float64, ps []float64) float64 {
 	return ps[0] + ps[1]*x*x
 }
 
@@ -48,7 +50,7 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 		InlierThreshold: 3.,
 		Seed:            0,
 	}
-	fit, err := ransac.Ransac(tsSec, values, poly, params)
+	fit, err := ransac.Ransac(tsSec, values, model, modelNParams, params)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +58,7 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 	var roundErr float64 // Sum of values we have rounded away.
 	xfit := make([]int, n)
 	for i, y := range tsSec {
-		x := poly(y, fit.X)
+		x := model(y, fit.X)
 		xRound := math.Round(x)
 		roundErr += x - xRound
 
