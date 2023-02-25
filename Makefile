@@ -1,4 +1,4 @@
-.PHONY: format lint test bench check build_host build_docker clean run_confighelper run_camera run_rec
+.PHONY: format lint test bench check build_host build_docker clean run_confighelper run_camera run_rec run_videofile
 
 DOCKER_BUILDER_IMG_TAG = trainbot-builder
 DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
@@ -89,3 +89,12 @@ run_rec:
 		\
 		--video-file="imgs/20221208_092919.709_+01:00" \
 		-X 0 -Y 0 -W 300 -H 350
+
+run_videofile:
+	go build -o trainbot ./cmd/trainbot/
+	./trainbot \
+		--log-pretty \
+		--log-level=trace \
+		\
+		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
+		-X 800 -Y 450 -W 300 -H 300
