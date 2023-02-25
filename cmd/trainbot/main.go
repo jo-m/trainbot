@@ -2,11 +2,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"image"
 	"io"
 	"os"
 	"runtime/pprof"
+	"runtime/trace"
 
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
@@ -40,6 +42,7 @@ type config struct {
 
 	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
+	Trace       bool `arg:"--trace" help:"Write trace"`
 }
 
 const (
@@ -50,6 +53,7 @@ const (
 
 	profCPUFile  = "prof-cpu.gz"
 	profHeapFile = "prof-heap-%05d.gz"
+	traceFile    = "trace.out"
 )
 
 func parseCheckArgs() (config, image.Rectangle) {
@@ -114,6 +118,24 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	ctx := context.Background()
+	if c.Trace {
+		f, err := os.Create("trace.out")
+		if err != nil {
+			log.Panic().Err(err).Msg("failed to create trace file")
+		}
+		defer func() {
+			if err := f.Close(); err != nil {
+				log.Panic().Err(err).Msg("failed to close trace file")
+			}
+		}()
+
+		if err := trace.Start(f); err != nil {
+			log.Panic().Err(err).Msg("failed to start trace")
+		}
+		defer trace.Stop()
+	}
+
 	src, err := openSrc(c)
 	if err != nil {
 		log.Panic().Err(err).Str("path", c.CameraDevice+c.VideoFile).Msg("failed to open video source")
@@ -131,6 +153,7 @@ func main() {
 
 	failedFrames := 0
 	for i := 0; ; i++ {
+		trace.Log(ctx, "loop", "get frame")
 		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
 			log.Info().Msg("no more frames")
@@ -148,6 +171,7 @@ func main() {
 			failedFrames = 0
 		}
 
+		trace.Log(ctx, "loop", "crop and record")
 		cropped, err := imutil.Sub(frame, rect)
 		if err != nil {
 			log.Panic().Err(err).Msg("failed to crop frame")
@@ -160,7 +184,7 @@ func main() {
 			}
 		}
 
-		stitcher.Frame(cropped, *ts)
+		trace.WithRegion(ctx, "stitcher.Frame", func() { stitcher.Frame(cropped, *ts) })
 
 		if c.HeapProfile && i%1000 == 0 {
 			fname := fmt.Sprintf(profHeapFile, i)

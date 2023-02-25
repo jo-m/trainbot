@@ -86,6 +86,7 @@ run_rec:
 		--log-level=debug \
 		--cpu-profile \
 		--heap-profile \
+		--trace \
 		\
 		--video-file="imgs/20221208_092919.709_+01:00" \
 		-X 0 -Y 0 -W 300 -H 350
