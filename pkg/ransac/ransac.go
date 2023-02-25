@@ -109,7 +109,7 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 				X: xS,
 				Y: yS,
 			},
-			nil, &optimize.NelderMead{},
+			nil, nil,
 		)
 		if err != nil {
 			log.Err(err).Msg("fit did not converge (sample)")
@@ -141,7 +141,7 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 				X: xIn,
 				Y: yIn,
 			},
-			nil, &optimize.NelderMead{},
+			nil, nil,
 		)
 		if err != nil {
 			log.Err(err).Msg("fit did not converge (inliers)")
