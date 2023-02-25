@@ -54,7 +54,7 @@ func Test_fitDx_difficult(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 365, len(res))
-	assert.Equal(t, 37, res[10])
+	assert.Equal(t, 39, res[10])
 }
 
 func Test_fitDx_negative(t *testing.T) {
@@ -80,8 +80,7 @@ func Test_fitDx_rounding(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t,
 		[]int{
-			9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 9, 9, 9, 10,
-			9, 10, 10, 10, 8, 10, 10, 10, 8, 10, 10, 10, 10, 10, 11,
+			9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
 		},
 		res,
 	)
@@ -97,7 +96,7 @@ func Test_fitDx_rounding_negative(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t,
 		[]int{
-			-9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -10, -9, -9, -9, -10, -9, -10, -10, -10, -8, -10, -10, -10, -8, -10, -10, -10, -10, -10, -10,
+			-9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 		},
 		res,
 	)

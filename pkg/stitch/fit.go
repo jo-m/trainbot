@@ -10,18 +10,10 @@ import (
 
 const modelNParams = 2
 
-func model(x float64, ps []float64) float64 {
-	return ps[0] + ps[1]*x*x
-}
-
-func sign(x float64) float64 {
-	if x > 0 {
-		return 1
-	}
-	if x < 0 {
-		return -1
-	}
-	return 0
+func model(dx float64, ps []float64) float64 {
+	v0 := ps[0]
+	a := ps[1]
+	return v0 + a*dx
 }
 
 // The resulting slice will have the same length as the input.
@@ -55,19 +47,10 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 		return nil, err
 	}
 
-	var roundErr float64 // Sum of values we have rounded away.
 	dxFit := make([]int, n)
 	for i, tsF := range tsF {
 		dxF := model(tsF, fit.X)
-		dxRound := math.Round(dxF)
-		roundErr += dxF - dxRound
-
-		if math.Abs(roundErr) >= 1 {
-			dxRound += roundErr
-			roundErr -= sign(roundErr)
-		}
-
-		dxFit[i] = int(dxRound)
+		dxFit[i] = int(math.Round(dxF))
 	}
 
 	return dxFit, nil
