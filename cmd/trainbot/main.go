@@ -42,6 +42,10 @@ type config struct {
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
 }
 
+func (c *config) getRect() image.Rectangle {
+	return image.Rect(0, 0, int(c.RectW), int(c.RectH)).Add(image.Pt(int(c.RectX), int(c.RectY)))
+}
+
 const (
 	rectSizeMin = 100
 	rectSizeMax = 400
@@ -52,7 +56,7 @@ const (
 	profHeapFile = "prof-heap-%05d.gz"
 )
 
-func parseCheckArgs() (config, image.Rectangle) {
+func parseCheckArgs() config {
 	c := config{}
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
@@ -64,7 +68,7 @@ func parseCheckArgs() (config, image.Rectangle) {
 		p.Fail("cannot pass both camera device and video file")
 	}
 
-	r := image.Rect(0, 0, int(c.RectW), int(c.RectH)).Add(image.Pt(int(c.RectX), int(c.RectY)))
+	r := c.getRect()
 	if r.Size().X < rectSizeMin || r.Size().Y < rectSizeMin {
 		p.Fail("rect is too small")
 	}
@@ -72,7 +76,7 @@ func parseCheckArgs() (config, image.Rectangle) {
 		p.Fail("rect is too large")
 	}
 
-	return c, r
+	return c
 }
 
 func openSrc(c config) (vid.Src, error) {
@@ -99,25 +103,14 @@ func openSrc(c config) (vid.Src, error) {
 	return vid.NewFileSrc(c.VideoFile, false)
 }
 
-func main() {
-	c, rect := parseCheckArgs()
-
-	log.Info().Interface("config", c).Msg("starting")
-
-	if c.CPUProfile {
-		log.Info().Str("file", profCPUFile).Msg("writing CPU profile")
-		f, err := os.Create(profCPUFile)
-		if err != nil {
-			log.Panic().Err(err).Msg("failed to create CPU profile file")
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
+func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
+	rect := c.getRect()
 
 	src, err := openSrc(c)
 	if err != nil {
 		log.Panic().Err(err).Str("path", c.CameraDevice+c.VideoFile).Msg("failed to open video source")
 	}
+	defer src.Close()
 
 	rec := rec.NewAutoRec(c.RecBasePath)
 	stitcher := stitch.NewAutoStitcher(stitch.Config{
@@ -162,13 +155,7 @@ func main() {
 
 		train := stitcher.Frame(cropped, *ts)
 		if train != nil {
-			log.Info().
-				Time("ts", train.StartTS).
-				Float64("speedMpS", train.SpeedMpS()).
-				Float64("accelMpS2", train.AccelMpS2()).
-				Msg("assembled train")
-			// TODO
-			imutil.Dump(fmt.Sprintf("imgs/assembled_%s.jpg", train.StartTS.Format("20060102_150405.999_Z07:00")), train.Image)
+			trainsOut <- train
 		}
 
 		if c.HeapProfile && i%1000 == 0 {
@@ -186,4 +173,36 @@ func main() {
 			f.Close()
 		}
 	}
+}
+
+func processTrains(trainsIn <-chan *stitch.Train) {
+	for train := range trainsIn {
+		log.Info().
+			Time("ts", train.StartTS).
+			Float64("speedMpS", train.SpeedMpS()).
+			Float64("speedKmh", train.SpeedMpS()*3.6).
+			Float64("accelMpS2", train.AccelMpS2()).
+			Msg("found train")
+		imutil.Dump(fmt.Sprintf("imgs/assembled_%s.jpg", train.StartTS.Format("20060102_150405.999_Z07:00")), train.Image)
+	}
+}
+
+func main() {
+	c := parseCheckArgs()
+
+	log.Info().Interface("config", c).Msg("starting")
+
+	if c.CPUProfile {
+		log.Info().Str("file", profCPUFile).Msg("writing CPU profile")
+		f, err := os.Create(profCPUFile)
+		if err != nil {
+			log.Panic().Err(err).Msg("failed to create CPU profile file")
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	trains := make(chan *stitch.Train)
+	go processTrains(trains)
+	detectTrainsForever(c, trains)
 }
