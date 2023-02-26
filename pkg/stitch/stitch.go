@@ -95,21 +95,23 @@ func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 type Train struct {
 	StartTS time.Time
 	EndTS   time.Time
-	Image   *image.RGBA
-	Speed   float64
-	Accel   float64
-	Conf    Config
+
+	Image *image.RGBA `json:"-"`
+
+	SpeedPxS  float64
+	AccelPxS2 float64
+	Conf      Config
 }
 
 // absolute
 func (t *Train) SpeedMpS() float64 {
-	return math.Abs(t.Speed) / t.Conf.PixelsPerM
+	return math.Abs(t.SpeedPxS) / t.Conf.PixelsPerM
 }
 
 // corrected for speed direction
 func (t *Train) AccelMpS2() float64 {
 	// TODO: test
-	return t.Accel / t.Conf.PixelsPerM * sign(t.Speed)
+	return t.AccelPxS2 / t.Conf.PixelsPerM * sign(t.SpeedPxS)
 }
 
 // might modify seq

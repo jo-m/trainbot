@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"io"
@@ -183,7 +184,24 @@ func processTrains(trainsIn <-chan *stitch.Train) {
 			Float64("speedKmh", train.SpeedMpS()*3.6).
 			Float64("accelMpS2", train.AccelMpS2()).
 			Msg("found train")
-		imutil.Dump(fmt.Sprintf("imgs/assembled_%s.jpg", train.StartTS.Format("20060102_150405.999_Z07:00")), train.Image)
+
+		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
+		imutil.Dump(fmt.Sprintf("imgs/train_%s.jpg", tsString), train.Image)
+
+		func() {
+			meta, err := os.Create(fmt.Sprintf("imgs/train_%s.json", tsString))
+			if err != nil {
+				log.Err(err).Send()
+			}
+			defer meta.Close()
+
+			enc := json.NewEncoder(meta)
+			enc.SetIndent("", "  ")
+			err = enc.Encode(train)
+			if err != nil {
+				log.Err(err).Send()
+			}
+		}()
 	}
 }
 
