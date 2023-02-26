@@ -35,24 +35,31 @@ func sign(x float64) float64 {
 	return 0
 }
 
-func stitch(seq sequence) (*image.RGBA, error) {
+func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("stitch() duration")
 
-	fsz := seq.frames[0].Bounds().Size()
-	for _, f := range seq.frames {
+	// Sanity checks.
+	if len(dx) < 2 {
+		return nil, errors.New("sequence too short to stitch")
+	}
+	if len(frames) != len(dx) {
+		log.Panic().Msg("frames and dx do not have the same length, this should not happen")
+	}
+	fsz := frames[0].Bounds().Size()
+	for _, f := range frames {
 		if f.Bounds().Min.X != 0 ||
 			f.Bounds().Min.Y != 0 ||
 			f.Bounds().Size() != fsz {
-			return nil, errors.New("frame bounds or size not consistent")
+			log.Panic().Msg("frame bounds or size not consistent, this should not happen")
 		}
 	}
 
 	// Calculate base width.
-	sign := isign(seq.dx[0])
+	sign := isign(dx[0])
 	w := fsz.X * sign
 	h := fsz.Y
-	for _, x := range seq.dx[1:] {
+	for _, x := range dx[1:] {
 		if isign(x) != sign {
 			return nil, errors.New("dx elements do not have consistent sign")
 		}
@@ -69,16 +76,16 @@ func stitch(seq sequence) (*image.RGBA, error) {
 	// Forward?
 	if w > 0 {
 		pos := 0
-		for i, f := range seq.frames {
+		for i, f := range frames {
 			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
-			pos += seq.dx[i]
+			pos += dx[i]
 		}
 	} else {
 		// Backwards.
 		pos := -w - fsz.X
-		for i, f := range seq.frames {
+		for i, f := range frames {
 			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
-			pos += seq.dx[i]
+			pos += dx[i]
 		}
 	}
 
@@ -105,6 +112,7 @@ func (t *Train) AccelMpS2() float64 {
 	return t.Accel / t.Conf.PixelsPerM * sign(t.Speed)
 }
 
+// might modify seq
 func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitAndStitch() duration")
@@ -127,14 +135,12 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
 
-	var err error
-	var v0, a float64
-	seq.dx, v0, a, err = fitDx(seq.ts, seq.dx)
+	dxFit, v0, a, err := fitDx(seq.ts, seq.dx)
 	if err != nil {
 		return nil, fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
 
-	img, err := stitch(seq)
+	img, err := stitch(seq.frames, dxFit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to assemble image: %w", err)
 	}

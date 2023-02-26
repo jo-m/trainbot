@@ -16,7 +16,7 @@ func model(dx float64, ps []float64) float64 {
 	return v0 + a*dx
 }
 
-// The resulting slice will have the same length as the input.
+// Returns fitted dx values, length will always be the same as the input.
 // Also returns estimated v0 and acceleration (in pixels/s).
 func fitDx(ts []time.Time, dx []int) ([]int, float64, float64, error) {
 	start := time.Now()
