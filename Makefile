@@ -66,7 +66,6 @@ build_docker:
 clean:
 	rm -rf out/
 	rm -f prof-*.gz
-	rm -rf imgs/
 
 run_confighelper:
 	go run ./cmd/confighelper/ --camera-device /dev/video2
