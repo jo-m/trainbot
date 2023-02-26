@@ -46,6 +46,7 @@ type sequence struct {
 	frames []image.Image
 	// dx[x] is the pixel offset between frames[i-1] and frames[i].
 	// Speed of a frame, in pixels/s is calculated as dx[i]/(ts[i] - ts[i-1]).
+	// dx[0] must never be 0.
 	dx []int
 	// ts[i] is the timestamp of the i-th frame.
 	ts []time.Time
@@ -123,6 +124,8 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 }
 
 func (r *AutoStitcher) reset() {
+	log.Trace().Msg("resetting sequence")
+
 	r.seq = sequence{}
 	r.dxAbsLowPass = 0
 }

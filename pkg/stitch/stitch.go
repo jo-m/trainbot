@@ -11,7 +11,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const maxMemoryMB = 1024 * 1024 * 50
+const (
+	maxMemoryMB = 1024 * 1024 * 50
+)
 
 func isign(x int) int {
 	if x > 0 {
@@ -107,23 +109,22 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitAndStitch() duration")
 
-	if len(seq.dx) != len(seq.frames) {
-		log.Panic().Msg("length of frames and dx should be equal, this should not happen")
+	// Sanity checks.
+	if len(seq.frames) != len(seq.dx) || len(seq.frames) != len(seq.ts) {
+		log.Panic().Msg("length of frames, dx, ts are not equal, this should not happen")
+	}
+	if seq.startTS.IsZero() {
+		log.Panic().Msg("startTS is zero, this should not happen")
+	}
+	if len(seq.dx) == 0 || seq.dx[0] == 0 {
+		log.Panic().Int("len", len(seq.dx)).Msg("sequence is empty or first value is 0")
 	}
 
 	// Remove trailing zeros.
-	for seq.dx[len(seq.dx)-1] == 0 {
+	for len(seq.dx) > 0 && seq.dx[len(seq.dx)-1] == 0 {
 		seq.dx = seq.dx[:len(seq.dx)-1]
 		seq.ts = seq.ts[:len(seq.ts)-1]
 		seq.frames = seq.frames[:len(seq.frames)-1]
-	}
-
-	// Various sanity checks.
-	if len(seq.dx) < 10 {
-		return nil, errors.New("sequence too short")
-	}
-	if seq.dx[0] == 0 {
-		return nil, errors.New("seq.dx cannot start with a zero")
 	}
 
 	var err error

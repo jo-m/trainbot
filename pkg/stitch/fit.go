@@ -22,8 +22,12 @@ func fitDx(ts []time.Time, dx []int) ([]int, float64, float64, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
 
+	// Sanity checks.
 	if len(dx) != len(ts) {
-		panic("this should not happen")
+		log.Panic().Msg("dx and ts do not have the same length, this should not happen")
+	}
+	if len(dx) < (modelNParams+1)*3 {
+		return nil, 0, 0, errors.New("sequence length too short")
 	}
 
 	n := len(dx)
@@ -37,7 +41,7 @@ func fitDx(ts []time.Time, dx []int) ([]int, float64, float64, error) {
 	}
 
 	params := ransac.MetaParams{
-		MinModelPoints:  4,
+		MinModelPoints:  modelNParams + 1,
 		MaxIter:         25,
 		MinInliers:      len(dxF) / 2,
 		InlierThreshold: 3.,
