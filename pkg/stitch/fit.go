@@ -1,6 +1,7 @@
 package stitch
 
 import (
+	"errors"
 	"math"
 	"time"
 
@@ -8,55 +9,63 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const modelNParams = 2
+const modelNParams = 3
 
-func model(dx float64, ps []float64) float64 {
-	v0 := ps[0]
-	a := ps[1]
-	return v0 + a*dx
+// model computes current distance at given time t, assuming constant acceleration.
+func model(t float64, params []float64) float64 {
+	s0 := params[0]
+	v0 := params[1]
+	a := params[2]
+	return s0 + v0*t + 0.5*a*t*t
 }
 
-// Returns fitted dx values, length will always be the same as the input.
-// Also returns estimated v0 and acceleration (in pixels/s).
-func fitDx(ts []time.Time, dx []int) ([]int, float64, float64, error) {
+// Returns fitted dx values. Length will always be the same as the input.
+// Does not modify seq.
+// Also returns estimated v0 [px/s] and acceleration [px/s^2].
+func fitDx(seq sequence) ([]int, float64, float64, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
 
 	// Sanity checks.
-	if len(dx) != len(ts) {
-		log.Panic().Msg("dx and ts do not have the same length, this should not happen")
-	}
-	if len(dx) < (modelNParams+1)*3 {
+	if len(seq.dx) < (modelNParams+1)*3 {
 		return nil, 0, 0, errors.New("sequence length too short")
 	}
 
-	n := len(dx)
-	t0 := ts[0]
-	// Convert dx to float and calculate relative time.
-	tsF := make([]float64, n) // Will contain zero-based time in seconds.
-	dxF := make([]float64, n) // Will contain dx values.
-	for i := range tsF {
-		tsF[i] = float64(ts[i].Sub(t0).Seconds())
-		dxF[i] = float64(dx[i])
+	// For fitting, we want 1. time [s] and total distance [px],
+	// both as float. The first entries for both remain 0.
+	n := len(seq.dx)
+	t := make([]float64, n+1)
+	x := make([]float64, n+1)
+	dxSum := 0
+	for i := range seq.dx {
+		t[i+1] = seq.ts[i].Sub(seq.startTS).Seconds()
+		dxSum += seq.dx[i]
+		x[i+1] = float64(dxSum)
 	}
 
+	// Fit model.
 	params := ransac.MetaParams{
 		MinModelPoints:  modelNParams + 1,
 		MaxIter:         25,
-		MinInliers:      len(dxF) / 2,
-		InlierThreshold: 3.,
+		MinInliers:      len(x) / 2,
+		InlierThreshold: 25., // TODO: should depend on pixel density
 		Seed:            0,
 	}
-	fit, err := ransac.Ransac(tsF, dxF, model, modelNParams, params)
+	fit, err := ransac.Ransac(t, x, model, modelNParams, params)
 	if err != nil {
 		return nil, 0, 0, err
 	}
 
+	// Generate dx from fit, optimized for accumulated rounding error.
 	dxFit := make([]int, n)
-	for i, tsF := range tsF {
-		dxF := model(tsF, fit.X)
-		dxFit[i] = int(math.Round(dxF))
+	xSum := int(math.Round(model(0, fit.X)))
+	for i := range seq.dx {
+		x := math.Round(model(t[i+1], fit.X))
+		dxFit[i] = int(x) - xSum
+		xSum += dxFit[i]
 	}
 
-	return dxFit, fit.X[0], fit.X[1], nil
+	a := fit.X[2]
+	v0 := fit.X[1] + a*t[1] // Adjusted to first sample
+	return dxFit, v0, a, nil
 }

@@ -135,7 +135,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
 
-	dxFit, v0, a, err := fitDx(seq.ts, seq.dx)
+	dxFit, v0, a, err := fitDx(seq)
 	if err != nil {
 		return nil, fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
