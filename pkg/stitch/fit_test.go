@@ -26,8 +26,10 @@ func Test_fitDx_simple(t *testing.T) {
 		29, 25, 34, 10, 0, 6, 0, 34, 0, 34, 1, 24, 34, 34, 35,
 	}
 
-	res, err := fitDx(genTS(len(testData)), testData)
+	res, v0, a, err := fitDx(genTS(len(testData)), testData)
 	require.NoError(t, err)
+	assert.InDelta(t, 34, v0, 0.001)
+	assert.InDelta(t, 0, a, 0.001)
 	assert.Equal(t, 119, len(res))
 	assert.Equal(t, 34, res[10])
 }
@@ -50,7 +52,7 @@ func Test_fitDx_difficult(t *testing.T) {
 		35, 42, 35, 41, 36, 41, 17, 0, 17, 36, 41, 36, 36, 35,
 	}
 
-	res, err := fitDx(genTS(len(testData)), testData)
+	res, _, _, err := fitDx(genTS(len(testData)), testData)
 
 	require.NoError(t, err)
 	assert.Equal(t, 365, len(res))
@@ -63,7 +65,7 @@ func Test_fitDx_negative(t *testing.T) {
 		-10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 	}
 
-	res, err := fitDx(genTS(len(testData)), testData)
+	res, _, _, err := fitDx(genTS(len(testData)), testData)
 	require.NoError(t, err)
 	assert.Equal(t, 20, len(res))
 	assert.Equal(t, -9, res[5])
@@ -76,7 +78,7 @@ func Test_fitDx_rounding(t *testing.T) {
 		10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
 	}
 
-	res, err := fitDx(genTS(len(testData)), testData)
+	res, _, _, err := fitDx(genTS(len(testData)), testData)
 	require.NoError(t, err)
 	assert.Equal(t,
 		[]int{
@@ -92,7 +94,7 @@ func Test_fitDx_rounding_negative(t *testing.T) {
 		-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 	}
 
-	res, err := fitDx(genTS(len(testData)), testData)
+	res, _, _, err := fitDx(genTS(len(testData)), testData)
 	require.NoError(t, err)
 	assert.Equal(t,
 		[]int{

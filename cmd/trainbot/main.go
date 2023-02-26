@@ -160,7 +160,16 @@ func main() {
 			}
 		}
 
-		stitcher.Frame(cropped, *ts)
+		train := stitcher.Frame(cropped, *ts)
+		if train != nil {
+			log.Info().
+				Time("ts", train.StartTS).
+				Float64("speedMpS", train.SpeedMpS()).
+				Float64("accelMpS2", train.AccelMpS2()).
+				Msg("assembled train")
+			// TODO
+			imutil.Dump(fmt.Sprintf("imgs/assembled_%s.jpg", train.StartTS.Format("20060102_150405.999_Z07:00")), train.Image)
+		}
 
 		if c.HeapProfile && i%1000 == 0 {
 			fname := fmt.Sprintf(profHeapFile, i)

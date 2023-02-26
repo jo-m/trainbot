@@ -121,23 +121,25 @@ func iabs(i int) int {
 }
 
 // Finalize tries to stitch any remaining frames and resets the instance.
-func (r *AutoStitcher) Finalize() {
+func (r *AutoStitcher) Finalize() *Train {
 	if len(r.seq.dx) == 0 {
 		log.Info().Msg("nothing to assemble")
-		return
+		return nil
 	}
 
 	log.Info().Msg("end of sequence")
-	err := fitAndStitch(r.seq)
+	train, err := fitAndStitch(r.seq, r.c)
 	if err != nil {
 		log.Err(err).Msg("unable to fit and stitch sequence")
 	}
 	r.reset()
+
+	return train
 }
 
 // Frame adds a frame to the AutoStitcher.
-// It will retain a full copy of the image.
-func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
+// Will make a deep copy of the frame.
+func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
 
@@ -151,7 +153,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 
 	if r.prevFrameColor == nil {
 		// First time.
-		return
+		return nil
 	}
 
 	dx, score := findOffset(r.prevFrameGray, frameGray, r.maxDx)
@@ -163,30 +165,29 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) {
 
 		// Bail out before we use too much memory.
 		if len(r.seq.dx) > maxSeqLen {
-			r.Finalize()
-			return
+			return r.Finalize()
 		}
 
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
-			r.Finalize()
-			return
+			return r.Finalize()
 		}
 
 		r.record(dx, ts, r.prevFrameColor)
-		return
+		return nil
 	}
 
 	if score >= goodScoreNoMove && iabs(dx) < r.minDx {
 		log.Debug().Msg("not moving")
-		return
+		return nil
 	}
 
 	if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
 		log.Info().Msg("start of new sequence")
 		r.record(dx, ts, r.prevFrameColor)
 		r.dxAbsLowPass = math.Abs(float64(dx))
-		return
+		return nil
 	}
 
 	log.Debug().Float64("score", score).Int("dx", dx).Msg("inconclusive frame")
+	return nil
 }

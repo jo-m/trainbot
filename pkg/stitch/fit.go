@@ -17,7 +17,8 @@ func model(dx float64, ps []float64) float64 {
 }
 
 // The resulting slice will have the same length as the input.
-func fitDx(ts []time.Time, dx []int) ([]int, error) {
+// Also returns estimated v0 and acceleration (in pixels/s).
+func fitDx(ts []time.Time, dx []int) ([]int, float64, float64, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
 
@@ -44,7 +45,7 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 	}
 	fit, err := ransac.Ransac(tsF, dxF, model, modelNParams, params)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	dxFit := make([]int, n)
@@ -53,5 +54,5 @@ func fitDx(ts []time.Time, dx []int) ([]int, error) {
 		dxFit[i] = int(math.Round(dxF))
 	}
 
-	return dxFit, nil
+	return dxFit, fit.X[0], fit.X[1], nil
 }
