@@ -144,8 +144,10 @@ func iabs(i int) int {
 	return i
 }
 
-// Finalize tries to stitch any remaining frames and resets the instance.
-func (r *AutoStitcher) Finalize() *Train {
+// TryStitchAndReset tries to stitch any remaining frames and resets the sequence.
+func (r *AutoStitcher) TryStitchAndReset() *Train {
+	defer r.reset()
+
 	if len(r.seq.dx) == 0 {
 		log.Info().Msg("nothing to assemble")
 		return nil
@@ -156,7 +158,6 @@ func (r *AutoStitcher) Finalize() *Train {
 	if err != nil {
 		log.Err(err).Msg("unable to fit and stitch sequence")
 	}
-	r.reset()
 
 	return train
 }
@@ -192,12 +193,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 		// Bail out before we use too much memory.
 		if len(r.seq.dx) > maxSeqLen {
-			return r.Finalize()
+			return r.TryStitchAndReset()
 		}
 
 		// We have reached the end of a sequence.
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
-			return r.Finalize()
+			return r.TryStitchAndReset()
 		}
 
 		r.record(r.prevFrameTs, frameColor, dx, ts)

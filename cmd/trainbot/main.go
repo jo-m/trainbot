@@ -127,7 +127,7 @@ func main() {
 
 		VideoFPS: src.GetFPS(),
 	})
-	defer stitcher.Finalize()
+	defer stitcher.TryStitchAndReset()
 
 	failedFrames := 0
 	for i := 0; ; i++ {
