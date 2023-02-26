@@ -15,6 +15,8 @@ const (
 	goodScoreMove   = 0.95
 
 	maxSeqLen = 800
+
+	dxLowPassFactor = 0.9
 )
 
 type Config struct {
@@ -33,11 +35,29 @@ func (e *Config) MaxPxPerFrame() int {
 	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/e.VideoFPS) + 1
 }
 
+type sequence struct {
+	// Timestamp of the frame before the first frame in the sequence (frames[-1]).
+	startTS time.Time
+
+	// The slices must always have the same length.
+
+	// frame[i] contains the i-th frame.
+	// All frames must have the same image size.
+	frames []image.Image
+	// dx[x] is the pixel offset between frames[i-1] and frames[i].
+	// Speed of a frame, in pixels/s is calculated as dx[i]/(ts[i] - ts[i-1]).
+	dx []int
+	// ts[i] is the timestamp of the i-th frame.
+	ts []time.Time
+}
+
 type AutoStitcher struct {
 	c            Config
 	minDx, maxDx int
 
-	prevCount      int
+	prevFrameIx int
+	// Those are all together zero/nil or not.
+	prevFrameTs    time.Time
 	prevFrameColor image.Image
 	prevFrameGray  *image.Gray
 
@@ -107,10 +127,14 @@ func (r *AutoStitcher) reset() {
 	r.dxAbsLowPass = 0
 }
 
-func (r *AutoStitcher) record(dx int, ts time.Time, frame image.Image) {
+func (r *AutoStitcher) record(prevTs time.Time, frame image.Image, dx int, ts time.Time) {
+	if r.seq.startTS.IsZero() {
+		r.seq.startTS = prevTs
+	}
+
+	r.seq.frames = append(r.seq.frames, frame)
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.ts = append(r.seq.ts, ts)
-	r.seq.frames = append(r.seq.frames, frame)
 }
 
 func iabs(i int) int {
@@ -143,36 +167,40 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
 
+	// Make copies and convert to gray.
 	frameColor = imutil.ToRGBA(frameColor)
 	frameGray := imutil.ToGray(frameColor)
+	// Make sure we always save the previous frame.
 	defer func() {
+		r.prevFrameIx++
+		r.prevFrameTs = ts
 		r.prevFrameColor = frameColor
 		r.prevFrameGray = frameGray
-		r.prevCount++
 	}()
 
 	if r.prevFrameColor == nil {
-		// First time.
+		// First frame, we skip as we need a previous one to do any processing.
 		return nil
 	}
 
 	dx, score := findOffset(r.prevFrameGray, frameGray, r.maxDx)
-	log.Debug().Int("prevCount", r.prevCount).Int("dx", dx).Float64("score", score).Msg("received frame")
+	log.Debug().Int("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0
 	if isActive {
-		r.dxAbsLowPass = r.dxAbsLowPass*0.9 + math.Abs(float64(dx))*0.1
+		r.dxAbsLowPass = r.dxAbsLowPass*(dxLowPassFactor) + math.Abs(float64(dx))*(1-dxLowPassFactor)
 
 		// Bail out before we use too much memory.
 		if len(r.seq.dx) > maxSeqLen {
 			return r.Finalize()
 		}
 
+		// We have reached the end of a sequence.
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
 			return r.Finalize()
 		}
 
-		r.record(dx, ts, r.prevFrameColor)
+		r.record(r.prevFrameTs, frameColor, dx, ts)
 		return nil
 	}
 
@@ -183,7 +211,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 	if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
 		log.Info().Msg("start of new sequence")
-		r.record(dx, ts, r.prevFrameColor)
+		r.record(r.prevFrameTs, frameColor, dx, ts)
 		r.dxAbsLowPass = math.Abs(float64(dx))
 		return nil
 	}

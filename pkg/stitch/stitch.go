@@ -13,16 +13,6 @@ import (
 
 const maxMemoryMB = 1024 * 1024 * 50
 
-type sequence struct {
-	// Those slices always must have the same length.
-	// dx[i] is the assumed offset between frames[i] and frames[i+1].
-	// ts[i] is the timestamp of that frame.
-	// All frames must have the same size.
-	dx     []int
-	ts     []time.Time
-	frames []image.Image
-}
-
 func isign(x int) int {
 	if x > 0 {
 		return 1
