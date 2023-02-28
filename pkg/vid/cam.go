@@ -255,7 +255,7 @@ func probeCam(deviceFile string) ([]CamConfig, error) {
 
 // DetectCams returns a list of detected cameras and their supported pixel formats and frame sizes.
 // This works even if some of the devices are currently in use.
-// Cameras which list no available pixel formats are ignored.
+// Cameras which list no available pixel formats, or produce errors on open, are ignored.
 // Only fixed frame sizes are included.
 func DetectCams() ([]CamConfig, error) {
 	devices, err := filepath.Glob("/dev/video*")
@@ -267,7 +267,7 @@ func DetectCams() ([]CamConfig, error) {
 	for _, f := range devices {
 		configs, err := probeCam(f)
 		if err != nil {
-			return nil, fmt.Errorf("failed to probe camera '%s': %w", f, err)
+			continue
 		}
 		ret = append(ret, configs...)
 	}

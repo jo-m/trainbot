@@ -76,7 +76,7 @@ func main() {
 			break
 		}
 		if fourcc != vid.FourCCMJPEG {
-			log.Panic().Msg("unsupported image format")
+			err = fmt.Errorf("unsupported image format: %s", fourcc)
 		}
 		if err != nil {
 			failedFrames++
