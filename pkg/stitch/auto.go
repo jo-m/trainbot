@@ -220,6 +220,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	log.Debug().Float64("score", score).Int("dx", dx).Msg("inconclusive frame")
+	log.Debug().
+		Float64("score", score).
+		Float64("goodScoreMove", goodScoreMove).
+		Int("dx", dx).
+		Int("minDx", r.minDx).
+		Int("maxDx", r.maxDx).
+		Msg("inconclusive frame")
 	return nil
 }
