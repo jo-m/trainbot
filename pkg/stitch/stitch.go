@@ -166,8 +166,8 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		t0,
 		tEnd,
 		img,
-		speed,
-		a,
+		-speed, // Negate because when things move to the left we get positive dx values.
+		-a,
 		c,
 	}, nil
 }
