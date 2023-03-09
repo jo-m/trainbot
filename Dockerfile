@@ -65,7 +65,7 @@ ENV CGO_ENABLED=1              \
     CC=aarch64-linux-gnu-gcc   \
     GOOS=linux                 \
     GOARCH=arm64               \
-    GOARM=
+    GOARM=7
 RUN go build -o /out/trainbot-arm64 ./cmd/trainbot
 RUN go build -o /out/confighelper-arm64 ./cmd/confighelper
 RUN go build -o /out/pmatch-arm64 ./examples/pmatch
