@@ -93,7 +93,7 @@ func ScoreRGBACosSlow(img, pat *image.RGBA, offset image.Point) float64 {
 // This a completely un-optimized and thus rather slow implementation.
 // Panics (due to out of bounds errors) if the patch is larger than the image in any dimension.
 func SearchGraySlow(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
-	// search rect in img coordinates
+	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
@@ -116,7 +116,7 @@ func SearchGraySlow(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 // SearchRGBASlow is like SearchGraySlow(), but for RGBA images.
 // Note that the alpha channel is ignored.
 func SearchRGBASlow(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
-	// search rect in img coordinates
+	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),

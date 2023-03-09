@@ -66,6 +66,6 @@ func fitDx(seq sequence) ([]int, float64, float64, error) {
 	}
 
 	a := fit.X[2]
-	v0 := fit.X[1] + a*t[1] // Adjusted to first sample
+	v0 := fit.X[1] + a*t[1] // Adjusted to first sample.
 	return dxFit, v0, a, nil
 }

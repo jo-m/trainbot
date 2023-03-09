@@ -35,7 +35,7 @@ func main() {
 
 	fn := pmatch.SearchGrayC
 
-	// test
+	// Test.
 	x, y, score := fn(img, pat.(*image.Gray))
 	fmt.Printf("x=%d y=%d score=%f\n", x, y, score)
 	if x != px {
@@ -48,7 +48,7 @@ func main() {
 		panic("invalid score")
 	}
 
-	// bench
+	// Benchmark.
 	bench(func() {
 		fn(img, pat.(*image.Gray))
 	}, 100)

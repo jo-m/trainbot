@@ -103,18 +103,26 @@ type Train struct {
 	Conf      Config
 }
 
-// absolute
+// SpeedMpS returns the absolute speed in m/s.
 func (t *Train) SpeedMpS() float64 {
 	return math.Abs(t.SpeedPxS) / t.Conf.PixelsPerM
 }
 
-// corrected for speed direction
+// AccelMpS2 returns the acceleration in m/2^2, corrected for speed direction:
+// Positive means accelerating, negative means breaking.
 func (t *Train) AccelMpS2() float64 {
 	// TODO: test
 	return t.AccelPxS2 / t.Conf.PixelsPerM * sign(t.SpeedPxS)
 }
 
-// might modify seq
+// Direction returns the train direction. Right = true, left = false.
+func (t *Train) Direction() bool {
+	return t.SpeedPxS > 0
+}
+
+// fitAndStitch tries to stitch an image from a sequence.
+// Will first try to fit a constant acceleration speed model for smoothing.
+// Might modify seq (drops leading frames with no movement).
 func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitAndStitch() duration")
@@ -147,7 +155,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		return nil, fmt.Errorf("unable to assemble image: %w", err)
 	}
 
-	// estimate speed at halftime
+	// Estimate speed at halftime.
 	t0 := seq.ts[0]
 	tMid := seq.ts[len(seq.ts)/2]
 	speed := v0 + a*tMid.Sub(t0).Seconds()

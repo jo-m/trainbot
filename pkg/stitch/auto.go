@@ -156,7 +156,7 @@ func (r *AutoStitcher) TryStitchAndReset() *Train {
 		return nil
 	}
 
-	log.Info().Msg("end of sequence")
+	log.Info().Msg("end of sequence, trying to stitch")
 	train, err := fitAndStitch(r.seq, r.c)
 	if err != nil {
 		log.Err(err).Msg("unable to fit and stitch sequence")

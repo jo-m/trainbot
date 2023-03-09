@@ -19,7 +19,7 @@ func Test_SearchGray(t *testing.T) {
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 
-	// also resets pat bounds origin to (0,0)
+	// Also resets pat bounds origin to (0,0).
 	patCopy := imutil.ToGray(pat.(*image.Gray))
 
 	x, y, score = SearchGray(img, patCopy)
@@ -35,7 +35,7 @@ func Benchmark_SearchGray(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToGray(pat.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {
@@ -60,7 +60,7 @@ func Test_CosSimGray(t *testing.T) {
 	im88, err := imutil.Sub(img, image.Rect(x0+8, y0+8, x0+w+8, y0+h+8))
 	require.NoError(t, err)
 
-	// we expect scores to lower as the offsets increase
+	// We expect scores to lower as the offsets increase.
 
 	score := CosSimGray(im00.(*image.Gray), im00.(*image.Gray))
 	assert.Equal(t, 1., score)
@@ -95,7 +95,7 @@ func Benchmark_CosSimGray(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	im88 = imutil.ToGray(im88.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {
@@ -120,7 +120,7 @@ func Test_CosSimRGBA(t *testing.T) {
 	im88, err := imutil.Sub(img, image.Rect(x0+8, y0+8, x0+w+8, y0+h+8))
 	require.NoError(t, err)
 
-	// we expect scores to lower as the offsets increase
+	// We expect scores to lower as the offsets increase.
 
 	score := CosSimRGBA(im00.(*image.RGBA), im00.(*image.RGBA))
 	assert.Equal(t, 1., score)
@@ -155,7 +155,7 @@ func Benchmark_CosSimRGBA(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	im88 = imutil.ToRGBA(im88.(*image.RGBA))
 
 	for i := 0; i < b.N; i++ {

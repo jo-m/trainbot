@@ -19,12 +19,12 @@ const (
 type scoreGrayFn[T any] func(img, pat T, offset image.Point) float64
 
 func testScore[T any](t *testing.T, img, pat T, perfectScore float64, scoreFn scoreGrayFn[T]) {
-	// score at patch origin
+	// Score at patch origin.
 	offset0 := image.Pt(x0, y0)
 	score0 := scoreFn(img, pat, offset0)
 	assert.InDelta(t, perfectScore, score0, delta)
 
-	// score at offset
+	// Score at offset.
 	offset1 := image.Pt(x0+1, y0+0)
 	score1 := scoreFn(img, pat, offset1)
 	assert.Less(t, score1, score0)
@@ -37,7 +37,7 @@ func testScore[T any](t *testing.T, img, pat T, perfectScore float64, scoreFn sc
 	score3 := scoreFn(img, pat, offset3)
 	assert.Less(t, score3, score0)
 
-	// score at larger offset
+	// Score at larger offset.
 	offset4 := image.Pt(x0+3, y0+3)
 	score4 := scoreFn(img, pat, offset4)
 	assert.Less(t, score4, score3)
@@ -52,7 +52,7 @@ func Test_ScoreGrayCosSlow(t *testing.T) {
 
 	testScore(t, img, pat.(*image.Gray), 1, ScoreGrayCosSlow)
 
-	// also resets pat bounds origin to (0,0)
+	// Also resets pat bounds origin to (0,0).
 	patCopy := imutil.ToGray(pat.(*image.Gray))
 
 	testScore(t, img, patCopy, 1, ScoreGrayCosSlow)
@@ -91,7 +91,7 @@ func Benchmark_ScoreGrayCosSlow(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToGray(pat.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {
@@ -108,7 +108,7 @@ func Test_ScoreRGBCosSlow(t *testing.T) {
 
 	testScore(t, img, pat.(*image.RGBA), 1, ScoreRGBACosSlow)
 
-	// also resets pat bounds origin to (0,0)
+	// Also resets pat bounds origin to (0,0).
 	patCopy := imutil.ToRGBA(pat.(*image.RGBA))
 
 	testScore(t, img, patCopy, 1, ScoreRGBACosSlow)
@@ -147,7 +147,7 @@ func Benchmark_ScoreRGBACosSlow(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToRGBA(pat.(*image.RGBA))
 
 	for i := 0; i < b.N; i++ {
@@ -165,7 +165,7 @@ func Test_SearchGraySlow(t *testing.T) {
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 
-	// also resets pat bounds origin to (0,0)
+	// Also resets pat bounds origin to (0,0).
 	patCopy := imutil.ToGray(pat.(*image.Gray))
 
 	x, y, score = SearchGraySlow(img, patCopy)
@@ -181,7 +181,7 @@ func Benchmark_SearchGraySlow(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToGray(pat.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {
@@ -199,7 +199,7 @@ func Test_SearchRGBASlow(t *testing.T) {
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 
-	// also resets pat bounds origin to (0,0)
+	// Also resets pat bounds origin to (0,0).
 	patCopy := imutil.ToRGBA(pat.(*image.RGBA))
 
 	x, y, score = SearchRGBASlow(img, patCopy)
@@ -215,7 +215,7 @@ func Benchmark_SearchRGBASlow(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToRGBA(pat.(*image.RGBA))
 
 	for i := 0; i < b.N; i++ {

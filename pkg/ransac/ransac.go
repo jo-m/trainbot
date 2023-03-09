@@ -98,10 +98,10 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 	}
 
 	for i := 0; i < p.MaxIter; i++ {
-		// Sample
+		// Sample.
 		xS, yS := sample(rnd, x, y, p.MinModelPoints)
 
-		// Fit
+		// Fit.
 		hypoParams, err := fit.Curve1D(
 			fit.Func1D{
 				F: model,
@@ -120,7 +120,7 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 		// 	fmt.Sprintf("~/Desktop/fit_sample_%03d_%f.png", i, hypoParams.F),
 		// 	xS, yS, hypoParams.X, model, "f(x) = a + b*x*x")
 
-		// Select inliers
+		// Select inliers.
 		xIn, yIn := []float64{}, []float64{}
 		for j := range x {
 			yModel := model(x[j], hypoParams.X)
@@ -133,7 +133,7 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 			continue
 		}
 
-		// Fit inliers
+		// Fit inliers.
 		hypoParams, err = fit.Curve1D(
 			fit.Func1D{
 				F: model,
