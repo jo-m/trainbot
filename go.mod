@@ -6,6 +6,8 @@ require (
 	github.com/aamcrae/webcam v0.0.0-20210915060337-934acc13bdc3
 	github.com/alexflint/go-arg v1.4.3
 	github.com/mattn/go-mjpeg v0.0.3
+	github.com/mccutchen/palettor v1.0.0
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
 	github.com/u2takey/ffmpeg-go v0.4.1

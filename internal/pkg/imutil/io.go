@@ -3,6 +3,7 @@ package imutil
 import (
 	"errors"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"os"
@@ -53,6 +54,17 @@ func Dump(path string, img image.Image) error {
 	}
 
 	return errors.New("unknown image suffix")
+}
+
+// Dump will dump a GIF image to a file.
+func DumpGIF(path string, img *gif.GIF) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return gif.EncodeAll(f, img)
 }
 
 // Sub tries to call SubImage on the given image.

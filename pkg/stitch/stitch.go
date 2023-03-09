@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"image/gif"
 	"math"
 	"time"
 
+	"github.com/mccutchen/palettor"
+	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
 )
 
@@ -97,6 +100,7 @@ type Train struct {
 	EndTS   time.Time
 
 	Image *image.RGBA `json:"-"`
+	GIF   *gif.GIF    `json:"-"`
 
 	SpeedPxS  float64
 	AccelPxS2 float64
@@ -117,6 +121,41 @@ func (t *Train) AccelMpS2() float64 {
 // Direction returns the train direction. Right = true, left = false.
 func (t *Train) Direction() bool {
 	return t.SpeedPxS > 0
+}
+
+func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
+	// Extract palette.
+	thumb := resize.Thumbnail(300, 300, stitched, resize.Lanczos3)
+	const (
+		paletteSize = 20
+		nIter       = 100
+	)
+	pal, err := palettor.Extract(paletteSize, nIter, thumb)
+	if err != nil {
+		return nil, err
+	}
+
+	g := gif.GIF{}
+
+	prevTS := seq.startTS
+	for i, ts := range seq.ts {
+		dt := ts.Sub(prevTS)
+
+		// Skip every other frame.
+		if i%2 == 1 {
+			continue
+		}
+
+		paletted := image.NewPaletted(seq.frames[i].Bounds(), pal.Colors())
+		draw.Draw(paletted, seq.frames[i].Bounds(), seq.frames[i], image.ZP, draw.Src)
+
+		g.Image = append(g.Image, paletted)
+		g.Delay = append(g.Delay, int(dt.Seconds()*100))
+
+		prevTS = ts
+	}
+
+	return &g, nil
 }
 
 // fitAndStitch tries to stitch an image from a sequence.
@@ -161,10 +200,16 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 
 	tEnd := seq.ts[len(seq.ts)-1]
 
+	gif, err := createGIF(seq, img)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Train{
 		t0,
 		tEnd,
 		img,
+		gif,
 		-speed, // Negate because when things move to the left we get positive dx values.
 		-a,
 		c,
