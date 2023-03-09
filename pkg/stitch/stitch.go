@@ -111,7 +111,6 @@ func (t *Train) SpeedMpS() float64 {
 // AccelMpS2 returns the acceleration in m/2^2, corrected for speed direction:
 // Positive means accelerating, negative means breaking.
 func (t *Train) AccelMpS2() float64 {
-	// TODO: test
 	return t.AccelPxS2 / t.Conf.PixelsPerM * sign(t.SpeedPxS)
 }
 
