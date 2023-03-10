@@ -1,11 +1,12 @@
 # Trainbot
 
-**THIS IS WORK IN PROGRESS AND INCOMPLETE**
+**THIS IS A WORK IN PROGRESS AND INCOMPLETE**
 
 Trainbot watches a piece of train track with a USB camera, detects trains, and stitches together images of them.
 
 [<img src="pkg/stitch/testdata/test1.jpg">](pkg/stitch/testdata/test1.jpg)
 [<img src="pkg/stitch/testdata/test2.jpg">](pkg/stitch/testdata/test2.jpg)
+[<img src="demo.gif">](demo.gif)
 
 It also contains some packages which might be useful for other purposes:
 
@@ -15,16 +16,22 @@ It also contains some packages which might be useful for other purposes:
 
 The binaries are currently built and tested on X86_64 and a Raspberry Pi 4 B.
 
-## Assumptions
+## Assumptions and notes on computer vision
+
+The computer vision used in trainbot is fairly naive and simple.
+There is no camera calibration, image stabilization, undistortion, perspective mapping, or "real" object tracking.
+This allows us to stay away from complex dependencies like OpenCV, and keeps the computational requirements low.
+All processing happens on CPU.
+
+As a consequence, there are certain requirements which have to be met:
 
 1. Trains only appear in a (manually) pre-cropped region.
 1. The camera is stable and the image does not move around in any direction.
 1. There are no large fast brightness changes.
 1. Trains have a given min and max speed.
 1. We are looking at the tracks more or less perpendicularly in the chosen image crop region.
-   No fancy camera calibration or geometric correction takes place, we are d
-1. Trains are coming from one direction at a time, crossings are not handled properly.
-1. Trains have a constant acceleration (might be 0) and do not stop and turn around.
+1. Trains are coming from one direction at a time, crossings are not yet handled properly.
+1. Trains have a constant acceleration (might be 0) and do not stop and turn around while in front of the camera.
 
 ## V4L Settings
 
@@ -57,13 +64,17 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 
 ## TODOs
 
-- [ ] Also create GIFs
-- [ ] Crop stitched images to exact W H
+- [x] Also create GIFs
+- [ ] Crop stitched images to exact width and height
 - [ ] Use FFMPEG or Gstreamer for camera input, the Go webcam library often crashes after a couple 100s of frames
-- [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding
+- [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding on output
 - [ ] Move rec package to internal or remove entirely
 - [ ] Move all "application" code to internal/
-- [ ] Deploy via Gokrazy
+- [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Maybe move QOI and patchmatch to separate repos
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Add Telegram or Twitter bot, or serve a page with recent trains
+- [ ] Improve stiching seams
+- [ ] Document build/cross-build
+- [ ] Swap out GIF palletizer for something which allows to set a random seed, so it can have deterministic tests
+- [ ] Measure FPS on host and RasPi 4
