@@ -58,7 +58,7 @@ type AutoStitcher struct {
 
 	prevFrameIx int
 	// Those are all together zero/nil or not.
-	prevFrameTs    time.Time
+	prevFrameTS    time.Time
 	prevFrameColor image.Image
 	prevFrameGray  *image.Gray
 
@@ -130,9 +130,9 @@ func (r *AutoStitcher) reset() {
 	r.dxAbsLowPass = 0
 }
 
-func (r *AutoStitcher) record(prevTs time.Time, frame image.Image, dx int, ts time.Time) {
+func (r *AutoStitcher) record(prevTS time.Time, frame image.Image, dx int, ts time.Time) {
 	if r.seq.startTS.IsZero() {
-		r.seq.startTS = prevTs
+		r.seq.startTS = prevTS
 	}
 
 	r.seq.frames = append(r.seq.frames, frame)
@@ -177,7 +177,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	// Make sure we always save the previous frame.
 	defer func() {
 		r.prevFrameIx++
-		r.prevFrameTs = ts
+		r.prevFrameTS = ts
 		r.prevFrameColor = frameColor
 		r.prevFrameGray = frameGray
 	}()
@@ -204,7 +204,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 			return r.TryStitchAndReset()
 		}
 
-		r.record(r.prevFrameTs, frameColor, dx, ts)
+		r.record(r.prevFrameTS, frameColor, dx, ts)
 		return nil
 	}
 
@@ -215,7 +215,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 	if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
 		log.Info().Msg("start of new sequence")
-		r.record(r.prevFrameTs, frameColor, dx, ts)
+		r.record(r.prevFrameTS, frameColor, dx, ts)
 		r.dxAbsLowPass = math.Abs(float64(dx))
 		return nil
 	}

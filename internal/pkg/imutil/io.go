@@ -46,7 +46,7 @@ func Dump(path string, img image.Image) error {
 	return errors.New("unknown image suffix")
 }
 
-// Dump will dump a GIF image to a file.
+// DumpGIF will dump a GIF image to a file.
 func DumpGIF(path string, img *gif.GIF) error {
 	f, err := os.Create(path)
 	if err != nil {

@@ -147,7 +147,7 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 		}
 
 		paletted := image.NewPaletted(seq.frames[i].Bounds(), pal.Colors())
-		draw.Draw(paletted, seq.frames[i].Bounds(), seq.frames[i], image.ZP, draw.Src)
+		draw.Draw(paletted, seq.frames[i].Bounds(), seq.frames[i], image.Point{}, draw.Src)
 
 		g.Image = append(g.Image, paletted)
 		g.Delay = append(g.Delay, int(dt.Seconds()*100))
