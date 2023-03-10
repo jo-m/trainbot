@@ -11,7 +11,6 @@ Trainbot watches a piece of train track with a USB camera, detects trains, and s
 It also contains some packages which might be useful for other purposes:
 
 * [pkg/pmatch](pkg/pmatch): Image patch matching
-* [pkg/cqoi](pkg/cqoi): [QOI](https://github.com/phoboslab/qoi) C wrapper
 * [pkg/ransac](pkg/ransac): RANSAC algorithm implementation
 
 The binaries are currently built and tested on X86_64 and a Raspberry Pi 4 B.
@@ -68,13 +67,13 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 - [ ] Crop stitched images to exact width and height
 - [ ] Use FFMPEG or Gstreamer for camera input, the Go webcam library often crashes after a couple 100s of frames
 - [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding on output
-- [ ] Move rec package to internal or remove entirely
 - [ ] Move all "application" code to internal/
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
-- [ ] Maybe move QOI and patchmatch to separate repos
+- [ ] Maybe move patchmatch to separate repo
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Add Telegram or Twitter bot, or serve a page with recent trains
 - [ ] Improve stiching seams
 - [ ] Document build/cross-build
-- [ ] Swap out GIF palletizer for something which allows to set a random seed, so it can have deterministic tests
+- [ ] Swap out GIF palletor for something which allows to set a random seed, so it can have deterministic tests
 - [ ] Measure FPS on host and RasPi 4
+- [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper

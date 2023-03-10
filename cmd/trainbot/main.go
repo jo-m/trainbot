@@ -12,7 +12,6 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/pkg/rec"
 	"github.com/jo-m/trainbot/pkg/stitch"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
@@ -89,17 +88,6 @@ func openSrc(c config) (vid.Src, error) {
 		})
 	}
 
-	var stat os.FileInfo
-	stat, err := os.Stat(c.VideoFile)
-	if err != nil {
-		log.Err(err).Str("path", c.VideoFile).Msg("stat failed")
-		return nil, err
-	}
-	if stat.IsDir() {
-		// image file directory
-		return rec.NewReader(c.VideoFile)
-	}
-
 	// video file
 	return vid.NewFileSrc(c.VideoFile, false)
 }
@@ -113,7 +101,6 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	}
 	defer src.Close()
 
-	rec := rec.NewAutoRec(c.RecBasePath)
 	stitcher := stitch.NewAutoStitcher(stitch.Config{
 		PixelsPerM:  c.PixelsPerM,
 		MinSpeedKPH: c.MinSpeedKPH,
@@ -145,13 +132,6 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 		cropped, err := imutil.Sub(frame, rect)
 		if err != nil {
 			log.Panic().Err(err).Msg("failed to crop frame")
-		}
-
-		if src.IsLive() {
-			err = rec.Frame(cropped, *ts)
-			if err != nil {
-				log.Panic().Err(err).Msg("failed to record frame")
-			}
 		}
 
 		train := stitcher.Frame(cropped, *ts)

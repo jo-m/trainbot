@@ -76,24 +76,11 @@ run_camera:
 		--camera-device /dev/video2 --camera-format-fourcc MJPG --camera-w 1920 --camera-h 1080 \
 		-X 1064 -Y 178 -W 366 -H 334
 
-run_rec:
-	# go tool pprof trainbot prof-cpu.gz
-	# go tool pprof trainbot prof-heap-XX.gz
-	go build -o trainbot ./cmd/trainbot/
-	./trainbot \
-		--log-pretty \
-		--log-level=debug \
-		--cpu-profile \
-		--heap-profile \
-		\
-		--video-file="imgs/20221208_092919.709_+01:00" \
-		-X 0 -Y 0 -W 300 -H 350
-
 run_videofile:
 	go build -o trainbot ./cmd/trainbot/
 	./trainbot \
 		--log-pretty \
-		--log-level=trace \
+		--log-level=info \
 		\
 		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
 		-X 800 -Y 450 -W 300 -H 300
