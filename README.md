@@ -67,6 +67,7 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 - [ ] Crop stitched images to exact width and height
 - [ ] Use FFMPEG or Gstreamer for camera input, the Go webcam library often crashes after a couple 100s of frames
 - [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding on output
+- [ ] Test in snow/bad weather
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Maybe move patchmatch to separate repo
 - [ ] Add run/deploy instructions to README (including confighelper)

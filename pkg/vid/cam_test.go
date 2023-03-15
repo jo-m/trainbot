@@ -8,8 +8,7 @@ import (
 )
 
 func Test_FourCC_String(t *testing.T) {
-	s, err := FourCC(v4l2.PixelFmtMJPEG).String()
-	assert.NoError(t, err)
+	s := FourCC(v4l2.PixelFmtMJPEG).String()
 	assert.Equal(t, "MJPG", s)
 }
 

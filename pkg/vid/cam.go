@@ -29,19 +29,19 @@ var (
 )
 
 // String converts a FourCC code to string, e.g. 1448695129 to YUYV.
-func (f FourCC) String() (string, error) {
+func (f FourCC) String() string {
 	i := big.NewInt(int64(uint32(f)))
 	b := i.Bytes()
 
 	if len(b) != 4 {
-		return "", fmt.Errorf("unable to convert '%d' to a FourCC string", uint32(f))
+		return ""
 	}
 
 	for i := 0; i < len(b)/2; i++ {
 		b[i], b[len(b)-i-1] = b[len(b)-i-1], b[i]
 	}
 
-	return string(b), nil
+	return string(b)
 }
 
 func FourCCFromString(fcc string) FourCC {
@@ -62,7 +62,8 @@ type CamConfig struct {
 	// To list available formats and frame sizes:
 	//
 	//   v4l2-ctl --list-formats-ext --device /dev/video2
-	Format    FourCC
+	Format    FourCC `json:"-"`
+	FormatStr string `json:"Format"`
 	FrameSize image.Point
 }
 
@@ -94,6 +95,7 @@ func probeCam(deviceFile string) ([]CamConfig, error) {
 			ret = append(ret, CamConfig{
 				DeviceFile: deviceFile,
 				Format:     FourCC(sz.PixelFormat),
+				FormatStr:  FourCC(sz.PixelFormat).String(),
 				FrameSize:  image.Pt(int(sz.Size.MaxWidth), int(sz.Size.MaxHeight)),
 			})
 		}
