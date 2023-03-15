@@ -23,16 +23,16 @@ type Config struct {
 	PixelsPerM  float64
 	MinSpeedKPH float64
 	MaxSpeedKPH float64
-
-	VideoFPS float64
 }
 
-func (e *Config) MinPxPerFrame() int {
-	return int(e.MinSpeedKPH/3.6*e.PixelsPerM/e.VideoFPS) - 1
+func (e *Config) MinPxPerFrame(framePeriodS float64) int {
+	fps := 1 / framePeriodS
+	return int(e.MinSpeedKPH/3.6*e.PixelsPerM/fps) - 1
 }
 
-func (e *Config) MaxPxPerFrame() int {
-	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/e.VideoFPS) + 1
+func (e *Config) MaxPxPerFrame(framePeriodS float64) int {
+	fps := 1 / framePeriodS
+	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/fps) + 1
 }
 
 type sequence struct {
@@ -53,8 +53,7 @@ type sequence struct {
 }
 
 type AutoStitcher struct {
-	c            Config
-	minDx, maxDx int
+	c Config
 
 	prevFrameIx int
 	// Those are all together zero/nil or not.
@@ -68,9 +67,7 @@ type AutoStitcher struct {
 
 func NewAutoStitcher(c Config) *AutoStitcher {
 	return &AutoStitcher{
-		c:     c,
-		minDx: c.MinPxPerFrame(),
-		maxDx: c.MaxPxPerFrame(),
+		c: c,
 	}
 }
 
@@ -187,7 +184,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	dx, score := findOffset(r.prevFrameGray, frameGray, r.maxDx)
+	// Compute fps and min/max allowed pixel difference.
+	framePeriodS := ts.Sub(r.prevFrameTS).Seconds()
+	minDx := r.c.MinPxPerFrame(framePeriodS)
+	maxDx := r.c.MaxPxPerFrame(framePeriodS)
+
+	dx, score := findOffset(r.prevFrameGray, frameGray, maxDx)
 	log.Debug().Int("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0
@@ -208,12 +210,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	if score >= goodScoreNoMove && iabs(dx) < r.minDx {
+	if score >= goodScoreNoMove && iabs(dx) < minDx {
 		log.Debug().Msg("not moving")
 		return nil
 	}
 
-	if score >= goodScoreMove && iabs(dx) >= r.minDx && iabs(dx) <= r.maxDx {
+	if score >= goodScoreMove && iabs(dx) >= minDx && iabs(dx) <= maxDx {
 		log.Info().Msg("start of new sequence")
 		r.record(r.prevFrameTS, frameColor, dx, ts)
 		r.dxAbsLowPass = math.Abs(float64(dx))
@@ -224,8 +226,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		Float64("score", score).
 		Float64("goodScoreMove", goodScoreMove).
 		Int("dx", dx).
-		Int("minDx", r.minDx).
-		Int("maxDx", r.maxDx).
+		Int("minDx", minDx).
+		Int("maxDx", maxDx).
 		Msg("inconclusive frame")
 	return nil
 }

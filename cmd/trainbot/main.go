@@ -105,8 +105,6 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 		PixelsPerM:  c.PixelsPerM,
 		MinSpeedKPH: c.MinSpeedKPH,
 		MaxSpeedKPH: c.MaxSpeedKPH,
-
-		VideoFPS: src.GetFPS(),
 	})
 	defer stitcher.TryStitchAndReset()
 

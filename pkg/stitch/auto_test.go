@@ -44,8 +44,6 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 		PixelsPerM:  50,
 		MinSpeedKPH: 10,
 		MaxSpeedKPH: 160,
-
-		VideoFPS: src.GetFPS(),
 	}
 	auto := NewAutoStitcher(c)
 
@@ -80,5 +78,5 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 
 func Test_AutoStitcher_1(t *testing.T) {
 	runTest(t, "testdata/test1.mp4", "testdata/test1.jpg", 21.53, -0.6, false)
-	runTest(t, "testdata/test2.mp4", "testdata/test2.jpg", 22.6, -0.7, true)
+	runTest(t, "testdata/test2.mp4", "testdata/test2.jpg", 22.6, -0.5, true)
 }

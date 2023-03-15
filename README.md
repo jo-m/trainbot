@@ -77,5 +77,4 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 - [ ] Swap out GIF palletor for something which allows to set a random seed, so it can have deterministic tests
 - [ ] Measure FPS on host and RasPi 4
 - [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
-- [ ] Stop relying on FPS
 - [ ] Unified frame source factory (device vs. video)
