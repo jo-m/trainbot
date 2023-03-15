@@ -4,8 +4,8 @@
 
 Trainbot watches a piece of train track with a USB camera, detects trains, and stitches together images of them.
 
-[<img src="pkg/stitch/testdata/test1.jpg">](pkg/stitch/testdata/test1.jpg)
-[<img src="pkg/stitch/testdata/test2.jpg">](pkg/stitch/testdata/test2.jpg)
+[<img src="internal/pkg/stitch/testdata/test1.jpg">](internal/pkg/stitch/testdata/test1.jpg)
+[<img src="internal/pkg/stitch/testdata/test2.jpg">](internal/pkg/stitch/testdata/test2.jpg)
 [<img src="demo.gif">](demo.gif)
 
 It also contains some packages which might be useful for other purposes:
@@ -67,7 +67,6 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 - [ ] Crop stitched images to exact width and height
 - [ ] Use FFMPEG or Gstreamer for camera input, the Go webcam library often crashes after a couple 100s of frames
 - [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding on output
-- [ ] Move all "application" code to internal/
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Maybe move patchmatch to separate repo
 - [ ] Add run/deploy instructions to README (including confighelper)

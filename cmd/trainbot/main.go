@@ -12,7 +12,7 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/pkg/stitch"
+	"github.com/jo-m/trainbot/internal/pkg/stitch"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
 )

@@ -9,7 +9,7 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/pkg/server"
+	"github.com/jo-m/trainbot/internal/pkg/server"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
 )
