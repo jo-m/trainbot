@@ -20,9 +20,7 @@ import (
 type config struct {
 	logging.LogConfig
 
-	VideoFile string `arg:"--video-file" help:"Video file or directory, e.g. video.mp4 or imgs/20221208_093141.065_+01:00"`
-
-	CameraDevice       string `arg:"--camera-device" help:"Video4linux device file, e.g. /dev/video0"`
+	InputFile          string `arg:"--input" help:"Video4linux device file or regular video file, e.g. /dev/video0, video.mp4"`
 	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
 	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
 	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
@@ -61,11 +59,8 @@ func parseCheckArgs() config {
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
 
-	if c.CameraDevice == "" && c.VideoFile == "" {
-		p.Fail("no camera device and no video file passed")
-	}
-	if c.CameraDevice != "" && c.VideoFile != "" {
-		p.Fail("cannot pass both camera device and video file")
+	if c.InputFile == "" {
+		p.Fail("no camera device or video file passed")
 	}
 
 	r := c.getRect()
@@ -80,16 +75,21 @@ func parseCheckArgs() config {
 }
 
 func openSrc(c config) (vid.Src, error) {
-	if c.CameraDevice != "" {
-		return vid.NewCamSrc(vid.CamConfig{
-			DeviceFile: c.CameraDevice,
-			Format:     vid.FourCCFromString(c.CameraFormatFourCC),
-			FrameSize:  image.Point{c.CameraW, c.CameraH},
-		})
+	stat, err := os.Stat(c.InputFile)
+	if err != nil {
+		return nil, err
 	}
 
-	// video file
-	return vid.NewFileSrc(c.VideoFile, false)
+	if stat.Mode().IsRegular() {
+		// Video file.
+		return vid.NewFileSrc(c.InputFile, false)
+	}
+
+	return vid.NewCamSrc(vid.CamConfig{
+		DeviceFile: c.InputFile,
+		Format:     vid.FourCCFromString(c.CameraFormatFourCC),
+		FrameSize:  image.Point{c.CameraW, c.CameraH},
+	})
 }
 
 func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
@@ -97,7 +97,7 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 
 	src, err := openSrc(c)
 	if err != nil {
-		log.Panic().Err(err).Str("path", c.CameraDevice+c.VideoFile).Msg("failed to open video source")
+		log.Panic().Err(err).Str("path", c.InputFile).Msg("failed to open video source")
 	}
 	defer src.Close()
 

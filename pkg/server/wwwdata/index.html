@@ -11,7 +11,7 @@
 				then(function(cameras){
 					let camOptions = ""
 					for (const cam of cameras) {
-						camOptions += `--camera-device ${cam.DeviceFile} --camera-format-fourcc ${cam.Format} --camera-w ${cam.FrameSize.X} --camera-h ${cam.FrameSize.Y}\n`
+						camOptions += `--input ${cam.DeviceFile} --camera-format-fourcc ${cam.Format} --camera-w ${cam.FrameSize.X} --camera-h ${cam.FrameSize.Y}\n`
 					}
 
 					document.querySelector("#cameraOptions").innerHTML = camOptions

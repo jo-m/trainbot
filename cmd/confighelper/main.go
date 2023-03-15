@@ -24,7 +24,7 @@ type config struct {
 	LiveReload bool   `arg:"--live-reload,env:LIVE_RELOAD" default:"false" help:"Do not bake in WWW static files (browser window reload is still needed)"`
 	ListenAddr string `arg:"--listen-addr,env:LISTEN_ADDR" default:"localhost:8080" help:"Address and port to listen on"`
 
-	CameraDevice       string `arg:"--camera-device" help:"Video4linux device file, e.g. /dev/video0"`
+	InputFile          string `arg:"--input" help:"Video4linux device file, e.g. /dev/video0"`
 	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
 	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
 	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
@@ -36,7 +36,7 @@ func parseCheckArgs() config {
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
 
-	if c.CameraDevice == "" {
+	if c.InputFile == "" {
 		p.Fail("no camera device passed")
 	}
 
@@ -54,12 +54,12 @@ func main() {
 	}
 
 	src, err := vid.NewCamSrc(vid.CamConfig{
-		DeviceFile: c.CameraDevice,
+		DeviceFile: c.InputFile,
 		Format:     vid.FourCCFromString(c.CameraFormatFourCC),
 		FrameSize:  image.Point{c.CameraW, c.CameraH},
 	})
 	if err != nil {
-		log.Panic().Err(err).Str("path", c.CameraDevice).Msg("failed to open video source")
+		log.Panic().Err(err).Str("path", c.InputFile).Msg("failed to open video source")
 	}
 
 	go func() {

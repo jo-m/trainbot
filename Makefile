@@ -68,12 +68,12 @@ clean:
 	rm -f prof-*.gz
 
 run_confighelper:
-	go run ./cmd/confighelper/ --camera-device /dev/video2
+	go run ./cmd/confighelper/ --input /dev/video2
 
 run_camera:
 	go run ./cmd/trainbot \
 		--log-pretty \
-		--camera-device /dev/video2 --camera-format-fourcc MJPG --camera-w 1920 --camera-h 1080 \
+		--input /dev/video2 --camera-format-fourcc MJPG --camera-w 1920 --camera-h 1080 \
 		-X 1064 -Y 178 -W 366 -H 334
 
 run_videofile:
@@ -82,5 +82,5 @@ run_videofile:
 		--log-pretty \
 		--log-level=info \
 		\
-		--video-file="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
+		--input="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
 		-X 800 -Y 450 -W 300 -H 300
