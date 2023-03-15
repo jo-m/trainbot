@@ -16,7 +16,10 @@ import (
 	"github.com/vladimirvivien/go4vl/v4l2"
 )
 
-const skipInitialFrames = 5
+const (
+	skipInitialFrames = 5
+	bufferSize        = 5
+)
 
 // FourCC is a FourCC pixel format.
 type FourCC int32
@@ -165,6 +168,7 @@ func NewCamSrc(c CamConfig) (ret *CamSrc, err error) {
 	cam, err := device.Open(
 		c.DeviceFile,
 		device.WithPixFormat(fmt),
+		device.WithBufferSize(bufferSize),
 	)
 	if err != nil {
 		return nil, err
