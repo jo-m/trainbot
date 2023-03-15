@@ -2,6 +2,7 @@ package vid
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -11,21 +12,46 @@ import (
 	"sort"
 	"time"
 
-	"github.com/aamcrae/webcam"
+	"github.com/vladimirvivien/go4vl/device"
+	"github.com/vladimirvivien/go4vl/v4l2"
 )
 
-// Skip that many frames immediately after opening the camera.
-const skipInitialFrames = 10
+const skipInitialFrames = 5
 
-// FourCC is a FourCC pixel format string.
-type FourCC string
+// FourCC is a FourCC pixel format.
+type FourCC int32
 
-const (
+var (
 	// FourCCMJPEG means Motion-JPEG.
-	FourCCMJPEG FourCC = "MJPG"
+	FourCCMJPEG FourCC = FourCC(v4l2.PixelFmtMJPEG)
 	// FourCCYUYV means YUYV 4:2:2.
-	FourCCYUYV FourCC = "YUYV"
+	FourCCYUYV FourCC = FourCC(v4l2.PixelFmtYUYV)
 )
+
+// String converts a FourCC code to string, e.g. 1448695129 to YUYV.
+func (f FourCC) String() (string, error) {
+	i := big.NewInt(int64(uint32(f)))
+	b := i.Bytes()
+
+	if len(b) != 4 {
+		return "", fmt.Errorf("unable to convert '%d' to a FourCC string", uint32(f))
+	}
+
+	for i := 0; i < len(b)/2; i++ {
+		b[i], b[len(b)-i-1] = b[len(b)-i-1], b[i]
+	}
+
+	return string(b), nil
+}
+
+func FourCCFromString(fcc string) FourCC {
+	if len(fcc) != 4 {
+		return 0
+	}
+
+	b := []byte(fcc)
+	return FourCC(int32(b[0]) + int32(b[1])<<8 + int32(b[2])<<16 + int32(b[3])<<24)
+}
 
 // CamConfig describes an available camera device with a given pixel format and frame size.
 type CamConfig struct {
@@ -40,212 +66,35 @@ type CamConfig struct {
 	FrameSize image.Point
 }
 
-// CamSrc is a video frame source which supports video4linux.
-type CamSrc struct {
-	c            CamConfig
-	cam          *webcam.Webcam
-	stride, size uint32
-	fpsGuessed   float64
-}
-
-// Compile time interface check.
-var _ Src = (*CamSrc)(nil)
-
-// fourCCToStr converts a FourCC code to string, e.g. 1448695129 to YUYV.
-func fourCCToStr(f webcam.PixelFormat) (FourCC, error) {
-	i := big.NewInt(int64(uint32(f)))
-	b := i.Bytes()
-
-	if len(b) != 4 {
-		return "", fmt.Errorf("unable to convert '%d' to a FourCC string", uint32(f))
-	}
-
-	for i := 0; i < len(b)/2; i++ {
-		b[i], b[len(b)-i-1] = b[len(b)-i-1], b[i]
-	}
-
-	return FourCC(string(b)), nil
-}
-
-func checkFormatAvailable(cam *webcam.Webcam, c CamConfig) (webcam.PixelFormat, error) {
-	fmap := cam.GetSupportedFormats()
-	for f := range fmap {
-		fourCC, err := fourCCToStr(f)
-		if err != nil {
-			return 0, err
-		}
-
-		if fourCC == c.Format {
-			fsizes := cam.GetSupportedFrameSizes(f)
-			for _, sz := range fsizes {
-				if sz.MaxHeight == uint32(c.FrameSize.Y) && sz.MinHeight == uint32(c.FrameSize.Y) &&
-					sz.MaxWidth == uint32(c.FrameSize.X) && sz.MinWidth == uint32(c.FrameSize.X) {
-					return f, nil
-				}
-			}
-		}
-	}
-
-	return 0, errors.New("unable to find the requested format and/or frame size on the given device")
-}
-
-// NewCamSrc tries to open the specified frame source for frame reading.
-// It tries to guess the frame rate.
-func NewCamSrc(c CamConfig) (ret *CamSrc, err error) {
-	cam, err := webcam.Open(c.DeviceFile)
-	if err != nil {
-		return nil, err
-	}
-
-	format, err := checkFormatAvailable(cam, c)
-	if err != nil {
-		cam.Close()
-		return nil, err
-	}
-
-	f, w, h, stride, size, err := cam.SetImageFormat(format, uint32(c.FrameSize.X), uint32(c.FrameSize.Y))
-	if err != nil {
-		cam.Close()
-		return nil, err
-	}
-	if f != format || w != uint32(c.FrameSize.X) || h != uint32(c.FrameSize.Y) {
-		cam.Close()
-		return nil, errors.New("was not able to set the desired format and/or frame size")
-	}
-
-	err = cam.StartStreaming()
-	if err != nil {
-		cam.Close()
-		return nil, err
-	}
-
-	ret = &CamSrc{
-		c:      c,
-		cam:    cam,
-		stride: stride,
-		size:   size,
-	}
-
-	// We now skip some initial frames, because
-	// 1. We need some (mediocre) way to estimate FPS.
-	// 2. Some cameras will return garbage in the first frame(s), so let's skip over that.
-	// Initially, we retrieve a frame without measuring time because the camera takes a bit to spin up.
-	ret.getFrame()
-	t0 := time.Now()
-	for i := 0; i < skipInitialFrames; i++ {
-		_, _, err := ret.getFrame()
-		if err != nil {
-			cam.Close()
-			return nil, err
-		}
-	}
-	ret.fpsGuessed = float64(skipInitialFrames) / time.Since(t0).Seconds()
-
-	return ret, nil
-}
-
-// GetFPS implements Src.
-func (s *CamSrc) GetFPS() float64 {
-	return s.fpsGuessed
-}
-
-// getFrame retrieves a raw frame buffer from the camera.
-func (s *CamSrc) getFrame() ([]byte, *time.Time, error) {
-	err := s.cam.WaitForFrame(uint32(time.Second))
-	if err != nil {
-		return nil, nil, err
-	}
-	ts := time.Now()
-
-	frame, err := s.cam.ReadFrame()
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to read frame: %w", err)
-	}
-	if len(frame) == 0 {
-		return nil, nil, errors.New("received empty frame")
-	}
-
-	return frame, &ts, nil
-}
-
-// convertFrame tries to decode a raw frame from the camera specified image format.
-func (s *CamSrc) convertFrame(frame []byte) (image.Image, error) {
-	switch s.c.Format {
-	case FourCCMJPEG:
-		b := bytes.NewBuffer(frame)
-		return jpeg.Decode(b)
-	case FourCCYUYV:
-		rect := image.Rectangle{image.Point{}, s.c.FrameSize}
-		buf := make([]byte, len(frame))
-		copy(buf, frame)
-		return &YCbCr{
-			rect: rect,
-			buf:  buf,
-		}, nil
-	default:
-		return nil, errors.New("unsupported format")
-	}
-}
-
-// GetFrame implements Src.
-func (s *CamSrc) GetFrame() (image.Image, *time.Time, error) {
-	frame, ts, err := s.getFrame()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	img, err := s.convertFrame(frame)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to convert frame: %w", err)
-	}
-
-	return img, ts, nil
-}
-
-// GetFrameRaw returns a raw frame in the specified pixel format from the camera.
-func (s *CamSrc) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
-	frame, ts, err := s.getFrame()
-	if err != nil {
-		return nil, "", nil, err
-	}
-
-	return frame, s.c.Format, ts, nil
-}
-
-// Close implements Src.
-func (s *CamSrc) Close() error {
-	return s.cam.Close()
-}
-
-// IsLive implements Src.
-func (s *CamSrc) IsLive() bool {
-	return true
-}
-
 func probeCam(deviceFile string) ([]CamConfig, error) {
-	cam, err := webcam.Open(deviceFile)
+	dev, err := device.Open(deviceFile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open camera device '%s': %w", deviceFile, err)
+		return nil, err
 	}
-	defer cam.Close()
+	defer dev.Close()
+
+	formats, err := dev.GetFormatDescriptions()
+	if err != nil {
+		return nil, err
+	}
 
 	ret := []CamConfig{}
-	for f := range cam.GetSupportedFormats() {
-		for _, sz := range cam.GetSupportedFrameSizes(f) {
-			// Do not support variable sized frames.
-			if sz.MinWidth != sz.MaxWidth || sz.MinHeight != sz.MaxHeight {
-				continue
-			}
+	for _, format := range formats {
+		sizes, err := v4l2.GetFormatFrameSizes(dev.Fd(), format.PixelFormat)
+		if err != nil {
+			return nil, err
+		}
 
-			fcc, err := fourCCToStr(f)
-			if err != nil {
-				return nil, err
+		for _, sz := range sizes {
+			// Do not support variable sized frames.
+			if sz.Size.MinWidth != sz.Size.MaxWidth || sz.Size.MinHeight != sz.Size.MaxHeight {
+				continue
 			}
 
 			ret = append(ret, CamConfig{
 				DeviceFile: deviceFile,
-				Format:     fcc,
-				FrameSize:  image.Pt(int(sz.MaxWidth), int(sz.MaxHeight)),
+				Format:     FourCC(sz.PixelFormat),
+				FrameSize:  image.Pt(int(sz.Size.MaxWidth), int(sz.Size.MaxHeight)),
 			})
 		}
 	}
@@ -289,4 +138,149 @@ func DetectCams() ([]CamConfig, error) {
 	})
 
 	return ret, nil
+}
+
+// CamSrc is a video frame source which supports video4linux.
+// Use NewCamSrc to open one.
+type CamSrc struct {
+	c    CamConfig
+	cam  *device.Device
+	fmt  v4l2.PixFormat
+	stop func()
+	fps  uint32
+}
+
+// Compile time interface check.
+var _ Src = (*CamSrc)(nil)
+
+// NewCamSrc tries to open the specified frame source for frame reading.
+func NewCamSrc(c CamConfig) (ret *CamSrc, err error) {
+	fmt := v4l2.PixFormat{
+		PixelFormat: v4l2.FourCCType(c.Format),
+		Width:       uint32(c.FrameSize.X),
+		Height:      uint32(c.FrameSize.Y),
+	}
+	cam, err := device.Open(
+		c.DeviceFile,
+		device.WithPixFormat(fmt),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	pixFmt, err := cam.GetPixFormat()
+	if err != nil {
+		cam.Close()
+		return nil, err
+	}
+
+	if pixFmt.Width != uint32(c.FrameSize.X) || pixFmt.Height != uint32(c.FrameSize.Y) {
+		cam.Close()
+		return nil, errors.New("image size does not match requested one")
+	}
+
+	ctx, stop := context.WithCancel(context.Background())
+	if err := cam.Start(ctx); err != nil {
+		cam.Close()
+		stop()
+		return nil, err
+	}
+
+	fps, err := cam.GetFrameRate()
+	if err != nil {
+		cam.Close()
+		stop()
+		return nil, err
+	}
+
+	ret = &CamSrc{
+		c:    c,
+		cam:  cam,
+		fmt:  pixFmt,
+		stop: stop,
+		fps:  fps,
+	}
+
+	// We now skip some initial frames, because some cameras will return garbage in the first frame(s).
+	for i := 0; i < skipInitialFrames; i++ {
+		_, _, err := ret.getFrame()
+		if err != nil {
+			cam.Close()
+			return nil, err
+		}
+	}
+
+	return ret, nil
+}
+
+// Close implements Src.
+func (s *CamSrc) Close() error {
+	s.stop()
+	return s.cam.Close()
+}
+
+// IsLive implements Src.
+func (s *CamSrc) IsLive() bool {
+	return true
+}
+
+// GetFPS implements Src.
+func (s *CamSrc) GetFPS() float64 {
+	return float64(s.fps)
+}
+
+// getFrame retrieves a raw frame buffer from the camera.
+func (s *CamSrc) getFrame() ([]byte, *time.Time, error) {
+	frame := <-s.cam.GetOutput()
+	ts := time.Now()
+	return frame, &ts, nil
+}
+
+// convertFrame tries to decode a raw frame from the camera specified image format.
+func (s *CamSrc) convertFrame(frame []byte) (image.Image, error) {
+	switch s.c.Format {
+	case FourCCMJPEG:
+		b := bytes.NewBuffer(frame)
+		return jpeg.Decode(b)
+	case FourCCYUYV:
+		// YUYV: 4 bytes are 2 pixels.
+		if len(frame) != s.c.FrameSize.X*s.c.FrameSize.Y*2 {
+			return nil, errors.New("frame size does not match")
+		}
+
+		rect := image.Rectangle{image.Point{}, s.c.FrameSize}
+		buf := make([]byte, len(frame))
+		copy(buf, frame)
+		return &YCbCr{
+			rect: rect,
+			buf:  buf,
+		}, nil
+	default:
+		return nil, errors.New("unsupported format")
+	}
+}
+
+// GetFrame implements Src.
+func (s *CamSrc) GetFrame() (image.Image, *time.Time, error) {
+	frame, ts, err := s.getFrame()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	img, err := s.convertFrame(frame)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to convert frame: %w", err)
+	}
+
+	return img, ts, nil
+}
+
+// GetFrameRaw returns a raw frame in the specified pixel format from the camera.
+func (s *CamSrc) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
+	frame, ts, err := s.getFrame()
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	return frame, s.c.Format, ts, nil
 }

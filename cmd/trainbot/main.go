@@ -83,7 +83,7 @@ func openSrc(c config) (vid.Src, error) {
 	if c.CameraDevice != "" {
 		return vid.NewCamSrc(vid.CamConfig{
 			DeviceFile: c.CameraDevice,
-			Format:     vid.FourCC(c.CameraFormatFourCC),
+			Format:     vid.FourCCFromString(c.CameraFormatFourCC),
 			FrameSize:  image.Point{c.CameraW, c.CameraH},
 		})
 	}

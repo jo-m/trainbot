@@ -55,7 +55,7 @@ func main() {
 
 	src, err := vid.NewCamSrc(vid.CamConfig{
 		DeviceFile: c.CameraDevice,
-		Format:     vid.FourCC(c.CameraFormatFourCC),
+		Format:     vid.FourCCFromString(c.CameraFormatFourCC),
 		FrameSize:  image.Point{c.CameraW, c.CameraH},
 	})
 	if err != nil {
@@ -76,7 +76,7 @@ func main() {
 			break
 		}
 		if fourcc != vid.FourCCMJPEG {
-			err = fmt.Errorf("unsupported image format: %s", fourcc)
+			err = fmt.Errorf("unsupported image format: %d", fourcc)
 		}
 		if err != nil {
 			failedFrames++
