@@ -29,7 +29,9 @@ type CamConfig struct {
 	// To list available formats and frame sizes:
 	//
 	//   v4l2-ctl --list-formats-ext --device /dev/video2
-	Format    FourCC `json:"-"`
+	Format FourCC `json:"-"`
+	// FormatStr is Format converted to a string. It is only used for JSON serialization and does not need to be set
+	// when opening a camera.
 	FormatStr string `json:"Format"`
 	FrameSize image.Point
 }

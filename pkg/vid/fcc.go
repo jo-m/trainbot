@@ -14,6 +14,8 @@ var (
 	FourCCMJPEG FourCC = FourCC(v4l2.PixelFmtMJPEG)
 	// FourCCYUYV means YUYV 4:2:2.
 	FourCCYUYV FourCC = FourCC(v4l2.PixelFmtYUYV)
+	// FourCCYUV420 means yuv420p.
+	FourCCYUV420 FourCC = FourCCFromString("YU12")
 )
 
 // String converts a FourCC code to string, e.g. 1448695129 to YUYV.
