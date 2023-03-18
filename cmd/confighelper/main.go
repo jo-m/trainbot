@@ -28,6 +28,8 @@ type config struct {
 	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
 	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
 	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
+
+	ProbeOnly bool `arg:"--probe-only" help:"Only print camera probe output and exit"`
 }
 
 func parseCheckArgs() config {
@@ -36,7 +38,7 @@ func parseCheckArgs() config {
 	p := arg.MustParse(&c)
 	logging.MustInit(c.LogConfig)
 
-	if c.InputFile == "" {
+	if c.InputFile == "" && !c.ProbeOnly {
 		p.Fail("no camera device passed")
 	}
 
@@ -47,6 +49,23 @@ func main() {
 	c := parseCheckArgs()
 
 	log.Info().Interface("config", c).Msg("starting")
+
+	if c.ProbeOnly {
+		cams, err := vid.DetectCams()
+		if err != nil {
+			log.Panic().Err(err).Msg("unable to probe")
+		}
+
+		if len(cams) == 0 {
+			log.Panic().Err(err).Msg("no cameras detected")
+		}
+
+		for _, cam := range cams {
+			fmt.Println(cam)
+		}
+
+		return
+	}
 
 	srv, err := server.NewServer(!c.LiveReload)
 	if err != nil {
