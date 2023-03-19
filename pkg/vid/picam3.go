@@ -16,6 +16,7 @@ import (
 )
 
 // Hardcoded values for the Raspberry Pi Camera Module v3.
+// TODO: select mode depending on rect size.
 const (
 	sensorH = 2592 // 2^5 × 3^4
 	sensorW = 4608 // 2^9 x 3^2
@@ -62,6 +63,9 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 	if c.Rect.Min.X < 0 || c.Rect.Min.Y < 0 {
 		return nil, errors.New("rect too small/out of bounds")
 	}
+	if c.Rect.Min.X%2 != 0 || c.Rect.Min.Y%2 != 0 {
+		return nil, errors.New("rect position must be even")
+	}
 	if c.Rect.Dx()%2 != 0 || c.Rect.Dy()%2 != 0 {
 		return nil, errors.New("rect bounds must be even")
 	}
@@ -71,19 +75,20 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 	roi := fmt.Sprintf("%f,%f,%f,%f", float64(c.Rect.Min.X)/sx, float64(c.Rect.Min.Y)/sy, float64(c.Rect.Dx())/sx, float64(c.Rect.Dy())/sy)
 
 	args := []string{
-		"--verbose=0",
-		"-t", "0",
+		"--verbose=1",
+		"--timeout=0",
 		"--inline",
 		"--nopreview",
 		"--width", fmt.Sprint(c.Rect.Dx()),
 		"--height", fmt.Sprint(c.Rect.Dy()),
 		"--roi", roi,
+		"--mode=4056:3040:12:P",
 
 		"--autofocus-mode=manual",
 		fmt.Sprintf("--lens-position=%f", c.Focus),
 		"--framerate", fmt.Sprint(c.FPS),
 
-		"-o", "-",
+		"--output", "-",
 	}
 	if c.Rotate180 {
 		args = append(args, "--rotation=180")
