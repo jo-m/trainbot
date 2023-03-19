@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math"
 	"net/http"
 
 	"github.com/alexflint/go-arg"
@@ -16,6 +17,7 @@ import (
 
 const (
 	failedFramesMax = 50
+	inputFilePiCam3 = "picam3"
 )
 
 type config struct {
@@ -24,10 +26,9 @@ type config struct {
 	LiveReload bool   `arg:"--live-reload,env:LIVE_RELOAD" default:"false" help:"Do not bake in WWW static files (browser window reload is still needed)"`
 	ListenAddr string `arg:"--listen-addr,env:LISTEN_ADDR" default:"localhost:8080" help:"Address and port to listen on"`
 
-	InputFile          string `arg:"--input" help:"Video4linux device file, e.g. /dev/video0"`
-	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
-	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
-	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
+	InputFile string `arg:"--input" help:"Video4linux device file, e.g. /dev/video0, or 'picam3'"`
+	CameraW   int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored for picam3"`
+	CameraH   int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored for picam3"`
 
 	ProbeOnly bool `arg:"--probe-only" help:"Only print v4l camera probe output and exit"`
 }
@@ -72,11 +73,21 @@ func main() {
 		log.Panic().Err(err).Msg("unable to initialize server")
 	}
 
-	src, err := vid.NewCamSrc(vid.CamConfig{
-		DeviceFile: c.InputFile,
-		Format:     vid.FourCCFromString(c.CameraFormatFourCC),
-		FrameSize:  image.Point{c.CameraW, c.CameraH},
-	})
+	var src vid.Src
+	if c.InputFile == inputFilePiCam3 {
+		src, err = vid.NewPiCam3Src(vid.PiCam3Config{
+			Focus:     4.5,
+			Rotate180: true,
+			Format:    vid.FourCCMJPEG,
+			FPS:       5,
+		})
+	} else {
+		src, err = vid.NewCamSrc(vid.CamConfig{
+			DeviceFile: c.InputFile,
+			Format:     vid.FourCCMJPEG,
+			FrameSize:  image.Point{c.CameraW, c.CameraH},
+		})
+	}
 	if err != nil {
 		log.Panic().Err(err).Str("path", c.InputFile).Msg("failed to open video source")
 	}
@@ -97,6 +108,7 @@ func main() {
 		if fourcc != vid.FourCCMJPEG {
 			err = fmt.Errorf("unsupported image format: %d", fourcc)
 		}
+
 		if err != nil {
 			failedFrames++
 			log.Warn().Err(err).Int("failedFrames", failedFrames).Msg("failed to retrieve frame")
@@ -109,7 +121,9 @@ func main() {
 			failedFrames = 0
 		}
 
-		if i%3 == 0 {
+		// Stream, at ca. 5fps.
+		everyNth := int(math.Max(src.GetFPS()/5, 1))
+		if i%everyNth == 0 {
 			srv.SetFrameRawJPEG(frameRaw)
 		}
 	}
