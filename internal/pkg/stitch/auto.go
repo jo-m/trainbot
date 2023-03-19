@@ -19,18 +19,19 @@ const (
 	dxLowPassFactor = 0.9
 )
 
+// Config is the configuration for a AutoStitcher.
 type Config struct {
 	PixelsPerM  float64
 	MinSpeedKPH float64
 	MaxSpeedKPH float64
 }
 
-func (e *Config) MinPxPerFrame(framePeriodS float64) int {
+func (e *Config) minPxPerFrame(framePeriodS float64) int {
 	fps := 1 / framePeriodS
 	return int(e.MinSpeedKPH/3.6*e.PixelsPerM/fps) - 1
 }
 
-func (e *Config) MaxPxPerFrame(framePeriodS float64) int {
+func (e *Config) maxPxPerFrame(framePeriodS float64) int {
 	fps := 1 / framePeriodS
 	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/fps) + 1
 }
@@ -52,6 +53,8 @@ type sequence struct {
 	ts []time.Time
 }
 
+// AutoStitcher is an automatic train detector and stitcher.
+// Use NewAutoStitcher() to create an instance.
 type AutoStitcher struct {
 	c Config
 
@@ -65,6 +68,7 @@ type AutoStitcher struct {
 	dxAbsLowPass float64
 }
 
+// NewAutoStitcher creates a new AutoStitcher.
 func NewAutoStitcher(c Config) *AutoStitcher {
 	return &AutoStitcher{
 		c: c,
@@ -186,8 +190,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 	// Compute fps and min/max allowed pixel difference.
 	framePeriodS := ts.Sub(r.prevFrameTS).Seconds()
-	minDx := r.c.MinPxPerFrame(framePeriodS)
-	maxDx := r.c.MaxPxPerFrame(framePeriodS)
+	minDx := r.c.minPxPerFrame(framePeriodS)
+	maxDx := r.c.maxPxPerFrame(framePeriodS)
 
 	dx, score := findOffset(r.prevFrameGray, frameGray, maxDx)
 	log.Debug().Int("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")

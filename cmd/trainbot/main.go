@@ -123,9 +123,8 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 				return
 			}
 			continue
-		} else {
-			failedFrames = 0
 		}
+		failedFrames = 0
 
 		cropped, err := imutil.Sub(frame, rect)
 		if err != nil {

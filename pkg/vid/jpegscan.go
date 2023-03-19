@@ -62,8 +62,6 @@ func (s *JPEGScanner) readBytes(n int) ([]byte, error) {
 }
 
 func (s *JPEGScanner) scanImageData() error {
-	// TODO: clean up
-
 	for {
 		marker, err := s.r.Peek(2)
 		if err != nil && len(marker) == 0 {
@@ -73,45 +71,45 @@ func (s *JPEGScanner) scanImageData() error {
 		if len(marker) == 1 {
 			if marker[0] == 0xFF {
 				return errors.New("invalid data")
-			} else {
-				// advance 1
-				// s.r.ReadByte()
-				_, err := s.readBytes(1)
-				if err != nil {
-					return err
-				}
-				continue
 			}
-		} else {
-			// len(marker)==2
-			if marker[0] == 0xFF {
-				if marker[1] == 0 {
-					// advance 2
-					_, err := s.readBytes(2)
-					if err != nil {
-						return err
-					}
-					continue
-				} else if marker[1] >= rst0Marker && marker[1] <= rst7Marker {
-					// advance 2
-					_, err := s.readBytes(2)
-					if err != nil {
-						return err
-					}
-					continue
-				} else {
-					// Hand back control.
-					return nil
-				}
-			} else {
-				// advance 1
-				_, err := s.readBytes(1)
-				if err != nil {
-					return err
-				}
-				continue
+
+			// Advance 1.
+			_, err := s.readBytes(1)
+			if err != nil {
+				return err
 			}
+			continue
 		}
+
+		if marker[0] == 0xFF {
+			if marker[1] == 0 {
+				// Advance 2.
+				_, err := s.readBytes(2)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+
+			if marker[1] >= rst0Marker && marker[1] <= rst7Marker {
+				// Advance 2.
+				_, err := s.readBytes(2)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+
+			// Hand back control.
+			return nil
+		}
+
+		// Advance 1.
+		_, err = s.readBytes(1)
+		if err != nil {
+			return err
+		}
+		continue
 	}
 }
 

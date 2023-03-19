@@ -11,11 +11,11 @@ type FourCC int32
 
 var (
 	// FourCCMJPEG means Motion-JPEG.
-	FourCCMJPEG FourCC = FourCC(v4l2.PixelFmtMJPEG)
+	FourCCMJPEG = FourCC(v4l2.PixelFmtMJPEG)
 	// FourCCYUYV means YUYV 4:2:2.
-	FourCCYUYV FourCC = FourCC(v4l2.PixelFmtYUYV)
+	FourCCYUYV = FourCC(v4l2.PixelFmtYUYV)
 	// FourCCYUV420 means yuv420p.
-	FourCCYUV420 FourCC = FourCCFromString("YU12")
+	FourCCYUV420 = FourCCFromString("YU12")
 )
 
 // String converts a FourCC code to string, e.g. 1448695129 to YUYV.
@@ -34,6 +34,8 @@ func (f FourCC) String() string {
 	return string(b)
 }
 
+// FourCCFromString converts a string to a numeric FourCC code.
+// Returns 0 on failure.
 func FourCCFromString(fcc string) FourCC {
 	if len(fcc) != 4 {
 		return 0

@@ -46,7 +46,7 @@ func NewServer(embed bool) (*Server, error) {
 // Test via
 //
 //	http localhost:8080/cameras
-func (s *Server) handleCameras(resp http.ResponseWriter, req *http.Request) {
+func (s *Server) handleCameras(resp http.ResponseWriter, _ *http.Request) {
 	cams, err := vid.DetectCams()
 	if err != nil {
 		log.Err(err).Send()

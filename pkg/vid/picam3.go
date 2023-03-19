@@ -21,6 +21,7 @@ const (
 	sensorW = 4608 // 2^9 x 3^2
 )
 
+// PiCam3Config is the configuration for a PiCam3Src.
 type PiCam3Config struct {
 	// ROI to extract. Defaults to full image if empty.
 	Rect image.Rectangle
@@ -36,7 +37,7 @@ type PiCam3Config struct {
 
 // PiCam3Src is a video frame source which reads frames from a Raspberry PI 3 camera module.
 // It uses the `libcamera-vid` utility internally.
-// Use NewPiCam3Src to open one.
+// Use NewPiCam3Src() to open one.
 type PiCam3Src struct {
 	c                PiCam3Config
 	proc             *exec.Cmd
@@ -49,6 +50,7 @@ type PiCam3Src struct {
 // Compile time interface check.
 var _ Src = (*PiCam3Src)(nil)
 
+// NewPiCam3Src creates a new PiCam3Src.
 func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 	if c.Rect == image.Rect(0, 0, 0, 0) {
 		c.Rect = image.Rect(0, 0, sensorW, sensorH)
@@ -157,12 +159,7 @@ func (s *PiCam3Src) readFrame() ([]byte, error) {
 	}
 }
 
-// GetFrame retrieves the next frame.
-// Note that the underlying image buffer remains owned by the video source,
-// it must not be changed by the caller and might be overwritten on the next
-// invocation.
-// Returns io.EOF after the last frame, after which Close() should be called
-// on the instance before discarding it.
+// GetFrame implements Src.
 func (s *PiCam3Src) GetFrame() (image.Image, *time.Time, error) {
 	buf, err := s.readFrame()
 	if err != nil {
@@ -184,11 +181,7 @@ func (s *PiCam3Src) GetFrame() (image.Image, *time.Time, error) {
 	}
 }
 
-// GetFrameRaw retrieves the next frame in the raw pixel format of the source.
-// Note that the underlying image buffer remains owned by the video source,
-// it must not be changed by the caller and might be overwritten on the next
-// invocation.
-// Not all sources might implement this.
+// GetFrameRaw implements Src.
 func (s *PiCam3Src) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
 	buf, err := s.readFrame()
 	if err != nil {
@@ -199,17 +192,17 @@ func (s *PiCam3Src) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
 	return buf, s.c.Format, &ts, nil
 }
 
-// IsLive returns if the src is a live source (e.g. camera).
+// IsLive implements Src.
 func (s *PiCam3Src) IsLive() bool {
 	return true
 }
 
-// GetFPS returns the current frame rate of this source.
+// GetFPS implements Src.
 func (s *PiCam3Src) GetFPS() float64 {
 	return float64(s.c.FPS)
 }
 
-// Close closes the frame source and frees resources.
+// Close implements Src.
 func (s *PiCam3Src) Close() error {
 	s.proc.Process.Signal(os.Kill)
 	return s.proc.Wait()

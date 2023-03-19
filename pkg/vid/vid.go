@@ -15,6 +15,8 @@ import (
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
+// FileSrc is a video file source.
+// Use NewFileSrc() to get an instance.
 type FileSrc struct {
 	reader  *io.PipeReader
 	writer  *io.PipeWriter
@@ -52,6 +54,7 @@ func parseFPS(fps string) (float64, error) {
 	return a / b, nil
 }
 
+// NewFileSrc creates a new FileSrc.
 func NewFileSrc(path string, verbose bool) (src *FileSrc, err error) {
 	_, vidProbe, err := Probe(path)
 	if err != nil {
@@ -124,6 +127,7 @@ func (s *FileSrc) run(path string) {
 	}
 }
 
+// GetFrame implements Src.
 func (s *FileSrc) GetFrame() (image.Image, *time.Time, error) {
 	s.ffmpegLock.Lock()
 	err := s.ffmpegErr

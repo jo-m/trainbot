@@ -117,9 +117,8 @@ func main() {
 				return
 			}
 			continue
-		} else {
-			failedFrames = 0
 		}
+		failedFrames = 0
 
 		// Stream, at ca. 5fps.
 		everyNth := int(math.Max(src.GetFPS()/5, 1))

@@ -1,3 +1,4 @@
+// Package testutil contains some utils for testing images.
 package testutil
 
 import (
@@ -15,6 +16,7 @@ func iabs(i int) int {
 	return i
 }
 
+// AssertImagesAlmostEqual asserts that two images are almost equal.
 func AssertImagesAlmostEqual(t *testing.T, truth image.Image, test image.Image) {
 	require.Equal(t, truth.Bounds().Size(), test.Bounds().Size())
 

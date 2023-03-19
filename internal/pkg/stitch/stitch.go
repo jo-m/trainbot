@@ -95,6 +95,7 @@ func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 	return img, nil
 }
 
+// Train represents a detected train.
 type Train struct {
 	StartTS time.Time
 	EndTS   time.Time

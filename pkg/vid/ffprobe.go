@@ -8,11 +8,13 @@ import (
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
+// FFProbeJSON represents ffprobe JSON output.
 type FFProbeJSON struct {
 	Streams []FFStream `json:"streams"`
 	Format  FFFormat   `json:"format"`
 }
 
+// FFDisposition is a part of ffprobe JSON output. See FFProbeJSON.
 type FFDisposition struct {
 	Default         int `json:"default"`
 	Dub             int `json:"dub"`
@@ -28,6 +30,7 @@ type FFDisposition struct {
 	TimedThumbnails int `json:"timed_thumbnails"`
 }
 
+// FFTags is a part of ffprobe JSON output. See FFProbeJSON.
 type FFTags struct {
 	CreationTime     time.Time `json:"creation_time"`
 	Language         string    `json:"language"`
@@ -38,6 +41,7 @@ type FFTags struct {
 	Encoder          string    `json:"encoder"`
 }
 
+// FFStream is a part of ffprobe JSON output. See FFProbeJSON.
 type FFStream struct {
 	Index            int           `json:"index"`
 	CodecName        string        `json:"codec_name"`
@@ -82,6 +86,7 @@ type FFStream struct {
 	MaxBitRate       string        `json:"max_bit_rate,omitempty"`
 }
 
+// FFFormat is a part of ffprobe JSON output. See FFProbeJSON.
 type FFFormat struct {
 	Filename       string `json:"filename"`
 	NbStreams      int    `json:"nb_streams"`

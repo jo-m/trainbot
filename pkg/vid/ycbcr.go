@@ -5,6 +5,7 @@ import (
 	"image/color"
 )
 
+// YCbCr is a raw YCbCr image.
 type YCbCr struct {
 	rect image.Rectangle
 	buf  []byte
@@ -13,12 +14,17 @@ type YCbCr struct {
 // Compile time interface check.
 var _ image.Image = (*YCbCr)(nil)
 
+// ColorModel implements image.Image.
 func (i *YCbCr) ColorModel() color.Model {
 	return color.YCbCrModel
 }
+
+// Bounds implements image.Image.
 func (i *YCbCr) Bounds() image.Rectangle {
 	return i.rect
 }
+
+// At implements image.Image.
 func (i *YCbCr) At(x, y int) color.Color {
 	if !(image.Point{x, y}.In(i.rect)) {
 		return color.YCbCr{}
