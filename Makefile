@@ -84,3 +84,23 @@ run_videofile:
 		\
 		--input="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
 		-X 800 -Y 450 -W 300 -H 300
+
+# Build and copy to Raspberry Pi, outside docker
+deploy_confighelper:
+	CGO_ENABLED=1              \
+    CC=aarch64-linux-gnu-gcc   \
+    GOOS=linux                 \
+    GOARCH=arm64               \
+    GOARM=7 \
+		go build -o out/confighelper-arm64 ./cmd/confighelper
+	scp out/confighelper-arm64 pi4:
+
+# Build and copy to Raspberry Pi, outside docker
+deploy_trainbot:
+	CGO_ENABLED=1              \
+    CC=aarch64-linux-gnu-gcc   \
+    GOOS=linux                 \
+    GOARCH=arm64               \
+    GOARM=7 \
+		go build -o out/trainbot-arm64 ./cmd/trainbot
+	scp out/trainbot-arm64 pi4:

@@ -54,7 +54,7 @@ RUN go mod download
 COPY --chown=build:build . /src/
 
 # Build for host and run checks and tests
-ENV CGO_ENABLED=1  \
+ENV CGO_ENABLED=1 \
     CC=gcc
 RUN make check
 RUN make build_host

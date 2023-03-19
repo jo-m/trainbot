@@ -56,6 +56,33 @@ ffplay -f video4linux2 -framerate 30 -video_size 1920x1080 -pixel_format mjpeg /
 ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/video2 output.avi
 ```
 
+## RasPi Cam v3 utils
+
+```bash
+# setup
+sudo apt-get install libcamera0 libcamera-apps-lite
+sudo apt install -y vlc
+
+# grab frame
+# https://www.raspberrypi.com/documentation/computers/camera_software.html#libcamera-and-libcamera-apps
+libcamera-jpeg -o out.jpg -t 1 --width 4608 --height 2592 --rotation 180 --autofocus-mode=manual --lens-position=2
+libcamera-jpeg -o out.jpg -t 1 --width 2304 --height 1296 --rotation 180 --autofocus-mode=manual --lens-position=4.5 --roi 0.25,0.5,0.5,0.5
+
+# record video
+DATE=$(date +'%F_%H-%M-%S'); libcamera-vid -o $DATE.h264 --save-pts $DATE.txt --width 1080 --height 720 --rotation 180 --autofocus-mode=manual --lens-position=0 -t 0
+
+# stream through network
+libcamera-vid -t 0 --inline --nopreview --width 4608 --height 2592 --rotation 180 --codec mjpeg --framerate 5 --listen -o tcp://0.0.0.0:8080 --autofocus-mode=manual --lens-position=0 --roi 0.25,0.5,0.5,0.5
+# on locahost
+ffplay http://pi4:8080/video.mjpeg
+```
+
+## Running on Raspberry Pi
+
+```bash
+./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
+```
+
 ## Code notes
 
 * Zerolog is used as logging framework
@@ -72,8 +99,9 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Add Telegram or Twitter bot, or serve a page with recent trains
 - [ ] Improve stiching seams
-- [ ] Document build/cross-build
+- [ ] Clean up and document build system
 - [ ] Swap out GIF palletor for something which allows to set a random seed, so it can have deterministic tests
 - [ ] Measure FPS on host and RasPi 4
 - [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
 - [ ] PiCam3Src: list/probe cameras
+- [ ] Reconsider failedFrames
