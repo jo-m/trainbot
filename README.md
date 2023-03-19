@@ -65,7 +65,6 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 
 - [x] Also create GIFs
 - [ ] Crop stitched images to exact width and height
-- [ ] Use FFMPEG or Gstreamer for camera input, the Go webcam library often crashes after a couple 100s of frames
 - [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding on output
 - [ ] Test in snow/bad weather
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
@@ -77,3 +76,4 @@ ffmpeg -f v4l2 -framerate 30 -video_size 3264x2448 -pixel_format mjpeg -i /dev/v
 - [ ] Swap out GIF palletor for something which allows to set a random seed, so it can have deterministic tests
 - [ ] Measure FPS on host and RasPi 4
 - [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
+- [ ] PiCam3Src: list/probe cameras

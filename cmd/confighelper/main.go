@@ -29,7 +29,7 @@ type config struct {
 	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
 	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
 
-	ProbeOnly bool `arg:"--probe-only" help:"Only print camera probe output and exit"`
+	ProbeOnly bool `arg:"--probe-only" help:"Only print v4l camera probe output and exit"`
 }
 
 func parseCheckArgs() config {

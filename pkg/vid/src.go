@@ -15,7 +15,10 @@ type Src interface {
 	// on the instance before discarding it.
 	GetFrame() (image.Image, *time.Time, error)
 
-	// GetFrame retrieves the next frame in the raw pixel format of the source.
+	// GetFrameRaw retrieves the next frame in the raw pixel format of the source.
+	// Note that the underlying image buffer remains owned by the video source,
+	// it must not be changed by the caller and might be overwritten on the next
+	// invocation.
 	// Not all sources might implement this.
 	GetFrameRaw() ([]byte, FourCC, *time.Time, error)
 

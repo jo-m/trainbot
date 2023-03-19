@@ -2,9 +2,11 @@ package vid
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
+	"image/jpeg"
 	"io"
 	"os"
 	"os/exec"
@@ -12,9 +14,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 )
-
-// TODO: list/probe cameras
-// TODO: support MJPEG
 
 // Hardcoded values for the Raspberry Pi Camera Module v3.
 const (
@@ -41,7 +40,9 @@ type PiCam3Src struct {
 	c                PiCam3Config
 	proc             *exec.Cmd
 	outPipe, errPipe io.ReadCloser
-	buf              []byte // Raw yuv420 bytes.
+
+	yuvBuf      []byte       // Raw yuv420 bytes, only used in yuv420p mode.
+	jpegScanner *JPEGScanner // JPEG buf, only used in MJPEG mode.
 }
 
 // Compile time interface check.
@@ -57,9 +58,6 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 	if c.Rect.Dx()%2 != 0 || c.Rect.Dy()%2 != 0 {
 		return nil, errors.New("rect bounds must be even")
 	}
-	if c.Format != FourCCYUV420 {
-		return nil, errors.New("only yuv420p is supported")
-	}
 
 	sx := float64(sensorW)
 	sy := float64(sensorH)
@@ -70,7 +68,6 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		"-t", "0",
 		"--inline",
 		"--nopreview",
-		"--codec", "yuv420",
 		"--width", fmt.Sprint(c.Rect.Dx()),
 		"--height", fmt.Sprint(c.Rect.Dy()),
 		"--roi", roi,
@@ -83,6 +80,18 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 	}
 	if c.Rotate180 {
 		args = append(args, "--rotation=180")
+	}
+
+	var bufSz int
+	switch c.Format {
+	case FourCCYUV420:
+		args = append(args, "--codec=yuv420")
+		bufSz = c.Rect.Dx() * c.Rect.Dy() * 12 / 8
+	case FourCCMJPEG:
+		args = append(args, "--codec=mjpeg")
+		bufSz = 0
+	default:
+		return nil, fmt.Errorf("unsupported image format '%s'", c.Format.String())
 	}
 
 	cmd := exec.Command("libcamera-vid", args...)
@@ -101,13 +110,14 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		return nil, err
 	}
 
-	bufSz := c.Rect.Dx() * c.Rect.Dy() * 12 / 8
 	ret := &PiCam3Src{
 		c:       c,
 		proc:    cmd,
 		outPipe: outPipe,
 		errPipe: errPipe,
-		buf:     make([]byte, bufSz),
+
+		yuvBuf:      make([]byte, bufSz),
+		jpegScanner: NewJPEGScanner(outPipe),
 	}
 
 	go ret.processErr()
@@ -124,16 +134,22 @@ func (s *PiCam3Src) processErr() {
 	}
 }
 
-func (s *PiCam3Src) readFrame() error {
-	n, err := io.ReadFull(s.outPipe, s.buf)
-	if err != nil {
-		return err
+func (s *PiCam3Src) readFrame() ([]byte, error) {
+	switch s.c.Format {
+	case FourCCYUV420:
+		n, err := io.ReadFull(s.outPipe, s.yuvBuf)
+		if err != nil {
+			return nil, err
+		}
+		if n != len(s.yuvBuf) {
+			return nil, fmt.Errorf("read %d bytes for frame but should have read %d", n, len(s.yuvBuf))
+		}
+		return s.yuvBuf, nil
+	case FourCCMJPEG:
+		return s.jpegScanner.Scan()
+	default:
+		panic("unsupported image format")
 	}
-	if n != len(s.buf) {
-		return fmt.Errorf("read %d bytes for frame but should have read %d", n, len(s.buf))
-	}
-
-	return nil
 }
 
 // GetFrame retrieves the next frame.
@@ -143,20 +159,39 @@ func (s *PiCam3Src) readFrame() error {
 // Returns io.EOF after the last frame, after which Close() should be called
 // on the instance before discarding it.
 func (s *PiCam3Src) GetFrame() (image.Image, *time.Time, error) {
-	err := s.readFrame()
+	buf, err := s.readFrame()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	ts := time.Now()
-	frame := NewYuv420(s.buf, s.c.Rect.Dx(), s.c.Rect.Dy())
-	return frame, &ts, nil
+	switch s.c.Format {
+	case FourCCYUV420:
+		return NewYuv420(buf, s.c.Rect.Dx(), s.c.Rect.Dy()), &ts, nil
+	case FourCCMJPEG:
+		im, err := jpeg.Decode(bytes.NewBuffer(buf))
+		if err != nil {
+			return nil, nil, err
+		}
+		return im, &ts, nil
+	default:
+		panic("unsupported image format")
+	}
 }
 
-// GetFrame retrieves the next frame in the raw pixel format of the source.
+// GetFrameRaw retrieves the next frame in the raw pixel format of the source.
+// Note that the underlying image buffer remains owned by the video source,
+// it must not be changed by the caller and might be overwritten on the next
+// invocation.
 // Not all sources might implement this.
 func (s *PiCam3Src) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
-	panic("not implemented")
+	buf, err := s.readFrame()
+	if err != nil {
+		return nil, 0, nil, err
+	}
+	ts := time.Now()
+
+	return buf, s.c.Format, &ts, nil
 }
 
 // IsLive returns if the src is a live source (e.g. camera).
