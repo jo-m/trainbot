@@ -19,11 +19,10 @@ import (
 const (
 	sensorH = 2592 // 2^5 × 3^4
 	sensorW = 4608 // 2^9 x 3^2
-	fps     = 30
 )
 
 type PiCam3Config struct {
-	// ROI to extract.
+	// ROI to extract. Defaults to full image if empty.
 	Rect image.Rectangle
 	// Constant lens focus, 0=infinity, 2=approx. 0.5m.
 	Focus float64
@@ -31,6 +30,8 @@ type PiCam3Config struct {
 	Rotate180 bool
 	// Pixel format.
 	Format FourCC
+	// Frames per second.
+	FPS int
 }
 
 // PiCam3Src is a video frame source which reads frames from a Raspberry PI 3 camera module.
@@ -49,6 +50,10 @@ type PiCam3Src struct {
 var _ Src = (*PiCam3Src)(nil)
 
 func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
+	if c.Rect == image.Rect(0, 0, 0, 0) {
+		c.Rect = image.Rect(0, 0, sensorW, sensorH)
+	}
+
 	if c.Rect.Max.X > sensorW || c.Rect.Max.Y > sensorH {
 		return nil, errors.New("rect too large/out of bounds")
 	}
@@ -74,7 +79,7 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 
 		"--autofocus-mode=manual",
 		fmt.Sprintf("--lens-position=%f", c.Focus),
-		"--framerate", fmt.Sprint(fps),
+		"--framerate", fmt.Sprint(c.FPS),
 
 		"-o", "-",
 	}
@@ -201,7 +206,7 @@ func (s *PiCam3Src) IsLive() bool {
 
 // GetFPS returns the current frame rate of this source.
 func (s *PiCam3Src) GetFPS() float64 {
-	return float64(fps)
+	return float64(s.c.FPS)
 }
 
 // Close closes the frame source and frees resources.
