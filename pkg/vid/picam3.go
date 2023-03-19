@@ -101,6 +101,7 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		bufSz = c.Rect.Dx() * c.Rect.Dy() * 12 / 8
 	case FourCCMJPEG:
 		args = append(args, "--codec=mjpeg")
+		args = append(args, "--quality=90")
 		bufSz = 0
 	default:
 		return nil, fmt.Errorf("unsupported image format '%s'", c.Format.String())
