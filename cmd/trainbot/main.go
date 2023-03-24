@@ -79,7 +79,6 @@ func parseCheckArgs() config {
 func openSrc(c config) (vid.Src, error) {
 	// Pi cam.
 	if c.InputFile == inputFilePiCam3 {
-		fmt.Println(c.getRect(), c)
 		return vid.NewPiCam3Src(vid.PiCam3Config{
 			Rect:      c.getRect(),
 			Focus:     4.5,

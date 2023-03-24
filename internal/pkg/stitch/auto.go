@@ -16,6 +16,8 @@ const (
 
 	maxSeqLen = 800
 
+	minFramePeriodS = 0.01
+
 	dxLowPassFactor = 0.9
 )
 
@@ -27,13 +29,27 @@ type Config struct {
 }
 
 func (e *Config) minPxPerFrame(framePeriodS float64) int {
+	if framePeriodS == 0 {
+		return 1
+	}
 	fps := 1 / framePeriodS
-	return int(e.MinSpeedKPH/3.6*e.PixelsPerM/fps) - 1
+	ret := int(e.MinSpeedKPH/3.6*e.PixelsPerM/fps) - 1
+	if ret < 1 {
+		return 1
+	}
+	return ret
 }
 
 func (e *Config) maxPxPerFrame(framePeriodS float64) int {
+	if framePeriodS == 0 {
+		return 1
+	}
 	fps := 1 / framePeriodS
-	return int(e.MaxSpeedKPH/3.6*e.PixelsPerM/fps) + 1
+	ret := int(e.MaxSpeedKPH/3.6*e.PixelsPerM/fps) + 1
+	if ret < 1 {
+		return 1
+	}
+	return ret
 }
 
 type sequence struct {
@@ -132,6 +148,7 @@ func (r *AutoStitcher) reset() {
 }
 
 func (r *AutoStitcher) record(prevTS time.Time, frame image.Image, dx int, ts time.Time) {
+	log.Trace().Time("prevTS", prevTS).Time("ts", ts).Int("dx", dx).Msg("record")
 	if r.seq.startTS.IsZero() {
 		r.seq.startTS = prevTS
 	}
@@ -190,6 +207,10 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 	// Compute fps and min/max allowed pixel difference.
 	framePeriodS := ts.Sub(r.prevFrameTS).Seconds()
+	if framePeriodS < minFramePeriodS {
+		log.Warn().Float64("framePeriodS", framePeriodS).Msg("frame period too small")
+		return nil
+	}
 	minDx := r.c.minPxPerFrame(framePeriodS)
 	maxDx := r.c.maxPxPerFrame(framePeriodS)
 
@@ -219,6 +240,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
+	log.Info().Int("minDx", minDx).Int("maxDx", maxDx).Int("dx", dx).Msg("start of new sequence")
 	if score >= goodScoreMove && iabs(dx) >= minDx && iabs(dx) <= maxDx {
 		log.Info().Msg("start of new sequence")
 		r.record(r.prevFrameTS, frameColor, dx, ts)
