@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"io"
 	"os"
 	"runtime/pprof"
 
@@ -113,6 +112,7 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 		log.Panic().Err(err).Str("path", c.InputFile).Msg("failed to open video source")
 	}
 	defer src.Close()
+	srcBuf := vid.NewSrcBuf(src, failedFramesMax)
 
 	stitcher := stitch.NewAutoStitcher(stitch.Config{
 		PixelsPerM:  c.PixelsPerM,
@@ -121,23 +121,12 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	})
 	defer stitcher.TryStitchAndReset()
 
-	failedFrames := 0
-	for i := 0; ; i++ {
-		frame, ts, err := src.GetFrame()
-		if err == io.EOF {
-			log.Info().Msg("no more frames")
+	for i := uint64(0); ; i++ {
+		frame, ts, err := srcBuf.GetFrame()
+		if err != nil {
+			log.Err(err).Msg("no more frames")
 			break
 		}
-		if err != nil {
-			failedFrames++
-			log.Warn().Err(err).Int("failedFrames", failedFrames).Msg("failed to retrieve frame")
-			if failedFrames >= failedFramesMax {
-				log.Error().Msg("retrieving frames failed too many times, exiting")
-				return
-			}
-			continue
-		}
-		failedFrames = 0
 
 		var cropped image.Image
 		if c.InputFile == inputFilePiCam3 {
