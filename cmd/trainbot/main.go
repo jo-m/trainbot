@@ -22,8 +22,8 @@ type config struct {
 
 	InputFile          string `arg:"--input" help:"Video4linux device file or regular video file, e.g. /dev/video0, video.mp4"`
 	CameraFormatFourCC string `arg:"--camera-format-fourcc" default:"MJPG" help:"Camera pixel format FourCC string, ignored if using video file"`
-	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file"`
-	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file"`
+	CameraW            int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored if using video file or picam3"`
+	CameraH            int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored if using video file or picam3"`
 
 	RectX uint `arg:"-X" help:"Rect to look at, x (left)"`
 	RectY uint `arg:"-Y" help:"Rect to look at, y (top)"`
@@ -46,9 +46,11 @@ func (c *config) getRect() image.Rectangle {
 
 const (
 	rectSizeMin = 100
-	rectSizeMax = 400
+	rectSizeMax = 500
 
 	failedFramesMax = 50
+
+	inputFilePiCam3 = "picam3"
 
 	profCPUFile  = "prof-cpu.gz"
 	profHeapFile = "prof-heap-%05d.gz"
@@ -75,6 +77,18 @@ func parseCheckArgs() config {
 }
 
 func openSrc(c config) (vid.Src, error) {
+	// Pi cam.
+	if c.InputFile == inputFilePiCam3 {
+		fmt.Println(c.getRect(), c)
+		return vid.NewPiCam3Src(vid.PiCam3Config{
+			Rect:      c.getRect(),
+			Focus:     4.5,
+			Rotate180: true,
+			Format:    vid.FourCCMJPEG,
+			FPS:       30,
+		})
+	}
+
 	stat, err := os.Stat(c.InputFile)
 	if err != nil {
 		return nil, err
@@ -126,9 +140,19 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 		}
 		failedFrames = 0
 
-		cropped, err := imutil.Sub(frame, rect)
-		if err != nil {
-			log.Panic().Err(err).Msg("failed to crop frame")
+		var cropped image.Image
+		if c.InputFile == inputFilePiCam3 {
+			// PiCam output is already cropped.
+			cropped = frame
+		} else {
+			cropped, err = imutil.Sub(frame, rect)
+			if err != nil {
+				log.Panic().Err(err).Msg("failed to crop frame")
+			}
+		}
+
+		if cropped.Bounds().Size() != rect.Size() {
+			log.Panic().Interface("cam", cropped.Bounds().Size()).Interface("conf", rect.Size()).Msg("rect size mismatch")
 		}
 
 		train := stitcher.Frame(cropped, *ts)
