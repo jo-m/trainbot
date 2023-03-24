@@ -4,6 +4,7 @@ import (
 	"image"
 	"time"
 
+	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/rs/zerolog/log"
 )
 
@@ -56,6 +57,9 @@ func (s *SrcBuf) run() {
 		}
 
 		failedFrames = 0
+
+		// Create copy.
+		frame = imutil.ToRGBA(frame)
 
 		if live {
 			select {
