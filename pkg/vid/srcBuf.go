@@ -2,6 +2,7 @@ package vid
 
 import (
 	"image"
+	"io"
 	"time"
 
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
@@ -37,6 +38,12 @@ func NewSrcBuf(src Src, maxFailedFrames int) *SrcBuf {
 	return &ret
 }
 
+func (s *SrcBuf) cleanup(err error) {
+	close(s.queue)
+	s.err <- err
+	close(s.err)
+}
+
 func (s *SrcBuf) run() {
 	live := s.src.IsLive()
 	failedFrames := 0
@@ -47,11 +54,14 @@ func (s *SrcBuf) run() {
 			failedFrames++
 			log.Warn().Err(err).Int("failedFrames", failedFrames).Msg("failed to retrieve frame")
 
+			if err == io.EOF {
+				s.cleanup(err)
+				return
+			}
+
 			if failedFrames >= s.maxFailedFrames {
 				log.Error().Msg("retrieving frames failed too many times, exiting")
-				close(s.queue)
-				s.err <- err
-				close(s.err)
+				s.cleanup(err)
 				return
 			}
 		}
