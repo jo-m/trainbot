@@ -16,10 +16,19 @@ import (
 )
 
 // Hardcoded values for the Raspberry Pi Camera Module v3.
-// TODO: select mode depending on rect size.
+// Possible values:
+//
+//	pi@raspberrypi:~ $ libcamera-hello --list
+//	Available cameras
+//	-----------------
+//	0 : imx708 [4608x2592] (/base/soc/i2c0mux/i2c@1/imx708@1a)
+//	    Modes: 'SRGGB10_CSI2P' : 1536x864 [120.13 fps - (768, 432)/3072x1728 crop]
+//	                             2304x1296 [56.03 fps - (0, 0)/4608x2592 crop]
+//	                             4608x2592 [14.35 fps - (0, 0)/4608x2592 crop]
 const (
-	sensorH = 2592 // 2^5 × 3^4
-	sensorW = 4608 // 2^9 x 3^2
+	sensorW    = 4608
+	sensorH    = 2592
+	cameraMode = "4608:2592:12:P"
 )
 
 // PiCam3Config is the configuration for a PiCam3Src.
@@ -82,11 +91,11 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		"--width", fmt.Sprint(c.Rect.Dx()),
 		"--height", fmt.Sprint(c.Rect.Dy()),
 		"--roi", roi,
-		"--mode=4056:3040:12:P",
+		fmt.Sprintf("--mode=%s", cameraMode),
+		"--framerate", fmt.Sprint(c.FPS),
 
 		"--autofocus-mode=manual",
 		fmt.Sprintf("--lens-position=%f", c.Focus),
-		"--framerate", fmt.Sprint(c.FPS),
 
 		"--output", "-",
 	}

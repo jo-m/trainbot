@@ -105,3 +105,4 @@ ffplay http://pi4:8080/video.mjpeg
 - [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
 - [ ] PiCam3Src: list/probe cameras
 - [ ] Reconsider failedFrames
+- [ ] Fix or remove broken RaspiCam3 YUV420 mode
