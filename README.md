@@ -73,7 +73,7 @@ DATE=$(date +'%F_%H-%M-%S'); libcamera-vid -o $DATE.h264 --save-pts $DATE.txt --
 
 # stream through network
 libcamera-vid -t 0 --inline --nopreview --width 4608 --height 2592 --rotation 180 --codec mjpeg --framerate 5 --listen -o tcp://0.0.0.0:8080 --autofocus-mode=manual --lens-position=0 --roi 0.25,0.5,0.5,0.5
-# on locahost
+# on localhost
 ffplay http://pi4:8080/video.mjpeg
 ```
 
@@ -105,4 +105,4 @@ ffplay http://pi4:8080/video.mjpeg
 - [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
 - [ ] PiCam3Src: list/probe cameras
 - [ ] Reconsider failedFrames
-- [ ] Fix or remove broken RaspiCam3 YUV420 mode
+- [ ] Maybe make RaspiCam3 sensor mode configurable

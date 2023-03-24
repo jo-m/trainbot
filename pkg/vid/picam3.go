@@ -26,9 +26,8 @@ import (
 //	                             2304x1296 [56.03 fps - (0, 0)/4608x2592 crop]
 //	                             4608x2592 [14.35 fps - (0, 0)/4608x2592 crop]
 const (
-	sensorW    = 4608
-	sensorH    = 2592
-	cameraMode = "4608:2592:12:P"
+	sensorW = 2304
+	sensorH = 1296
 )
 
 // PiCam3Config is the configuration for a PiCam3Src.
@@ -91,7 +90,7 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		"--width", fmt.Sprint(c.Rect.Dx()),
 		"--height", fmt.Sprint(c.Rect.Dy()),
 		"--roi", roi,
-		fmt.Sprintf("--mode=%s", cameraMode),
+		fmt.Sprintf("--mode=%d:%d:12:P", sensorW, sensorH),
 		"--framerate", fmt.Sprint(c.FPS),
 
 		"--autofocus-mode=manual",
