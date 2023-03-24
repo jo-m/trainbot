@@ -91,18 +91,13 @@ ffplay http://pi4:8080/video.mjpeg
 ## TODOs
 
 - [x] Also create GIFs
-- [ ] Crop stitched images to exact width and height
-- [ ] Use https://github.com/stapelberg/turbojpeg for faster jpeg encoding on output
 - [ ] Test in snow/bad weather
-- [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
-- [ ] Maybe move patchmatch to separate repo
-- [ ] Add run/deploy instructions to README (including confighelper)
-- [ ] Add Telegram or Twitter bot, or serve a page with recent trains
-- [ ] Improve stiching seams
-- [ ] Clean up and document build system
-- [ ] Swap out GIF palletor for something which allows to set a random seed, so it can have deterministic tests
-- [ ] Measure FPS on host and RasPi 4
-- [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
 - [ ] PiCam3Src: list/probe cameras
-- [ ] Reconsider failedFrames
+- [ ] Add Telegram or Twitter bot, or serve a page with recent trains
+- [ ] Clean up and document build system
+- [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
+- [ ] Add run/deploy instructions to README (including confighelper)
+- [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
+- [ ] Improve stiching seams
 - [ ] Maybe make RaspiCam3 sensor mode configurable
+- [ ] Maybe move patchmatch to separate repo
