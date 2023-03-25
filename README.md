@@ -2,7 +2,8 @@
 
 **THIS IS A WORK IN PROGRESS AND INCOMPLETE**
 
-Trainbot watches a piece of train track with a USB camera, detects trains, and stitches together images of them.
+Trainbot watches a piece of train track, detects passing trains, and stitches together images of them.
+Should work with any video4linux USB cam, or Raspberry Pi camera v3 modules.
 
 [<img src="internal/pkg/stitch/testdata/day.jpg">](internal/pkg/stitch/testdata/day.jpg)
 [<img src="internal/pkg/stitch/testdata/night.jpg">](internal/pkg/stitch/testdata/night.jpg)
