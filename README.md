@@ -25,7 +25,7 @@ There is no camera calibration, image stabilization, undistortion, perspective m
 This allows us to stay away from complex dependencies like OpenCV, and keeps the computational requirements low.
 All processing happens on CPU.
 
-As a consequence, there are certain requirements which have to be met:
+The assumptions are (there might be more implicit ones):
 
 1. Trains only appear in a (manually) pre-cropped region.
 1. The camera is stable and the image does not move around in any direction.
@@ -95,11 +95,10 @@ ffplay http://pi4:8080/video.mjpeg
 
 - [x] Also create GIFs
 - [x] Test in snow/bad weather
-- [ ] PiCam3Src: list/probe cameras
 - [ ] Add Telegram or Twitter bot, or serve a page with recent trains
 - [ ] Clean up and document build system
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Improve stiching seams
-- [ ] Maybe make RaspiCam3 sensor mode configurable
+- [ ] Maybe make RaspiCam3 sensor mode configurable, and add support for detection
 - [ ] Maybe move patchmatch to separate repo
