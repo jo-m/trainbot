@@ -81,7 +81,7 @@ func openSrc(c config) (vid.Src, error) {
 	if c.InputFile == inputFilePiCam3 {
 		return vid.NewPiCam3Src(vid.PiCam3Config{
 			Rect:      c.getRect(),
-			Focus:     4.5,
+			Focus:     0,
 			Rotate180: true,
 			Format:    vid.FourCCMJPEG,
 			FPS:       30,

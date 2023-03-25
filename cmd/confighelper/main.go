@@ -76,7 +76,7 @@ func main() {
 	var src vid.Src
 	if c.InputFile == inputFilePiCam3 {
 		src, err = vid.NewPiCam3Src(vid.PiCam3Config{
-			Focus:     4.5,
+			Focus:     0,
 			Rotate180: true,
 			Format:    vid.FourCCMJPEG,
 			FPS:       5,
