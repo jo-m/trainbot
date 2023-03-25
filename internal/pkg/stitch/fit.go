@@ -38,7 +38,7 @@ func fitDx(seq sequence) ([]int, float64, float64, error) {
 	x := make([]float64, n+1)
 	dxSum := 0
 	for i := range seq.dx {
-		t[i+1] = seq.ts[i].Sub(seq.startTS).Seconds()
+		t[i+1] = seq.ts[i].Sub(*seq.startTS).Seconds()
 		dxSum += seq.dx[i]
 		x[i+1] = float64(dxSum)
 	}

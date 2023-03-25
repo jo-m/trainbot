@@ -54,7 +54,9 @@ func (e *Config) maxPxPerFrame(framePeriodS float64) int {
 
 type sequence struct {
 	// Timestamp of the frame before the first frame in the sequence (frames[-1]).
-	startTS time.Time
+	// Must be a pointer, we cannot depend on the zero value to determine if this has not yet been set
+	// (for example, a video file without metadata/known start time might have time.Time{} as first timestamp).
+	startTS *time.Time
 
 	// The slices must always have the same length.
 
@@ -149,8 +151,8 @@ func (r *AutoStitcher) reset() {
 
 func (r *AutoStitcher) record(prevTS time.Time, frame image.Image, dx int, ts time.Time) {
 	log.Trace().Time("prevTS", prevTS).Time("ts", ts).Int("dx", dx).Msg("record")
-	if r.seq.startTS.IsZero() {
-		r.seq.startTS = prevTS
+	if r.seq.startTS == nil {
+		r.seq.startTS = &prevTS
 	}
 
 	r.seq.frames = append(r.seq.frames, frame)

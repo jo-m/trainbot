@@ -138,7 +138,7 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 
 	g := gif.GIF{}
 
-	prevTS := seq.startTS
+	prevTS := *seq.startTS
 	for i, ts := range seq.ts {
 		dt := ts.Sub(prevTS)
 
@@ -170,8 +170,8 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	if len(seq.frames) != len(seq.dx) || len(seq.frames) != len(seq.ts) {
 		log.Panic().Msg("length of frames, dx, ts are not equal, this should not happen")
 	}
-	if seq.startTS.IsZero() {
-		log.Panic().Msg("startTS is zero, this should not happen")
+	if seq.startTS == nil {
+		log.Panic().Msg("startTS is nil, this should not happen")
 	}
 	if len(seq.dx) == 0 || seq.dx[0] == 0 {
 		log.Panic().Int("len", len(seq.dx)).Msg("sequence is empty or first value is 0")

@@ -12,7 +12,7 @@ import (
 func genTestSeq(dx []int) sequence {
 	t0 := time.Now()
 
-	seq := sequence{startTS: t0}
+	seq := sequence{startTS: &t0}
 	for i, dx := range dx {
 		seq.frames = append(seq.frames, &image.RGBA{})
 		seq.dx = append(seq.dx, dx)
