@@ -242,7 +242,6 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	log.Info().Int("minDx", minDx).Int("maxDx", maxDx).Int("dx", dx).Msg("start of new sequence")
 	if score >= goodScoreMove && iabs(dx) >= minDx && iabs(dx) <= maxDx {
 		log.Info().Msg("start of new sequence")
 		r.record(r.prevFrameTS, frameColor, dx, ts)
