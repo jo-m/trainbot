@@ -175,6 +175,7 @@ func processTrains(trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 			Float64("speedMpS", train.SpeedMpS()).
 			Float64("speedKmh", train.SpeedMpS()*3.6).
 			Float64("accelMpS2", train.AccelMpS2()).
+			Str("direction", train.DirectionS()).
 			Msg("found train")
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")

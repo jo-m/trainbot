@@ -124,6 +124,15 @@ func (t *Train) Direction() bool {
 	return t.SpeedPxS > 0
 }
 
+// Direction returns the train direction "left" or "right".
+func (t *Train) DirectionS() string {
+	if t.SpeedPxS > 0 {
+		return "right"
+	}
+
+	return "left"
+}
+
 func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	// Extract palette.
 	thumb := resize.Thumbnail(300, 300, stitched, resize.Lanczos3)
