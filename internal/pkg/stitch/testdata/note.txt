@@ -1,4 +1,6 @@
 Cropped from original for minimal file size:
 
-    ffmpeg -i in1.mp4 -vf "crop=300:300:800:450" test1.mp4
-    ffmpeg -i in2.mp4 -vf "crop=300:300:700:370" test2.mp4
+    ffmpeg -i day.mp4 -vf "crop=300:300:800:450" internal/pkg/stitch/testdata/day.mp4
+    ffmpeg -i night.mp4 -vf "crop=300:300:700:370" internal/pkg/stitch/testdata/night.mp4
+    ffmpeg -i rain.mp4 -vf "crop=300:300:700:370" internal/pkg/stitch/testdata/rain.mp4
+    ffmpeg -i snow.mp4 -vf "crop=300:300:800:450" internal/pkg/stitch/testdata/snow.mp4

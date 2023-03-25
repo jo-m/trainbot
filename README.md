@@ -4,8 +4,10 @@
 
 Trainbot watches a piece of train track with a USB camera, detects trains, and stitches together images of them.
 
-[<img src="internal/pkg/stitch/testdata/test1.jpg">](internal/pkg/stitch/testdata/test1.jpg)
-[<img src="internal/pkg/stitch/testdata/test2.jpg">](internal/pkg/stitch/testdata/test2.jpg)
+[<img src="internal/pkg/stitch/testdata/day.jpg">](internal/pkg/stitch/testdata/day.jpg)
+[<img src="internal/pkg/stitch/testdata/night.jpg">](internal/pkg/stitch/testdata/night.jpg)
+[<img src="internal/pkg/stitch/testdata/rain.jpg">](internal/pkg/stitch/testdata/rain.jpg)
+[<img src="internal/pkg/stitch/testdata/snow.jpg">](internal/pkg/stitch/testdata/snow.jpg)
 [<img src="demo.gif">](demo.gif)
 
 It also contains some packages which might be useful for other purposes:
@@ -91,13 +93,12 @@ ffplay http://pi4:8080/video.mjpeg
 ## TODOs
 
 - [x] Also create GIFs
-- [ ] Test in snow/bad weather
+- [x] Test in snow/bad weather
 - [ ] PiCam3Src: list/probe cameras
 - [ ] Add Telegram or Twitter bot, or serve a page with recent trains
 - [ ] Clean up and document build system
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
-- [ ] Maybe combine with https://github.com/jo-m/gocatprint to directly print trains on paper
 - [ ] Improve stiching seams
 - [ ] Maybe make RaspiCam3 sensor mode configurable
 - [ ] Maybe move patchmatch to separate repo
