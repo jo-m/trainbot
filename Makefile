@@ -82,7 +82,7 @@ run_videofile:
 		--log-pretty \
 		--log-level=info \
 		\
-		--input="vids/phone/VID_20220626_104921284-00.00.06.638-00.00.14.810.mp4" \
+		--input="vids/phone/day.mp4" \
 		-X 800 -Y 450 -W 300 -H 300
 
 # Build and copy to Raspberry Pi, outside docker

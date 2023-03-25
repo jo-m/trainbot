@@ -7,6 +7,7 @@ import (
 	"image"
 	"os"
 	"runtime/pprof"
+	"sync"
 
 	"github.com/alexflint/go-arg"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
@@ -165,7 +166,9 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	}
 }
 
-func processTrains(trainsIn <-chan *stitch.Train) {
+func processTrains(trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	for train := range trainsIn {
 		log.Info().
 			Time("ts", train.StartTS).
@@ -211,6 +214,12 @@ func main() {
 	}
 
 	trains := make(chan *stitch.Train)
-	go processTrains(trains)
+	done := sync.WaitGroup{}
+	done.Add(1)
+	go processTrains(trains, &done)
+
 	detectTrainsForever(c, trains)
+
+	close(trains)
+	done.Wait()
 }
