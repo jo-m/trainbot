@@ -124,11 +124,25 @@
 		#container{
 			position: relative;
 			user-select: none;
+			display: inline-block;
 		}
 
 		#rect {
 			position: absolute;
 			border: 1px solid red;
+		}
+
+		#grid {
+			position: absolute;
+			pointer-events: none;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			
+			opacity: 0.8;
+			background-image:  linear-gradient(#3366ff 1px, transparent 1px), linear-gradient(to right, #3366ff 1px, transparent 1px);
+			background-size: 50px 50px;
 		}
 
 		#stream {
@@ -139,9 +153,10 @@
 </head>
 <body>
 	<h1>Trainbot Confighelper</h1>
-	<div>Click on the video frame to select a rectangle.</div>
+	<div>Click on the video (twice) to select a rectangle.</div>
 	<div id="container">
 		<div id="rect"></div>
+		<div id="grid"></div>
 		<img id="stream" src="stream.mjpeg" />
 	</div>
 	<pre id="rectOptions"></pre>

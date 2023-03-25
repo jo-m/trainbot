@@ -34,7 +34,7 @@ type config struct {
 	MinSpeedKPH float64 `arg:"--min-speed-kph" default:"10" help:"Assumed train min speed, km/h"`
 	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"120" help:"Assumed train max speed, km/h"`
 
-	RecBasePath string `arg:"--rec-base-path" help:"Base path to store recordings" default:"imgs"`
+	OutputDir string `arg:"--output-path" help:"Directory to store output" default:"imgs"`
 
 	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
@@ -200,6 +200,9 @@ func processTrains(trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 
 func main() {
 	c := parseCheckArgs()
+
+	// Try to create output directory.
+	os.MkdirAll(c.OutputDir, 0755)
 
 	log.Info().Interface("config", c).Msg("starting")
 

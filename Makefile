@@ -68,7 +68,7 @@ clean:
 	rm -f prof-*.gz
 
 run_confighelper:
-	go run ./cmd/confighelper/ --input /dev/video2
+	go run ./cmd/confighelper/ --input /dev/video2 --live-reload
 
 run_camera:
 	go run ./cmd/trainbot \
