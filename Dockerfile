@@ -2,8 +2,10 @@ ARG DOCKER_BASE_IMAGE
 FROM ${DOCKER_BASE_IMAGE}
 
 # Install tools
-RUN export DEBIAN_FRONTEND=noninteractive                && \
-    apt-get update && apt-get install -yq                   \
+RUN export DEBIAN_FRONTEND=noninteractive                   \
+           DEBCONF_NONINTERACTIVE_SEEN=true              && \
+    apt-get update                                       && \
+    apt-get install -yq                                     \
         build-essential                                     \
         clang-format                                        \
         curl                                                \
@@ -14,8 +16,9 @@ RUN export DEBIAN_FRONTEND=noninteractive                && \
 
 # Install cross-compilation tools and dependencies
 RUN export DEBIAN_FRONTEND=noninteractive                   \
-    DEBCONF_NONINTERACTIVE_SEEN=true                     && \
-    apt-get update && apt-get install -yq                   \
+           DEBCONF_NONINTERACTIVE_SEEN=true              && \
+    apt-get update                                       && \
+    apt-get install -yq                                     \
         gcc-aarch64-linux-gnu                               \
         libc6-dev-arm64-cross                            && \
     apt-get clean                                        && \
