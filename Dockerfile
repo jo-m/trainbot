@@ -25,6 +25,15 @@ RUN export DEBIAN_FRONTEND=noninteractive                   \
     apt-get clean                                        && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Install test runtime dependencies
+RUN export DEBIAN_FRONTEND=noninteractive                   \
+           DEBCONF_NONINTERACTIVE_SEEN=true              && \
+    apt-get update                                       && \
+    apt-get install -yq                                     \
+        ffmpeg                                           && \
+    apt-get clean                                        && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # Add unprivileged build user
 RUN adduser --gecos '' --disabled-password build
 RUN     mkdir -p /src /build                             && \
