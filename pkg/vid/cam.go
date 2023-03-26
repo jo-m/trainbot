@@ -142,25 +142,25 @@ func NewCamSrc(c CamConfig) (ret *CamSrc, err error) {
 
 	pixFmt, err := cam.GetPixFormat()
 	if err != nil {
-		cam.Close()
+		_ = cam.Close()
 		return nil, err
 	}
 
 	if pixFmt.Width != uint32(c.FrameSize.X) || pixFmt.Height != uint32(c.FrameSize.Y) {
-		cam.Close()
+		_ = cam.Close()
 		return nil, errors.New("image size does not match requested one")
 	}
 
 	ctx, stop := context.WithCancel(context.Background())
 	if err := cam.Start(ctx); err != nil {
-		cam.Close()
+		_ = cam.Close()
 		stop()
 		return nil, err
 	}
 
 	fps, err := cam.GetFrameRate()
 	if err != nil {
-		cam.Close()
+		_ = cam.Close()
 		stop()
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func NewCamSrc(c CamConfig) (ret *CamSrc, err error) {
 	for i := 0; i < skipInitialFrames; i++ {
 		_, _, err := ret.getFrame()
 		if err != nil {
-			cam.Close()
+			_ = cam.Close()
 			return nil, err
 		}
 	}

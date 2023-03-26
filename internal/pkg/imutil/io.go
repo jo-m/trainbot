@@ -12,6 +12,7 @@ import (
 
 // Load tries to load an image from a file.
 func Load(path string) (image.Image, error) {
+	// #nosec 304
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -29,6 +30,7 @@ func Load(path string) (image.Image, error) {
 // Dump will dump an image to a file.
 // Format is determined by file ending, PNG and JPG are supported.
 func Dump(path string, img image.Image) error {
+	// #nosec 304
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -48,6 +50,7 @@ func Dump(path string, img image.Image) error {
 
 // DumpGIF will dump a GIF image to a file.
 func DumpGIF(path string, img *gif.GIF) error {
+	// #nosec 304
 	f, err := os.Create(path)
 	if err != nil {
 		return err

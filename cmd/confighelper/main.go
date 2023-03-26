@@ -94,6 +94,7 @@ func main() {
 
 	go func() {
 		log.Info().Str("url", fmt.Sprintf("http://%s", c.ListenAddr)).Msg("serving")
+		// #nosec G114 This should not be exposed to the internet and only lives temporarily.
 		err := http.ListenAndServe(c.ListenAddr, srv.GetMux())
 		log.Panic().Err(err).Send()
 	}()
@@ -123,7 +124,10 @@ func main() {
 		// Stream, at ca. 5fps.
 		everyNth := int(math.Max(src.GetFPS()/5, 1))
 		if i%everyNth == 0 {
-			srv.SetFrameRawJPEG(frameRaw)
+			err := srv.SetFrameRawJPEG(frameRaw)
+			if err != nil {
+				log.Panic().Err(err).Send()
+			}
 		}
 	}
 }

@@ -151,22 +151,28 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 
 		if c.HeapProfile && i%1000 == 0 {
 			fname := fmt.Sprintf(profHeapFile, i)
+			// #nosec 304
 			f, err := os.Create(fname)
 			if err != nil {
 				log.Err(err).Str("file", fname).Msg("failed to open heap profile file")
 				continue
 			}
+
 			log.Info().Str("file", fname).Msg("writing heap profile")
 			err = pprof.WriteHeapProfile(f)
 			if err != nil {
 				log.Err(err).Str("file", fname).Msg("failed to write heap profile")
 			}
-			f.Close()
+
+			err = f.Close()
+			if err != nil {
+				log.Err(err).Str("file", fname).Msg("failed to close heap profile file")
+			}
 		}
 	}
 }
 
-func processTrains(trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
+func processTrains(outDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for train := range trainsIn {
@@ -179,10 +185,11 @@ func processTrains(trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 			Msg("found train")
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
-		imutil.Dump(fmt.Sprintf("imgs/train_%s.jpg", tsString), train.Image)
+		err := imutil.Dump(fmt.Sprintf("%s/train_%s.jpg", outDir, tsString), train.Image)
+		log.Err(err).Send()
 
 		func() {
-			meta, err := os.Create(fmt.Sprintf("imgs/train_%s.json", tsString))
+			meta, err := os.Create(fmt.Sprintf("%s/train_%s.json", outDir, tsString))
 			if err != nil {
 				log.Err(err).Send()
 			}
@@ -202,7 +209,10 @@ func main() {
 	c := parseCheckArgs()
 
 	// Try to create output directory.
-	os.MkdirAll(c.OutputDir, 0755)
+	err := os.MkdirAll(c.OutputDir, 0750)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create output directory")
+	}
 
 	log.Info().Interface("config", c).Msg("starting")
 
@@ -212,14 +222,17 @@ func main() {
 		if err != nil {
 			log.Panic().Err(err).Msg("failed to create CPU profile file")
 		}
-		pprof.StartCPUProfile(f)
+		err = pprof.StartCPUProfile(f)
+		if err != nil {
+			log.Panic().Err(err).Msg("failed to start CPU profile")
+		}
 		defer pprof.StopCPUProfile()
 	}
 
 	trains := make(chan *stitch.Train)
 	done := sync.WaitGroup{}
 	done.Add(1)
-	go processTrains(trains, &done)
+	go processTrains(c.OutputDir, trains, &done)
 
 	detectTrainsForever(c, trains)
 

@@ -115,6 +115,7 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		return nil, fmt.Errorf("unsupported image format '%s'", c.Format.String())
 	}
 
+	// #nosec G204
 	cmd := exec.Command("libcamera-vid", args...)
 
 	outPipe, err := cmd.StdoutPipe()
@@ -218,6 +219,6 @@ func (s *PiCam3Src) GetFPS() float64 {
 
 // Close implements Src.
 func (s *PiCam3Src) Close() error {
-	s.proc.Process.Signal(os.Kill)
+	_ = s.proc.Process.Signal(os.Kill)
 	return s.proc.Wait()
 }
