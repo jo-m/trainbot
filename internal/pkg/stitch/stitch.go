@@ -124,7 +124,7 @@ func (t *Train) Direction() bool {
 	return t.SpeedPxS > 0
 }
 
-// Direction returns the train direction "left" or "right".
+// DirectionS returns the train direction as string "left" or "right".
 func (t *Train) DirectionS() string {
 	if t.SpeedPxS > 0 {
 		return "right"
