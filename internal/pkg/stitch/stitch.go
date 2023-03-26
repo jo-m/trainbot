@@ -100,8 +100,9 @@ type Train struct {
 	StartTS time.Time
 	EndTS   time.Time
 
-	Image *image.RGBA `json:"-"`
-	GIF   *gif.GIF    `json:"-"`
+	NFrames int
+	Image   *image.RGBA `json:"-"`
+	GIF     *gif.GIF    `json:"-"`
 
 	SpeedPxS  float64
 	AccelPxS2 float64
@@ -218,6 +219,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	return &Train{
 		t0,
 		tEnd,
+		len(seq.frames),
 		img,
 		gif,
 		-speed, // Negate because when things move to the left we get positive dx values.
