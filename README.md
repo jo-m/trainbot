@@ -35,6 +35,10 @@ The assumptions are (there might be more implicit ones):
 1. Trains are coming from one direction at a time, crossings are not yet handled properly.
 1. Trains have a constant acceleration (might be 0) and do not stop and turn around while in front of the camera.
 
+## Build system
+
+There is a helper `Makefile` which calls the standard Go build tools and an arm64 cross build inside Docker.
+
 ## V4L Settings
 
 ```bash
@@ -95,8 +99,8 @@ ffplay http://pi4:8080/video.mjpeg
 
 - [x] Also create GIFs
 - [x] Test in snow/bad weather
+- [x] Clean up and document build system
 - [ ] Add Telegram or Twitter bot, or serve a page with recent trains
-- [ ] Clean up and document build system
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Improve stiching seams

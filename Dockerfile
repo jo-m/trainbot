@@ -67,20 +67,12 @@ RUN go mod download
 COPY --chown=build:build . /src/
 
 # Build for host and run checks and tests
-ENV CGO_ENABLED=1 \
-    CC=gcc
 RUN make check
 RUN make build_host
 RUN mv build/* /build/
 
 # Build for arm64
-ENV CGO_ENABLED=1              \
-    CC=aarch64-linux-gnu-gcc   \
-    GOOS=linux                 \
-    GOARCH=arm64               \
-    GOARM=7
-RUN go build -o /build/trainbot-arm64 ./cmd/trainbot
-RUN go build -o /build/confighelper-arm64 ./cmd/confighelper
-RUN go build -o /build/pmatch-arm64 ./examples/pmatch
+RUN make build_arm64
+RUN mv build/* /build/
 
 RUN ls -l /build

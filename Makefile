@@ -1,4 +1,4 @@
-.PHONY: format lint test bench check build_host build_docker clean run_confighelper run_camera run_rec run_videofile
+.PHONY: format lint test bench check build_host build_arm64 build_docker clean run_confighelper run_camera run_videofile
 
 DOCKER_BUILDER_IMG_TAG = trainbot-builder
 DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
@@ -8,7 +8,9 @@ GO_VERSION = 1.20.2
 GO_ARCHIVE_SHA256 = 4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768
 GO_STATICCHECK_VERSION = 2023.1.3
 
-DEFAULT: format build_host
+TARGET_SSH_HOST = pi4
+
+DEFAULT: format build_host build_arm64
 
 format:
 	cd pkg/pmatch && clang-format -i -style=Google *.h *.c
@@ -31,11 +33,24 @@ bench:
 
 check: lint test bench
 
+build_host: export CGO_ENABLED=1
+build_host: export CC=gcc
 build_host:
 	mkdir -p build
 	go build -o build/trainbot ./cmd/trainbot
 	go build -o build/confighelper ./cmd/confighelper
 	go build -o build/pmatch ./examples/pmatch
+
+build_arm64: export CGO_ENABLED=1
+build_arm64: export CC=aarch64-linux-gnu-gcc
+build_arm64: export GOOS=linux
+build_arm64: export GOARCH=arm64
+build_arm64: export GOARM=7
+build_arm64:
+	mkdir -p build
+	go build -o build/trainbot-arm64 ./cmd/trainbot
+	go build -o build/confighelper-arm64 ./cmd/confighelper
+	go build -o build/pmatch-arm64 ./examples/pmatch
 
 build_docker:
 	# Build
@@ -85,22 +100,5 @@ run_videofile:
 		--input="vids/phone/day.mp4" \
 		-X 800 -Y 450 -W 300 -H 300
 
-# Build and copy to Raspberry Pi, outside docker
-deploy_confighelper:
-	CGO_ENABLED=1              \
-    CC=aarch64-linux-gnu-gcc   \
-    GOOS=linux                 \
-    GOARCH=arm64               \
-    GOARM=7 \
-		go build -o out/confighelper-arm64 ./cmd/confighelper
-	scp out/confighelper-arm64 pi4:
-
-# Build and copy to Raspberry Pi, outside docker
-deploy_trainbot:
-	CGO_ENABLED=1              \
-    CC=aarch64-linux-gnu-gcc   \
-    GOOS=linux                 \
-    GOARCH=arm64               \
-    GOARM=7 \
-		go build -o out/trainbot-arm64 ./cmd/trainbot
-	scp out/trainbot-arm64 pi4:
+deploy_trainbot: build_arm64
+	scp build/trainbot-arm64 $(TARGET_SSH_HOST):
