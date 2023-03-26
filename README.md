@@ -100,5 +100,7 @@ ffplay http://pi4:8080/video.mjpeg
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Improve stiching seams
+- [ ] Maybe add audio
 - [ ] Maybe make RaspiCam3 sensor mode configurable, and add support for detection
 - [ ] Maybe move patchmatch to separate repo
+- [ ] Add machine learning to classify trains
