@@ -180,7 +180,6 @@ func processTrains(trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
 		imutil.Dump(fmt.Sprintf("imgs/train_%s.jpg", tsString), train.Image)
-		imutil.DumpGIF(fmt.Sprintf("imgs/train_%s.gif", tsString), train.GIF)
 
 		func() {
 			meta, err := os.Create(fmt.Sprintf("imgs/train_%s.json", tsString))
