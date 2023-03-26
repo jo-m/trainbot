@@ -5,6 +5,7 @@ FROM ${DOCKER_BASE_IMAGE}
 RUN export DEBIAN_FRONTEND=noninteractive                   \
            DEBCONF_NONINTERACTIVE_SEEN=true              && \
     apt-get update                                       && \
+    apt-get upgrade -yq                                  && \
     apt-get install -yq                                     \
         build-essential                                     \
         clang-format                                        \
