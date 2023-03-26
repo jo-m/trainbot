@@ -6,19 +6,19 @@ import (
 	"time"
 
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
+	"github.com/jo-m/trainbot/pkg/avg"
 	"github.com/jo-m/trainbot/pkg/pmatch"
 	"github.com/rs/zerolog/log"
 )
 
 const (
-	goodScoreNoMove = 0.99
-	goodScoreMove   = 0.95
-
-	maxSeqLen = 800
-
-	minFramePeriodS = 0.01
-
-	dxLowPassFactor = 0.9
+	goodScoreNoMove   = 0.99
+	goodScoreMove     = 0.95
+	maxSeqLen         = 800
+	minFramePeriodS   = 0.01
+	dxLowPassFactor   = 0.9
+	minContrastAvg    = 0.005
+	minContrastAvgDev = 0.01
 )
 
 // Config is the configuration for a AutoStitcher.
@@ -207,6 +207,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
+	avg, avgDev := avg.GrayOpt(frameGray)
+	if avg < minContrastAvg || avgDev < minContrastAvgDev {
+		log.Trace().Float64("avgDev", avgDev).Float64("avg", avg).Msg("contrast too low, discarding")
+		return nil
+	}
+
 	// Compute fps and min/max allowed pixel difference.
 	framePeriodS := ts.Sub(r.prevFrameTS).Seconds()
 	if framePeriodS < minFramePeriodS {
@@ -252,6 +258,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	log.Debug().
 		Float64("score", score).
 		Float64("goodScoreMove", goodScoreMove).
+		Float64("avgDev", avgDev).
+		Float64("avg", avg).
 		Int("dx", dx).
 		Int("minDx", minDx).
 		Int("maxDx", maxDx).
