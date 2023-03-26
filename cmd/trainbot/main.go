@@ -34,7 +34,7 @@ type config struct {
 	MinSpeedKPH float64 `arg:"--min-speed-kph" default:"10" help:"Assumed train min speed, km/h"`
 	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"120" help:"Assumed train max speed, km/h"`
 
-	OutputDir string `arg:"--output-path" help:"Directory to store output" default:"imgs"`
+	DataDir string `arg:"--data-dir" help:"Directory to store output data" default:"data"`
 
 	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
@@ -209,7 +209,7 @@ func main() {
 	c := parseCheckArgs()
 
 	// Try to create output directory.
-	err := os.MkdirAll(c.OutputDir, 0750)
+	err := os.MkdirAll(c.DataDir, 0750)
 	if err != nil {
 		log.Panic().Err(err).Msg("could not create output directory")
 	}
@@ -232,7 +232,7 @@ func main() {
 	trains := make(chan *stitch.Train)
 	done := sync.WaitGroup{}
 	done.Add(1)
-	go processTrains(c.OutputDir, trains, &done)
+	go processTrains(c.DataDir, trains, &done)
 
 	detectTrainsForever(c, trains)
 
