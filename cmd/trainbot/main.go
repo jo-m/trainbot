@@ -83,7 +83,7 @@ func openSrc(c config) (vid.Src, error) {
 			Rect:      c.getRect(),
 			Focus:     0,
 			Rotate180: true,
-			Format:    vid.FourCCMJPEG,
+			Format:    vid.FourCCFromString(c.CameraFormatFourCC),
 			FPS:       30,
 		})
 	}
