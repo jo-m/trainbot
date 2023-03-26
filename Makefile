@@ -32,10 +32,10 @@ bench:
 check: lint test bench
 
 build_host:
-	mkdir -p out
-	go build -o out/trainbot ./cmd/trainbot
-	go build -o out/confighelper ./cmd/confighelper
-	go build -o out/pmatch ./examples/pmatch
+	mkdir -p build
+	go build -o build/trainbot ./cmd/trainbot
+	go build -o build/confighelper ./cmd/confighelper
+	go build -o build/pmatch ./examples/pmatch
 
 build_docker:
 	# Build
@@ -48,23 +48,23 @@ build_docker:
 		.
 
 	# Start temporary container
-	mkdir -p out
+	mkdir -p build
 	docker rm -f $(DOCKER_TMP_CONTAINER_NAME) || true
 	docker create -ti --name $(DOCKER_TMP_CONTAINER_NAME) $(DOCKER_BUILDER_IMG_TAG)
 
 	# Copy
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/trainbot-arm64 out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/confighelper-arm64 out/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/out/pmatch-arm64 out/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/trainbot build/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/confighelper build/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/pmatch build/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/trainbot-arm64 build/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/confighelper-arm64 build/
+	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/pmatch-arm64 build/
 
 	# Remove temporary container
 	docker rm -f $(DOCKER_TMP_CONTAINER_NAME)
 
 clean:
-	rm -rf out/
+	rm -rf build/
 	rm -f prof-*.gz
 
 run_confighelper:

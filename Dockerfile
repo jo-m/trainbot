@@ -23,8 +23,8 @@ RUN export DEBIAN_FRONTEND=noninteractive                   \
 
 # Add unprivileged build user
 RUN adduser --gecos '' --disabled-password build
-RUN     mkdir -p /src /out                               && \
-    chown build:build /src /out
+RUN     mkdir -p /src /build                             && \
+    chown build:build /src /build
 
 # Install Go: see https://golang.org/doc/install
 ARG GO_VERSION
@@ -58,7 +58,7 @@ ENV CGO_ENABLED=1 \
     CC=gcc
 RUN make check
 RUN make build_host
-RUN mv out/* /out/
+RUN mv build/* /build/
 
 # Build for arm64
 ENV CGO_ENABLED=1              \
@@ -66,8 +66,8 @@ ENV CGO_ENABLED=1              \
     GOOS=linux                 \
     GOARCH=arm64               \
     GOARM=7
-RUN go build -o /out/trainbot-arm64 ./cmd/trainbot
-RUN go build -o /out/confighelper-arm64 ./cmd/confighelper
-RUN go build -o /out/pmatch-arm64 ./examples/pmatch
+RUN go build -o /build/trainbot-arm64 ./cmd/trainbot
+RUN go build -o /build/confighelper-arm64 ./cmd/confighelper
+RUN go build -o /build/pmatch-arm64 ./examples/pmatch
 
-RUN ls -l /out
+RUN ls -l /build
