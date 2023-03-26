@@ -64,6 +64,8 @@ func (s *SrcBuf) run() {
 				s.cleanup(err)
 				return
 			}
+
+			continue
 		}
 
 		failedFrames = 0
