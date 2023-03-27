@@ -2,7 +2,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"image"
 	"os"
@@ -210,22 +209,6 @@ func processTrains(dataDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitG
 		if err != nil {
 			log.Err(err).Send()
 		}
-
-		func() {
-			metaFileName := fmt.Sprintf("train_%s.json", tsString)
-			meta, err := os.Create(path.Join(blobsDir, metaFileName))
-			if err != nil {
-				log.Err(err).Send()
-			}
-			defer meta.Close()
-
-			enc := json.NewEncoder(meta)
-			enc.SetIndent("", "  ")
-			err = enc.Encode(train)
-			if err != nil {
-				log.Err(err).Send()
-			}
-		}()
 
 		id, err := db.Insert(dbx, *train, imgFileName, gifFileName)
 		if err != nil {
