@@ -21,14 +21,14 @@ func model(t float64, params []float64) float64 {
 
 // Returns fitted dx values. Length will always be the same as the input.
 // Does not modify seq.
-// Also returns estimated v0 [px/s] and acceleration [px/s^2].
-func fitDx(seq sequence) ([]int, float64, float64, error) {
+// Also returns estimated length [px], v0 [px/s] and acceleration [px/s^2].
+func fitDx(seq sequence) ([]int, float64, float64, float64, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
 
 	// Sanity checks.
 	if len(seq.dx) < (modelNParams+1)*3 {
-		return nil, 0, 0, errors.New("sequence length too short")
+		return nil, 0, 0, 0, errors.New("sequence length too short")
 	}
 
 	// For fitting, we want 1. time [s] and total distance [px],
@@ -53,7 +53,7 @@ func fitDx(seq sequence) ([]int, float64, float64, error) {
 	}
 	fit, err := ransac.Ransac(t, x, model, modelNParams, params)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, 0, 0, err
 	}
 
 	// Generate dx from fit, optimized for accumulated rounding error.
@@ -67,5 +67,9 @@ func fitDx(seq sequence) ([]int, float64, float64, error) {
 
 	a := fit.X[2]
 	v0 := fit.X[1] + a*t[1] // Adjusted to first sample.
-	return dxFit, v0, a, nil
+	ds := (model(t[len(t)-1], fit.X) - model(0, fit.X))
+	if v0 < 0 {
+		ds = -ds
+	}
+	return dxFit, ds, v0, a, nil
 }

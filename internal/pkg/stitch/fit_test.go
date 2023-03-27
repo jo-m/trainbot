@@ -21,13 +21,24 @@ func genTestSeq(dx []int) sequence {
 	return seq
 }
 
+func sum(val []int) int {
+	var ret int
+	for _, v := range val {
+		ret += v
+	}
+	if ret < 0 {
+		return -ret
+	}
+	return ret
+}
+
 func Test_fitDx_simple(t *testing.T) {
 	// Real data from a video.
 	dx := []int{
 		34, 35, 35, 35, 35, 35, 35, 35, 35, 35, 1, 35, 35, 35, 35, 35, 35, 35, 35, 36, 35, 36, 35, 35, 35, 35, 36, 35, 36, 21, 35, 35, 36, 35, 35, 36, 36, 36, 35, 36, 35, 36, 35, 36, 35, 36, 36, 36, 36, 36, 36, 36, 36, 36, 35, 35, 36, 36, 36, 36, 36, 36, 36, 35, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 37, 37, 36, 37, 37, 37, 37, 37, 36, 37, 36, 37, 37, 37, 37, 37, 37, 37, 36, 36, 36, 37, 37, 37, 36, 36, 36, 24,
 	}
 
-	res, v0, a, err := fitDx(genTestSeq(dx))
+	res, ds, v0, a, err := fitDx(genTestSeq(dx))
 	require.NoError(t, err)
 	assert.Equal(t, len(dx), len(res))
 	// Found to be good by looking at plot.
@@ -37,6 +48,7 @@ func Test_fitDx_simple(t *testing.T) {
 	assert.Equal(t, truth, res)
 	assert.InDelta(t, 35, v0, 0.1)
 	assert.InDelta(t, 0.015, a, 0.001)
+	assert.InDelta(t, sum(truth), ds, 1)
 }
 
 func Test_fitDx_difficult(t *testing.T) {
@@ -58,7 +70,7 @@ func Test_fitDx_difficult(t *testing.T) {
 		35, 42, 35, 41, 36, 41, 17, 0, 17, 36, 41, 36, 36, 35,
 	}
 
-	res, v0, a, err := fitDx(genTestSeq(dx))
+	res, ds, v0, a, err := fitDx(genTestSeq(dx))
 	require.NoError(t, err)
 	assert.Equal(t, len(dx), len(res))
 	// Found to be good by looking at plot.
@@ -81,6 +93,7 @@ func Test_fitDx_difficult(t *testing.T) {
 	assert.Equal(t, truth, res)
 	assert.InDelta(t, 33.6, v0, 0.1)
 	assert.InDelta(t, 0.002, a, 0.001)
+	assert.InDelta(t, sum(truth), ds, 1)
 }
 
 func Test_fitDx_negative(t *testing.T) {
@@ -88,13 +101,14 @@ func Test_fitDx_negative(t *testing.T) {
 		-9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 	}
 
-	res, v0, a, err := fitDx(genTestSeq(dx))
+	res, ds, v0, a, err := fitDx(genTestSeq(dx))
 	require.NoError(t, err)
 	assert.Equal(t, len(dx), len(res))
 	truth := []int{-9, -9, -9, -9, -9, -9, -9, -9, -10, -9, -10, -9, -10, -10, -10, -10, -10, -10, -10, -10}
 	assert.Equal(t, truth, res)
 	assert.InDelta(t, -8.7, v0, 0.01)
 	assert.InDelta(t, -0.09, a, 0.01)
+	assert.InDelta(t, sum(truth), ds, 1)
 }
 
 func Test_fitDx_rounding(t *testing.T) {
@@ -103,7 +117,7 @@ func Test_fitDx_rounding(t *testing.T) {
 		10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
 	}
 
-	res, _, _, err := fitDx(genTestSeq(dx))
+	res, _, _, _, err := fitDx(genTestSeq(dx))
 	require.NoError(t, err)
 	assert.Equal(t, len(dx), len(res))
 	truth := []int{8, 9, 9, 9, 8, 9, 9, 9, 10, 9, 9, 9, 10, 9, 9, 10, 10, 9, 10, 10, 10, 9, 10, 10, 10, 11, 10, 10, 10, 11}

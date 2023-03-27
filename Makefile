@@ -97,7 +97,7 @@ run_videofile:
 		--log-pretty \
 		--log-level=info \
 		\
-		--input="vids/phone/day.mp4" \
+		--input="vids/day.mp4" \
 		-X 800 -Y 450 -W 300 -H 300
 
 deploy_trainbot: build_arm64

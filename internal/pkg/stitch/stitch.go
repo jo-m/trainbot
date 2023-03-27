@@ -104,6 +104,7 @@ type Train struct {
 	Image   *image.RGBA `json:"-"`
 	GIF     *gif.GIF    `json:"-"`
 
+	LengthPx  float64
 	SpeedPxS  float64
 	AccelPxS2 float64
 	Conf      Config
@@ -194,7 +195,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
 
-	dxFit, v0, a, err := fitDx(seq)
+	dxFit, ds, v0, a, err := fitDx(seq)
 	if err != nil {
 		return nil, fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
@@ -222,6 +223,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		len(seq.frames),
 		img,
 		gif,
+		ds,
 		-speed, // Negate because when things move to the left we get positive dx values.
 		-a,
 		c,
