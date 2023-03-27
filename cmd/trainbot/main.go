@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"image"
 	"os"
+	"path"
 	"runtime/pprof"
 	"sync"
 
 	"github.com/alexflint/go-arg"
+	"github.com/jo-m/trainbot/internal/pkg/db"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
@@ -172,8 +174,20 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	}
 }
 
-func processTrains(outDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
+func processTrains(dataDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 	defer wg.Done()
+
+	blobsDir := path.Join(dataDir, "blobs")
+	err := os.MkdirAll(blobsDir, 0750)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create blobs directory")
+	}
+
+	dbx, err := db.Open(path.Join(dataDir, "db.sqlite3"))
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create/open database")
+	}
+	defer dbx.Close()
 
 	for train := range trainsIn {
 		log.Info().
@@ -185,11 +199,21 @@ func processTrains(outDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitGr
 			Msg("found train")
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
-		err := imutil.Dump(fmt.Sprintf("%s/train_%s.jpg", outDir, tsString), train.Image)
-		log.Err(err).Send()
+		imgFileName := fmt.Sprintf("train_%s.jpg", tsString)
+		err := imutil.Dump(path.Join(blobsDir, imgFileName), train.Image)
+		if err != nil {
+			log.Err(err).Send()
+		}
+		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
+
+		err = imutil.DumpGIF(path.Join(blobsDir, gifFileName), train.GIF)
+		if err != nil {
+			log.Err(err).Send()
+		}
 
 		func() {
-			meta, err := os.Create(fmt.Sprintf("%s/train_%s.json", outDir, tsString))
+			metaFileName := fmt.Sprintf("train_%s.json", tsString)
+			meta, err := os.Create(path.Join(blobsDir, metaFileName))
 			if err != nil {
 				log.Err(err).Send()
 			}
@@ -202,6 +226,12 @@ func processTrains(outDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitGr
 				log.Err(err).Send()
 			}
 		}()
+
+		id, err := db.Insert(dbx, *train, imgFileName, gifFileName)
+		if err != nil {
+			log.Err(err).Send()
+		}
+		log.Debug().Int64("id", id).Msg("added train to db")
 	}
 }
 

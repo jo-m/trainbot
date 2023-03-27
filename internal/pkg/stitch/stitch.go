@@ -100,14 +100,14 @@ type Train struct {
 	StartTS time.Time
 	EndTS   time.Time
 
-	NFrames int
-	Image   *image.RGBA `json:"-"`
-	GIF     *gif.GIF    `json:"-"`
-
+	NFrames   int
 	LengthPx  float64
 	SpeedPxS  float64
 	AccelPxS2 float64
 	Conf      Config
+
+	Image *image.RGBA `json:"-"`
+	GIF   *gif.GIF    `json:"-"`
 }
 
 // SpeedMpS returns the absolute speed in m/s.
@@ -221,11 +221,11 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		t0,
 		tEnd,
 		len(seq.frames),
-		img,
-		gif,
 		ds,
 		-speed, // Negate because when things move to the left we get positive dx values.
 		-a,
 		c,
+		img,
+		gif,
 	}, nil
 }

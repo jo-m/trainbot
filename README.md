@@ -100,11 +100,15 @@ ffplay http://pi4:8080/video.mjpeg
 - [x] Also create GIFs
 - [x] Test in snow/bad weather
 - [x] Clean up and document build system
-- [ ] Add Telegram or Twitter bot, or serve a page with recent trains
+- [x] Calculate length
+- [x] Write GIFs again
+- [x] Store metadata in db
+- [ ] Sync pics and db up to bucket
+- [ ] Static web frontend serving train sightings
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Improve stiching seams
-- [ ] Maybe add audio
-- [ ] Maybe make RaspiCam3 sensor mode configurable, and add support for detection
-- [ ] Maybe move patchmatch to separate repo
+- [ ] ~~Maybe add audio~~
+- [ ] ~~Maybe make RaspiCam3 sensor mode configurable, and add support for detection~~
+- [ ] ~~Maybe move patchmatch to separate repo~~
 - [ ] Add machine learning to classify trains
