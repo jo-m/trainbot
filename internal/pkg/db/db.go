@@ -1,11 +1,15 @@
 package db
 
 import (
+	"context"
+	"database/sql"
 	_ "embed"
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 )
 
 //go:embed schema.sql
@@ -49,4 +53,67 @@ func Open(path string) (*sqlx.DB, error) {
 	}
 
 	return db, err
+}
+
+func Backup(src *sqlx.DB, destPath string) error {
+	err := os.Remove(destPath)
+	if err != os.ErrNotExist {
+		return err
+	}
+
+	dest, err := sqlx.Open(driver, destPath)
+	if err != nil {
+		return err
+	}
+	defer dest.Close()
+
+	return doBackup(dest.DB, src.DB)
+}
+
+func doBackup(destDb, srcDb *sql.DB) error {
+	destConn, err := destDb.Conn(context.Background())
+	if err != nil {
+		return err
+	}
+	defer destConn.Close()
+
+	srcConn, err := srcDb.Conn(context.Background())
+	if err != nil {
+		return err
+	}
+	defer srcConn.Close()
+
+	return destConn.Raw(func(destConn interface{}) error {
+		return srcConn.Raw(func(srcConn interface{}) error {
+			destSQLiteConn, ok := destConn.(*sqlite3.SQLiteConn)
+			if !ok {
+				return errors.New("cannot convert destination connection to SQLiteConn")
+			}
+
+			srcSQLiteConn, ok := srcConn.(*sqlite3.SQLiteConn)
+			if !ok {
+				return errors.New("cannot convert source connection to SQLiteConn")
+			}
+
+			b, err := destSQLiteConn.Backup("main", srcSQLiteConn, "main")
+			if err != nil {
+				return fmt.Errorf("failed to initialize backup: %w", err)
+			}
+
+			done, err := b.Step(-1)
+			if !done {
+				return errors.New("backup step -1, but not done")
+			}
+			if err != nil {
+				return fmt.Errorf("failed to step backup: %w", err)
+			}
+
+			err = b.Finish()
+			if err != nil {
+				return fmt.Errorf("failed to finish backup: %w", err)
+			}
+
+			return err
+		})
+	})
 }
