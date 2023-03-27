@@ -1,6 +1,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
@@ -20,7 +22,7 @@ func Insert(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error)
 		gif_file_path
 	)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-	RETURNING id`
+	RETURNING id;`
 	err := db.Get(&id, q,
 		t.StartTS,
 		t.EndTS,
@@ -36,4 +38,36 @@ func Insert(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error)
 	}
 
 	return id, nil
+}
+
+type Upload struct {
+	ID      int64  `db:"id"`
+	ImgPath string `db:"image_file_path"`
+	GIFPath string `db:"gif_file_path"`
+}
+
+func GetNextUpload(db *sqlx.DB) (*Upload, error) {
+	const q = `
+	SELECT
+		id, image_file_path, gif_file_path
+	FROM trains
+	WHERE uploaded_at IS NULL
+	ORDER BY start_ts ASC
+	LIMIT 1;
+	`
+
+	ret := Upload{}
+	err := db.Get(&ret, q)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func SetUploaded(db *sqlx.DB, id int64) error {
+	const q = `
+	UPDATE trains SET uploaded_at = ? WHERE id = ?;
+	`
+	_, err := db.Exec(q, time.Now(), id)
+	return err
 }
