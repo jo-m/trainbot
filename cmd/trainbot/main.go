@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/alexflint/go-arg"
+	"github.com/jmoiron/sqlx"
 	"github.com/jo-m/trainbot/internal/pkg/db"
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
@@ -173,20 +174,8 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	}
 }
 
-func processTrains(dataDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
+func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	blobsDir := path.Join(dataDir, "blobs")
-	err := os.MkdirAll(blobsDir, 0750)
-	if err != nil {
-		log.Panic().Err(err).Msg("could not create blobs directory")
-	}
-
-	dbx, err := db.Open(path.Join(dataDir, "db.sqlite3"))
-	if err != nil {
-		log.Panic().Err(err).Msg("could not create/open database")
-	}
-	defer dbx.Close()
 
 	for train := range trainsIn {
 		log.Info().
@@ -202,12 +191,14 @@ func processTrains(dataDir string, trainsIn <-chan *stitch.Train, wg *sync.WaitG
 		err := imutil.Dump(path.Join(blobsDir, imgFileName), train.Image)
 		if err != nil {
 			log.Err(err).Send()
+			continue
 		}
 		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
 
 		err = imutil.DumpGIF(path.Join(blobsDir, gifFileName), train.GIF)
 		if err != nil {
 			log.Err(err).Send()
+			continue
 		}
 
 		id, err := db.Insert(dbx, *train, imgFileName, gifFileName)
@@ -242,10 +233,22 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	blobsDir := path.Join(c.DataDir, "blobs")
+	err = os.MkdirAll(blobsDir, 0750)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create data and blobs directory")
+	}
+
+	dbx, err := db.Open(path.Join(c.DataDir, "db.sqlite3"))
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create/open database")
+	}
+	defer dbx.Close()
+
 	trains := make(chan *stitch.Train)
 	done := sync.WaitGroup{}
 	done.Add(1)
-	go processTrains(c.DataDir, trains, &done)
+	go processTrains(blobsDir, dbx, trains, &done)
 
 	detectTrainsForever(c, trains)
 
