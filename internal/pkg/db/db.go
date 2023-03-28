@@ -48,13 +48,14 @@ func Open(path string) (*sqlx.DB, error) {
 
 	_, err = db.Exec(sqlSchema)
 	if err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
 
 	return db, err
 }
 
+// Backup safely backs up a SQLite database to a new file.
 func Backup(src *sqlx.DB, destPath string) error {
 	err := os.Remove(destPath)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -70,14 +71,14 @@ func Backup(src *sqlx.DB, destPath string) error {
 	return doBackup(dest.DB, src.DB)
 }
 
-func doBackup(destDb, srcDb *sql.DB) error {
-	destConn, err := destDb.Conn(context.Background())
+func doBackup(destDB, srcDB *sql.DB) error {
+	destConn, err := destDB.Conn(context.Background())
 	if err != nil {
 		return err
 	}
 	defer destConn.Close()
 
-	srcConn, err := srcDb.Conn(context.Background())
+	srcConn, err := srcDB.Conn(context.Background())
 	if err != nil {
 		return err
 	}

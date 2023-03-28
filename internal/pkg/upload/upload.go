@@ -50,6 +50,7 @@ func createDirs(conn *ftp.ServerConn) error {
 
 func upload(conn *ftp.ServerConn, localPath, remotePath string) error {
 	log.Info().Str("local", localPath).Str("remote", remotePath).Msg("uploading file")
+	// #nosec G304
 	f, err := os.Open(localPath)
 	if err != nil {
 		log.Err(err).Send()

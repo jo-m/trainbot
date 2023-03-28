@@ -7,6 +7,7 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
+// Insert inserts a new train sighting into the database.
 func Insert(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error) {
 	var id int64
 	const q = `
@@ -40,12 +41,14 @@ func Insert(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error)
 	return id, nil
 }
 
+// Upload represents a pending upload.
 type Upload struct {
 	ID      int64  `db:"id"`
 	ImgPath string `db:"image_file_path"`
 	GIFPath string `db:"gif_file_path"`
 }
 
+// GetNextUpload returns the next train sighting to upload from the database.
 func GetNextUpload(db *sqlx.DB) (*Upload, error) {
 	const q = `
 	SELECT
@@ -64,6 +67,7 @@ func GetNextUpload(db *sqlx.DB) (*Upload, error) {
 	return &ret, nil
 }
 
+// SetUploaded marks a train sighting as uploaded in the database.
 func SetUploaded(db *sqlx.DB, id int64) error {
 	const q = `
 	UPDATE trains SET uploaded_at = ? WHERE id = ?;
