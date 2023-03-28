@@ -57,7 +57,7 @@ func Open(path string) (*sqlx.DB, error) {
 
 func Backup(src *sqlx.DB, destPath string) error {
 	err := os.Remove(destPath)
-	if err != os.ErrNotExist {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 
