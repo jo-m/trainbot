@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"image"
 	"os"
@@ -15,9 +16,12 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/logging"
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
+	"github.com/jo-m/trainbot/internal/pkg/upload"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
 )
+
+const dbFile = "db.sqlite3"
 
 type config struct {
 	logging.LogConfig
@@ -239,7 +243,7 @@ func main() {
 		log.Panic().Err(err).Msg("could not create data and blobs directory")
 	}
 
-	dbx, err := db.Open(path.Join(c.DataDir, "db.sqlite3"))
+	dbx, err := db.Open(path.Join(c.DataDir, dbFile))
 	if err != nil {
 		log.Panic().Err(err).Msg("could not create/open database")
 	}

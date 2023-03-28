@@ -103,7 +103,7 @@ ffplay http://pi4:8080/video.mjpeg
 - [x] Calculate length
 - [x] Write GIFs again
 - [x] Store metadata in db
-- [ ] Sync pics and db up to bucket
+- [x] Sync pics and db up to bucket
 - [ ] Static web frontend serving train sightings
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
