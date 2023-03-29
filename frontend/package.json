@@ -12,6 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@types/sql.js": "^1.4.4",
+    "sql.js": "^1.8.0",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6"
   },
