@@ -10,5 +10,14 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  }
+  },
+  server: {
+    proxy: {
+      "/data": {
+        target: "https://trains.jo-m.ch",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })
