@@ -3,10 +3,10 @@
 run:
 	VITE_DB_URL=http://localhost:5173/data/db.sqlite3 \
 	VITE_BLOBS_URL=http://localhost:5173/data/blobs \
-		npm run dev
+		yarn run dev
 
 format:
-	npm run format
+	yarn run format
 
 build:
-	npm run build
+	yarn run build
