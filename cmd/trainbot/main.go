@@ -9,6 +9,7 @@ import (
 	"path"
 	"runtime/pprof"
 	"sync"
+	"time"
 
 	"github.com/alexflint/go-arg"
 	"github.com/jmoiron/sqlx"
@@ -44,6 +45,8 @@ type config struct {
 
 	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
+
+	upload.FTPConfig
 }
 
 func (c *config) getRect() image.Rectangle {
@@ -213,6 +216,30 @@ func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train,
 	}
 }
 
+func uploadOnce(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
+	ctx := context.Background()
+	uploader, err := upload.NewFTP(ctx, c)
+	if err != nil {
+		log.Err(err).Msg("could not create uploader")
+		return
+	}
+	defer uploader.Close()
+
+	n, err := upload.All(ctx, dbx, uploader, dataDir, blobsDir)
+	if err != nil {
+		log.Err(err).Msg("uploading all failed")
+	} else {
+		log.Info().Int("n", n).Msg("uploaded files")
+	}
+}
+
+func uploadForever(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
+	for {
+		uploadOnce(blobsDir, dataDir, dbx, c)
+		time.Sleep(time.Second * 5)
+	}
+}
+
 func main() {
 	c := parseCheckArgs()
 
@@ -253,6 +280,7 @@ func main() {
 	done := sync.WaitGroup{}
 	done.Add(1)
 	go processTrains(blobsDir, dbx, trains, &done)
+	go uploadForever(blobsDir, c.DataDir, dbx, c.FTPConfig)
 
 	detectTrainsForever(c, trains)
 

@@ -4,12 +4,11 @@ package upload
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"net/textproto"
+	"io"
 	"os"
 	"path"
+	"path/filepath"
 
-	"github.com/jlaffaye/ftp"
 	"github.com/jmoiron/sqlx"
 	"github.com/jo-m/trainbot/internal/pkg/db"
 	"github.com/rs/zerolog/log"
@@ -20,35 +19,18 @@ const (
 	dbBakFile = "db.sqlite3.bak"
 )
 
-// FTPConfig is the configuration to connect to a FTP server.
-type FTPConfig struct {
-	Host string
-	Port uint16
-	// User is expected to have the data dir as root/home directory.
-	User, Pass string
+// Uploader uploads files to a remote location.
+type Uploader interface {
+	Upload(ctx context.Context, remotePath string, contents io.Reader) error
+	AtomicUpload(ctx context.Context, remotePath string, contents io.Reader) error
+	Close() error
 }
 
 func serverBlobPath(blobName string) string {
-	return "blobs/" + blobName
+	return path.Join("blobs", blobName)
 }
 
-func isFTPErr(err error, code int) bool {
-	if errF, ok := err.(*textproto.Error); ok {
-		return errF.Code == code
-	}
-	return false
-}
-
-func createDirs(conn *ftp.ServerConn) error {
-	err := conn.MakeDir("blobs")
-	if isFTPErr(err, 550) {
-		return nil
-	}
-	log.Err(err).Send()
-	return err
-}
-
-func upload(conn *ftp.ServerConn, localPath, remotePath string) error {
+func uploadFile(ctx context.Context, uploader Uploader, localPath, remotePath string, atomic bool) error {
 	log.Info().Str("local", localPath).Str("remote", remotePath).Msg("uploading file")
 	// #nosec G304
 	f, err := os.Open(localPath)
@@ -58,35 +40,16 @@ func upload(conn *ftp.ServerConn, localPath, remotePath string) error {
 	}
 	defer f.Close()
 
-	return conn.Stor(remotePath, f)
+	if atomic {
+		return uploader.AtomicUpload(ctx, remotePath, f)
+	}
+
+	return uploader.Upload(ctx, remotePath, f)
 }
 
-// Run uploads all pending blobs to remote storage and updates the database.
-// Will also create and upload a backup of the database if necessary.
-func Run(ctx context.Context, dbx *sqlx.DB, ftpConf FTPConfig, dataDir, blobsDir string) error {
-	// FTP setup.
-	conn, err := ftp.Dial(fmt.Sprintf("%s:%d", ftpConf.Host, ftpConf.Port), ftp.DialWithContext(ctx))
-	if err != nil {
-		log.Err(err).Send()
-		return err
-	}
-	defer conn.Quit()
-
-	err = conn.Login(ftpConf.User, ftpConf.Pass)
-	if err != nil {
-		log.Err(err).Send()
-		return err
-	}
-
-	log.Info().Msg("connected to FTP server")
-
-	err = createDirs(conn)
-	if err != nil {
-		log.Err(err).Send()
-		return err
-	}
-
-	// Upload each train.
+// All uploads all pending trains, until an error is hit or there are no more pending uploads.
+// Also updates the database, and uploads the updated database.
+func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir string) (int, error) {
 	var nUploads int
 	for {
 		toUpload, err := db.GetNextUpload(dbx)
@@ -97,27 +60,27 @@ func Run(ctx context.Context, dbx *sqlx.DB, ftpConf FTPConfig, dataDir, blobsDir
 			}
 
 			log.Err(err).Send()
-			return err
+			return 0, err
 		}
 
 		log.Info().Str("img", toUpload.ImgPath).Str("gif", toUpload.GIFPath).Int64("id", toUpload.ID).Msg("uploading")
 
-		err = upload(conn, path.Join(blobsDir, toUpload.ImgPath), serverBlobPath(toUpload.ImgPath))
+		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.ImgPath), serverBlobPath(toUpload.ImgPath), false)
 		if err != nil {
 			log.Err(err).Send()
-			return err
+			return 0, err
 		}
 
-		err = upload(conn, path.Join(blobsDir, toUpload.GIFPath), serverBlobPath(toUpload.GIFPath))
+		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.GIFPath), serverBlobPath(toUpload.GIFPath), false)
 		if err != nil {
 			log.Err(err).Send()
-			return err
+			return 0, err
 		}
 
 		err = db.SetUploaded(dbx, toUpload.ID)
 		if err != nil {
 			log.Err(err).Send()
-			return err
+			return 0, err
 		}
 
 		nUploads++
@@ -125,25 +88,17 @@ func Run(ctx context.Context, dbx *sqlx.DB, ftpConf FTPConfig, dataDir, blobsDir
 
 	// Do not upload db if no files were uploaded.
 	if nUploads == 0 {
-		return nil
+		return nUploads, nil
 	}
 
 	// Create db backup.
 	log.Info().Msg("creating db backup")
-	dbBakPath := path.Join(dataDir, dbBakFile)
-	err = db.Backup(dbx, dbBakPath)
+	dbBakPath := filepath.Join(dataDir, dbBakFile)
+	err := db.Backup(dbx, dbBakPath)
 	if err != nil {
 		log.Err(err).Send()
-		return err
+		return 0, err
 	}
 
-	// Upload it.
-	err = upload(conn, dbBakPath, dbBakFile)
-	if err != nil {
-		log.Err(err).Send()
-		return err
-	}
-
-	// And rename over old file.
-	return conn.Rename(dbBakFile, dbFile)
+	return nUploads, uploadFile(ctx, uploader, dbBakPath, dbBakFile, true)
 }
