@@ -100,5 +100,5 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 		return 0, err
 	}
 
-	return nUploads, uploadFile(ctx, uploader, dbBakPath, dbBakFile, true)
+	return nUploads, uploadFile(ctx, uploader, dbBakPath, dbFile, true)
 }
