@@ -38,14 +38,13 @@ function getURL(blobName: string): string {
       </v-sheet>
     </v-col>
 
-    <v-col cols="12" sm="12" md="6" lg="7">
-      <v-sheet class="pa-2">
-        <div
-          class="train-preview"
-          :style="`background-image: url(${getURL(
-            train.image_file_path
-          )}); background-position-x: ${train.speed_px_s > 0 ? 'right' : 'left'}`"
-        ></div>
+    <v-col cols="12" sm="12" md="6" lg="8">
+      <v-sheet
+        class="ma-1 train-preview"
+        :style="`background-image: url(${getURL(train.image_file_path)}); background-position-x: ${
+          train.speed_px_s > 0 ? 'right' : 'left'
+        }`"
+      >
       </v-sheet>
     </v-col>
   </v-row>
