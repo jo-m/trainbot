@@ -54,6 +54,14 @@ interface Result {
   totalCount: number
 }
 
+function convertTrains(result: SqlJs.QueryExecResult[]): Train[] {
+  if (result.length === 0) {
+    return []
+  }
+
+  return result[0].values.map((row) => convertRow(result[0].columns, row)) as Train[]
+}
+
 export function getTrains(
   db: SqlJs.Database,
   limit: number,
@@ -70,15 +78,13 @@ export function getTrains(
 
   const result = db.exec(query)
 
-  if (result.length === 0) {
-    return { trains: [], filteredCount: 0, totalCount: 0 }
-  }
+  console.log(query.trim())
 
   const filteredCount = db.exec(`SELECT COUNT(*) FROM trains WHERE ${filter}`)
   const totalCount = db.exec(`SELECT COUNT(*) FROM trains`)
 
   return {
-    trains: result[0].values.map((row) => convertRow(result[0].columns, row)) as Train[],
+    trains: convertTrains(result),
     filteredCount: filteredCount[0].values[0][0] as number,
     totalCount: totalCount[0].values[0][0] as number
   }
