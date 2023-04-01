@@ -12,11 +12,24 @@ function getURL(blobName: string): string {
 </script>
 
 <template>
-  <div>
-    ts: {{ train.start_ts }}<br />
-    speed km/h: {{ Math.round((train.speed_px_s / train.px_per_m) * 3.6) }} +
-    {{ Math.round(train.accel_px_s_2 / train.px_per_m) }} m^2/s<br />
-    length m: {{ Math.round(train.length_px / train.px_per_m) }}<br />
-    <img :src="getURL(train.image_file_path)" height="30" />
-  </div>
+  <v-card>
+    {{ train.id }}
+    {{ train.start_ts.toRelative() }} ({{ train.start_ts.toString() }})<br />
+    speed: {{ Math.abs(Math.round((train.speed_px_s / train.px_per_m) * 3.6)) }}km/h<br />
+    length: {{ Math.round(train.length_px / train.px_per_m) }}m<br />
+    direction: {{ train.speed_px_s > 0 ? 'right' : 'left' }}
+    <div
+      class="train-preview"
+      :style="`background-image: url(${getURL(train.image_file_path)})`"
+    ></div>
+    <hr />
+  </v-card>
 </template>
+
+<style scoped>
+div.train-preview {
+  height: 4em;
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+}
+</style>
