@@ -5,6 +5,8 @@ import Trains from '@/components/Trains.vue'
 <template>
   <main>
     <h1>Trains</h1>
-    <Trains />
+    <Suspense>
+      <Trains />
+    </Suspense>
   </main>
 </template>

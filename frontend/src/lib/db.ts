@@ -48,10 +48,22 @@ function convertRow(cols: string[], row: any[]) {
   return Object.fromEntries(cols.map((colname, ix) => [colname, convertValue(colname, row[ix])]))
 }
 
-export function getTrains(db: SqlJs.Database, limit: number, offset: number): Train[] {
-  const result = db.exec(
-    `SELECT * FROM trains ORDER BY start_ts DESC LIMIT ${limit} OFFSET ${offset}`
-  )[0]
+export function getTrains(
+  db: SqlJs.Database,
+  nResults: number,
+  maxId: number = Number.MAX_SAFE_INTEGER
+): Train[] {
+  const result = db.exec(`
+    SELECT *
+    FROM trains
+    WHERE id < ${maxId}
+    ORDER BY id DESC
+    LIMIT ${nResults}
+  `)
 
-  return result.values.map((row) => convertRow(result.columns, row)) as any
+  if (result.length === 0) {
+    return []
+  }
+
+  return result[0].values.map((row) => convertRow(result[0].columns, row)) as any
 }
