@@ -92,8 +92,8 @@ run_camera:
 		-X 1064 -Y 178 -W 366 -H 334
 
 run_videofile:
-	go build -o trainbot ./cmd/trainbot/
-	./trainbot \
+	go build -o build/trainbot ./cmd/trainbot/
+	./build/trainbot \
 		--log-pretty \
 		--log-level=info \
 		\
