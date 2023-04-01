@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"image"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime/pprof"
 	"sync"
 	"time"
@@ -197,14 +197,14 @@ func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train,
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
 		imgFileName := fmt.Sprintf("train_%s.jpg", tsString)
-		err := imutil.Dump(path.Join(blobsDir, imgFileName), train.Image)
+		err := imutil.Dump(filepath.Join(blobsDir, imgFileName), train.Image)
 		if err != nil {
 			log.Err(err).Send()
 			continue
 		}
 		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
 
-		err = imutil.DumpGIF(path.Join(blobsDir, gifFileName), train.GIF)
+		err = imutil.DumpGIF(filepath.Join(blobsDir, gifFileName), train.GIF)
 		if err != nil {
 			log.Err(err).Send()
 			continue
@@ -266,13 +266,13 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	blobsDir := path.Join(c.DataDir, "blobs")
+	blobsDir := filepath.Join(c.DataDir, "blobs")
 	err = os.MkdirAll(blobsDir, 0750)
 	if err != nil {
 		log.Panic().Err(err).Msg("could not create data and blobs directory")
 	}
 
-	dbx, err := db.Open(path.Join(c.DataDir, dbFile))
+	dbx, err := db.Open(filepath.Join(c.DataDir, dbFile))
 	if err != nil {
 		log.Panic().Err(err).Msg("could not create/open database")
 	}

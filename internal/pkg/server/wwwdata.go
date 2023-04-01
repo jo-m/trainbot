@@ -6,7 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 )
 
@@ -17,10 +17,10 @@ var wwwData embed.FS
 
 func getDataDir() (string, error) {
 	_, srcFile, _, _ := runtime.Caller(0)
-	srcDir := path.Dir(srcFile)
+	srcDir := filepath.Dir(srcFile)
 
 	try := []string{
-		path.Join(srcDir, wwwDataDir),
+		filepath.Join(srcDir, wwwDataDir),
 		wwwDataDir,
 	}
 

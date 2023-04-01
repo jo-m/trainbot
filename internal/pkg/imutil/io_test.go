@@ -3,7 +3,7 @@ package imutil
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func getFileSize(t *testing.T, path string) int {
 
 func Test_Dump_Size_PNG(t *testing.T) {
 	dir := t.TempDir()
-	fname := path.Join(dir, "out.png")
+	fname := filepath.Join(dir, "out.png")
 	img := RandRGBA(123, 200, 500)
 
 	err := Dump(fname, img)
@@ -28,7 +28,7 @@ func Test_Dump_Size_PNG(t *testing.T) {
 }
 func Test_Dump_Size_JPG(t *testing.T) {
 	dir := t.TempDir()
-	fname := path.Join(dir, "out.jpg")
+	fname := filepath.Join(dir, "out.jpg")
 	img := RandRGBA(123, 200, 500)
 
 	err := Dump(fname, img)
@@ -44,7 +44,7 @@ func Benchmark_Dump_PNG(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		fname := path.Join(dir, fmt.Sprintf("out_%05d.png", i))
+		fname := filepath.Join(dir, fmt.Sprintf("out_%05d.png", i))
 
 		b.StartTimer()
 		err := Dump(fname, img)
@@ -62,7 +62,7 @@ func Benchmark_Dump_JPG(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		fname := path.Join(dir, fmt.Sprintf("out_%05d.jpg", i))
+		fname := filepath.Join(dir, fmt.Sprintf("out_%05d.jpg", i))
 
 		b.StartTimer()
 		err := Dump(fname, img)
