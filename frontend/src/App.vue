@@ -14,7 +14,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <v-btn variant="text" icon="mdi-github"></v-btn>
     </v-app-bar>
 
-    <v-main style="min-height: 300px">
+    <v-main>
       <Suspense>
         <router-view />
       </Suspense>

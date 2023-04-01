@@ -20,6 +20,8 @@ function buildFilter(): string {
 }
 
 function loadMore() {
+  if (atEnd.value) return
+
   const result = getTrains(db, loadSize, trains.value.length, buildFilter(), orderBy.value)
   if (result.trains.length < loadSize) {
     atEnd.value = true
@@ -35,7 +37,7 @@ function handleScroll() {
   if (element === null) {
     return
   }
-  if (element.getBoundingClientRect().bottom - 10 <= window.innerHeight) {
+  if (element.getBoundingClientRect().bottom - 5 <= window.innerHeight) {
     loadMore()
   }
 }
@@ -57,9 +59,7 @@ onUnmounted(() => {
     {{ trains.length }} / {{ filteredCount }} / {{ totalCount }}
   </Teleport>
 
-  <v-card>
-    <div ref="scroller">
-      <TrainList :trains="trains" />
-    </div>
-  </v-card>
+  <div ref="scroller">
+    <TrainList :trains="trains" />
+  </div>
 </template>
