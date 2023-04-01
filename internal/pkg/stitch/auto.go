@@ -14,7 +14,7 @@ import (
 const (
 	goodScoreNoMove   = 0.99
 	goodScoreMove     = 0.95
-	maxSeqLen         = 800
+	maxSeqLen         = 1000
 	minFramePeriodS   = 0.01
 	dxLowPassFactor   = 0.9
 	minContrastAvg    = 0.005
@@ -26,30 +26,39 @@ type Config struct {
 	PixelsPerM  float64
 	MinSpeedKPH float64
 	MaxSpeedKPH float64
+	MinLengthM  float64
 }
 
-func (e *Config) minPxPerFrame(framePeriodS float64) int {
+func (c *Config) minPxPerFrame(framePeriodS float64) int {
 	if framePeriodS == 0 {
 		return 1
 	}
 	fps := 1 / framePeriodS
-	ret := int(e.MinSpeedKPH/3.6*e.PixelsPerM/fps) - 1
+	ret := int(c.MinSpeedKPH/3.6*c.PixelsPerM/fps) - 1
 	if ret < 1 {
 		return 1
 	}
 	return ret
 }
 
-func (e *Config) maxPxPerFrame(framePeriodS float64) int {
+func (c *Config) maxPxPerFrame(framePeriodS float64) int {
 	if framePeriodS == 0 {
 		return 1
 	}
 	fps := 1 / framePeriodS
-	ret := int(e.MaxSpeedKPH/3.6*e.PixelsPerM/fps) + 1
+	ret := int(c.MaxSpeedKPH/3.6*c.PixelsPerM/fps) + 1
 	if ret < 1 {
 		return 1
 	}
 	return ret
+}
+
+func (c *Config) minSpeedPxPS() float64 {
+	return c.MinSpeedKPH / 3.6 * c.PixelsPerM
+}
+
+func (c *Config) minLengthPx() float64 {
+	return c.MinLengthM * c.PixelsPerM
 }
 
 type sequence struct {

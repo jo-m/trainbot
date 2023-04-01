@@ -25,6 +25,7 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 		PixelsPerM:  50,
 		MinSpeedKPH: 10,
 		MaxSpeedKPH: 160,
+		MinLengthM:  10,
 	}
 	auto := NewAutoStitcher(c)
 

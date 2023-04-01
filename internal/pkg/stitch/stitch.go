@@ -200,9 +200,8 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		return nil, fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
 
-	img, err := stitch(seq.frames, dxFit)
-	if err != nil {
-		return nil, fmt.Errorf("unable to assemble image: %w", err)
+	if math.Abs(ds) < c.minLengthPx() {
+		return nil, fmt.Errorf("discarded because too short, %f < %f", ds, c.minLengthPx())
 	}
 
 	// Estimate speed at halftime.
@@ -210,7 +209,14 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	tMid := seq.ts[len(seq.ts)/2]
 	speed := v0 + a*tMid.Sub(t0).Seconds()
 
-	tEnd := seq.ts[len(seq.ts)-1]
+	if math.Abs(speed) < c.minSpeedPxPS() {
+		return nil, fmt.Errorf("discarded because too slow, %f < %f", speed, c.minSpeedPxPS())
+	}
+
+	img, err := stitch(seq.frames, dxFit)
+	if err != nil {
+		return nil, fmt.Errorf("unable to assemble image: %w", err)
+	}
 
 	gif, err := createGIF(seq, img)
 	if err != nil {
@@ -219,7 +225,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 
 	return &Train{
 		t0,
-		tEnd,
+		seq.ts[len(seq.ts)-1],
 		len(seq.frames),
 		ds,
 		-speed, // Negate because when things move to the left we get positive dx values.
