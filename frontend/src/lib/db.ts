@@ -1,6 +1,6 @@
 import SqlJs from 'sql.js'
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
-import type internal from 'stream'
+import { DateTime } from 'luxon'
 
 let sqlJs: SqlJs.SqlJsStatic | null = null
 
@@ -23,8 +23,8 @@ export async function loadDB(): Promise<SqlJs.Database> {
 
 export interface Train {
   id: number
-  start_ts: string
-  end_ts: string
+  start_ts: DateTime
+  end_ts: DateTime
   n_frames: number
   length_px: number
   speed_px_s: number
@@ -33,14 +33,25 @@ export interface Train {
   image_file_path: string
   gif_file_path: string
   // TODO: Parse dates
-  uploaded_at: string
+  uploaded_at: DateTime
+}
+
+function convertValue(colname: string, value: any): any {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  if (value !== null && ['start_ts', 'end_ts', 'uploaded_at'].indexOf(colname) != -1) {
+    return DateTime.fromSQL(value, { setZone: true })
+  }
+  return value
+}
+
+function convertRow(cols: string[], row: any[]) {
+  return Object.fromEntries(cols.map((colname, ix) => [colname, convertValue(colname, row[ix])]))
 }
 
 export function getTrains(db: SqlJs.Database, limit: number, offset: number): Train[] {
   const result = db.exec(
     `SELECT * FROM trains ORDER BY start_ts DESC LIMIT ${limit} OFFSET ${offset}`
   )[0]
-  return result.values.map((row) =>
-    Object.fromEntries(result.columns.map((c, i) => [c, row[i]]))
-  ) as any
+
+  return result.values.map((row) => convertRow(result.columns, row)) as any
 }

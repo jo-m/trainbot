@@ -14,6 +14,7 @@
   "dependencies": {
     "@mdi/font": "^7.2.96",
     "@types/sql.js": "^1.4.4",
+    "luxon": "^3.3.0",
     "sql.js": "^1.8.0",
     "vite-plugin-vuetify": "^1.0.2",
     "vue": "^3.2.47",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
+    "@types/luxon": "^3.2.0",
     "@types/node": "^18.14.2",
     "@types/webfontloader": "^1.6.35",
     "@vitejs/plugin-vue": "^4.1.0",
