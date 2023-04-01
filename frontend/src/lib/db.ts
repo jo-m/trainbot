@@ -48,22 +48,38 @@ function convertRow(cols: string[], row: any[]) {
   return Object.fromEntries(cols.map((colname, ix) => [colname, convertValue(colname, row[ix])]))
 }
 
+interface Result {
+  trains: Train[]
+  totalCount: number
+}
+
 export function getTrains(
   db: SqlJs.Database,
-  nResults: number,
-  maxId: number = Number.MAX_SAFE_INTEGER
-): Train[] {
+  limit: number,
+  offset: number = 0,
+  filter: string = '1=1',
+  order: string = 'id DESC'
+): Result {
+  const count = db.exec(`
+    SELECT COUNT(*)
+    FROM trains
+    WHERE ${filter}
+  `)
+
   const result = db.exec(`
     SELECT *
     FROM trains
-    WHERE id < ${maxId}
-    ORDER BY id DESC
-    LIMIT ${nResults}
+    WHERE ${filter}
+    ORDER BY ${order}
+    LIMIT ${limit} OFFSET ${offset}
   `)
 
   if (result.length === 0) {
-    return []
+    return { trains: [], totalCount: 0 }
   }
 
-  return result[0].values.map((row) => convertRow(result[0].columns, row)) as any
+  return {
+    trains: result[0].values.map((row) => convertRow(result[0].columns, row)) as Train[],
+    totalCount: count[0].values[0][0] as number
+  }
 }
