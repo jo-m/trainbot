@@ -50,6 +50,7 @@ function convertRow(cols: string[], row: any[]) {
 
 interface Result {
   trains: Train[]
+  filteredCount: number
   totalCount: number
 }
 
@@ -58,28 +59,27 @@ export function getTrains(
   limit: number,
   offset: number = 0,
   filter: string = '1=1',
-  order: string = 'id DESC'
+  order: string = 'start_ts DESC'
 ): Result {
-  const count = db.exec(`
-    SELECT COUNT(*)
-    FROM trains
-    WHERE ${filter}
-  `)
-
-  const result = db.exec(`
+  const query = `
     SELECT *
     FROM trains
     WHERE ${filter}
     ORDER BY ${order}
-    LIMIT ${limit} OFFSET ${offset}
-  `)
+    LIMIT ${limit} OFFSET ${offset}`
+
+  const result = db.exec(query)
 
   if (result.length === 0) {
-    return { trains: [], totalCount: 0 }
+    return { trains: [], filteredCount: 0, totalCount: 0 }
   }
+
+  const filteredCount = db.exec(`SELECT COUNT(*) FROM trains WHERE ${filter}`)
+  const totalCount = db.exec(`SELECT COUNT(*) FROM trains`)
 
   return {
     trains: result[0].values.map((row) => convertRow(result[0].columns, row)) as Train[],
-    totalCount: count[0].values[0][0] as number
+    filteredCount: filteredCount[0].values[0][0] as number,
+    totalCount: totalCount[0].values[0][0] as number
   }
 }

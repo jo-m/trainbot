@@ -5,19 +5,29 @@ import { loadDB, getTrains, type Train as TrainType } from '@/lib/db'
 
 const db = await loadDB()
 
-const trains = ref<TrainType[]>([])
-const atEnd = ref<boolean>(false)
-
 const loadSize = 20
+const trains = ref<TrainType[]>([])
+const filteredCount = ref<number>(0)
+const totalCount = ref<number>(0)
+const orderBy = ref<string>('start_ts DESC')
+const filters = ref<{ [key: string]: string }>({ _: '1=1' })
+const atEnd = ref<boolean>(false)
 
 const scroller = ref<HTMLDivElement | null>(null)
 
+function buildFilter(): string {
+  return Object.values(filters.value).join(' AND ')
+}
+
 function loadMore() {
-  const more = getTrains(db, loadSize, trains.value.length).trains
-  if (more.length < loadSize) {
+  const result = getTrains(db, loadSize, trains.value.length, buildFilter(), orderBy.value)
+  if (result.trains.length < loadSize) {
     atEnd.value = true
   }
-  trains.value.push(...more)
+
+  trains.value.push(...result.trains)
+  filteredCount.value = result.filteredCount
+  totalCount.value = result.totalCount
 }
 
 function handleScroll() {
@@ -31,7 +41,7 @@ function handleScroll() {
 }
 
 onMounted(async () => {
-  trains.value = getTrains(db, loadSize).trains
+  loadMore()
 
   window.addEventListener('scroll', handleScroll)
 })
@@ -44,6 +54,7 @@ onUnmounted(() => {
 <template>
   <Teleport to="#app-bar-teleport">
     <v-btn variant="text" icon="mdi-filter"></v-btn>
+    {{ trains.length }} / {{ filteredCount }} / {{ totalCount }}
   </Teleport>
 
   <v-card>
