@@ -11,7 +11,8 @@ import { RouterLink, RouterView } from 'vue-router'
       <v-spacer></v-spacer>
 
       <div id="app-bar-teleport"></div>
-      <v-btn variant="text" icon="mdi-github"></v-btn>
+
+      <v-btn variant="text" icon="mdi-github" href="https://github.com/jo-m/trainbot"></v-btn>
     </v-app-bar>
 
     <v-main>

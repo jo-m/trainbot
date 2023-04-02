@@ -33,11 +33,10 @@ export interface Train {
   image_file_path: string
   gif_file_path: string
   // TODO: Parse dates
-  uploaded_at: DateTime
+  uploaded_at?: DateTime
 }
 
 function convertValue(colname: string, value: any): any {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
   if (value !== null && ['start_ts', 'end_ts', 'uploaded_at'].indexOf(colname) != -1) {
     return DateTime.fromSQL(value, { setZone: true })
   }
@@ -62,25 +61,40 @@ function convertTrains(result: SqlJs.QueryExecResult[]): Train[] {
   return result[0].values.map((row) => convertRow(result[0].columns, row)) as Train[]
 }
 
+export interface Filter {
+  // ORDER BY clause, e.g. 'id DESC'.
+  orderBy?: string
+  // The values are SQL clauses and are AND'ed together.
+  // The keys are just for managing multiple filters.
+  where?: { [key: string]: string }
+}
+
 export function getTrains(
   db: SqlJs.Database,
   limit: number,
   offset: number = 0,
-  filter: string = '1=1',
-  order: string = 'start_ts DESC'
+  filter: Filter = {}
 ): Result {
+  const { orderBy, where } = filter
+  const orderByStr = orderBy || 'start_ts DESC'
+  const whereStr =
+    (where !== undefined && Object.keys(where).length && Object.values(where).join(' AND ')) ||
+    '1=1'
+
+  // We don't care about SQL injections, because this all happens client side.
+  // Muahahah.
   const query = `
     SELECT *
     FROM trains
-    WHERE ${filter}
-    ORDER BY ${order}
+    WHERE ${whereStr}
+    ORDER BY ${orderByStr}
     LIMIT ${limit} OFFSET ${offset}`
-
-  const result = db.exec(query)
 
   console.log(query.trim())
 
-  const filteredCount = db.exec(`SELECT COUNT(*) FROM trains WHERE ${filter}`)
+  const result = db.exec(query)
+
+  const filteredCount = db.exec(`SELECT COUNT(*) FROM trains WHERE ${whereStr}`)
   const totalCount = db.exec(`SELECT COUNT(*) FROM trains`)
 
   return {

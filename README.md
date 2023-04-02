@@ -104,7 +104,15 @@ ffplay http://pi4:8080/video.mjpeg
 - [x] Write GIFs again
 - [x] Store metadata in db
 - [x] Sync pics and db up to bucket
-- [ ] Static web frontend serving train sightings
+- [x] Static web frontend serving train sightings
+- [x] Github button link
+- [x] Filter view (longest, fastest, ...)
+- [ ] Store filter state in URL
+- [ ] Train detail view
+- [ ] Color theming, dark mode
+- [ ] Do something about GIFs
+- [ ] Delete old data after upload
+- [ ] More debug logging and better filtering, clean up data
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Improve stiching seams
