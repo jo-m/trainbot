@@ -100,7 +100,7 @@ sudo usermod -a -G video pi
 The current production deployment is in a Tmux session...
 
 ```bash
-source env
+source ./env
 
 while true; do
 ./trainbot-arm64 --log-pretty --log-level=info \
@@ -145,9 +145,13 @@ All database access happens in the browser via sql.js.
 - [x] Static web frontend serving train sightings
 - [x] Github button link
 - [x] Filter view (longest, fastest, ...)
+- [x] Fix stale relative timestamps
 - [ ] Store filter and detail state in URL, make history work
+- [ ] Make dialogs consistent
 - [ ] Improve train detail view
+- [ ] Create some screenshots
 - [ ] Color theming, dark mode
+- [ ] Set up aggressive caching on web server
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Delete old data after upload
 - [ ] More debug logging and better filtering, clean up data

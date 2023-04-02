@@ -3,6 +3,7 @@ import type { Train } from '@/lib/db'
 import { getBlobURL } from '@/lib/paths'
 import { DateTime } from 'luxon'
 import { useDisplay } from 'vuetify'
+import RelativeTime from '@/components/RelativeTime.vue'
 
 defineProps<{
   train: Train
@@ -17,7 +18,7 @@ const { mdAndUp } = useDisplay()
       <v-tooltip :text="train.start_ts.toSQL()" location="top">
         <template v-slot:activator="{ props }">
           <v-sheet v-bind="props" class="pa-2">
-            {{ train.start_ts.toRelative() }}
+            <RelativeTime :ts="train.start_ts" :opts="{ round: true }" />
             <div class="text-caption" v-if="mdAndUp">
               {{ train.start_ts.toLocaleString(DateTime.DATETIME_SHORT) }}
             </div>
