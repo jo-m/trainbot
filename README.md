@@ -145,10 +145,9 @@ All database access happens in the browser via sql.js.
 - [x] Static web frontend serving train sightings
 - [x] Github button link
 - [x] Filter view (longest, fastest, ...)
-- [ ] Store filter state in URL
-- [ ] Train detail view
+- [ ] Store filter and detail state in URL, make history work
+- [ ] Improve train detail view
 - [ ] Color theming, dark mode
-- [ ] Do something about GIFs
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Delete old data after upload
 - [ ] More debug logging and better filtering, clean up data
