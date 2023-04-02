@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { Train } from '@/lib/db'
+import { DateTime } from 'luxon'
+import { useDisplay } from 'vuetify'
 
 defineProps<{
   train: Train
 }>()
+
+const { mdAndUp } = useDisplay()
 
 const blobsBaseURL = import.meta.env.VITE_BLOBS_URL
 function getURL(blobName: string): string {
@@ -14,10 +18,13 @@ function getURL(blobName: string): string {
 <template>
   <v-row class="pa-0" no-gutters align="center">
     <v-col cols="5" sm="3" md="2" lg="2">
-      <v-tooltip :text="train.start_ts.toRFC2822()">
+      <v-tooltip :text="train.start_ts.toSQL()" location="top">
         <template v-slot:activator="{ props }">
           <v-sheet v-bind="props" class="pa-2">
             {{ train.start_ts.toRelative() }}
+            <div class="text-caption" v-if="mdAndUp">
+              {{ train.start_ts.toLocaleString(DateTime.DATETIME_SHORT) }}
+            </div>
           </v-sheet>
         </template>
       </v-tooltip>
