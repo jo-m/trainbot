@@ -18,7 +18,7 @@ const { mdAndUp } = useDisplay()
       <v-tooltip :text="train.start_ts.toSQL()" location="top">
         <template v-slot:activator="{ props }">
           <v-sheet v-bind="props" class="pa-2">
-            <RelativeTime :ts="train.start_ts" :opts="{ round: true }" />
+            <RelativeTime :ts="train.start_ts" />
             <div class="text-caption" v-if="mdAndUp">
               {{ train.start_ts.toLocaleString(DateTime.DATETIME_SHORT) }}
             </div>

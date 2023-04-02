@@ -146,9 +146,8 @@ All database access happens in the browser via sql.js.
 - [x] Github button link
 - [x] Filter view (longest, fastest, ...)
 - [x] Fix stale relative timestamps
-- [ ] Store filter and detail state in URL, make history work
-- [ ] Make dialogs consistent
-- [ ] Improve train detail view
+- [x] Improve train detail view
+- [ ] Store filter state in URL
 - [ ] Create some screenshots
 - [ ] Color theming, dark mode
 - [ ] Set up aggressive caching on web server
