@@ -103,3 +103,16 @@ export function getTrains(
     totalCount: totalCount[0].values[0][0] as number
   }
 }
+
+export function getTrain(db: SqlJs.Database, id: number): Train | undefined {
+  const query = `
+  SELECT *
+  FROM trains
+  WHERE id = ${id}`
+
+  console.log(query.trim())
+
+  const result = db.exec(query)
+
+  return convertRow(result[0].columns, result[0].values[0]) as Train
+}

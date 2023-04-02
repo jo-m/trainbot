@@ -6,12 +6,16 @@ defineProps<{
   trains: TrainType[]
   noMoreData: boolean
 }>()
+
+defineEmits<{
+  (e: 'trainSelected', id: number): void
+}>()
 </script>
 
 <template>
   <v-container class="pa-2">
     <v-row v-for="train in trains" v-bind:key="train.id" no-gutters>
-      <v-col cols="12">
+      <v-col cols="12" @click="$emit('trainSelected', train.id)" class="pointer">
         <Train :train="train" />
         <v-divider></v-divider>
       </v-col>
@@ -34,3 +38,9 @@ defineProps<{
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+.pointer {
+  cursor: pointer;
+}
+</style>

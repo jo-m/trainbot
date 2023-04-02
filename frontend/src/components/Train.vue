@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Train } from '@/lib/db'
+import { getBlobURL } from '@/lib/paths'
 import { DateTime } from 'luxon'
 import { useDisplay } from 'vuetify'
 
@@ -8,11 +9,6 @@ defineProps<{
 }>()
 
 const { mdAndUp } = useDisplay()
-
-const blobsBaseURL = import.meta.env.VITE_BLOBS_URL
-function getURL(blobName: string): string {
-  return blobsBaseURL.trimRight('/') + '/' + blobName
-}
 </script>
 
 <template>
@@ -46,15 +42,13 @@ function getURL(blobName: string): string {
     </v-col>
 
     <v-col cols="12" sm="12" md="6" lg="8">
-      <a :href="getURL(train.image_file_path)" target="_blank">
-        <v-sheet
-          class="ma-1 train-preview"
-          :style="`background-image: url(${getURL(
-            train.image_file_path
-          )}); background-position-x: ${train.speed_px_s > 0 ? 'right' : 'left'}`"
-        >
-        </v-sheet>
-      </a>
+      <v-sheet
+        class="ma-1 train-preview"
+        :style="`background-image: url(${getBlobURL(
+          train.image_file_path
+        )}); background-position-x: ${train.speed_px_s > 0 ? 'right' : 'left'}`"
+      >
+      </v-sheet>
     </v-col>
   </v-row>
 </template>

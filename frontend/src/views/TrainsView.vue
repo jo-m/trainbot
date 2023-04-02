@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import TrainList from '@/components/TrainList.vue'
-import { ref, onMounted, onUnmounted } from 'vue'
-import { loadDB, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { loadDB, getTrains, getTrain, type Train as TrainType, type Filter } from '@/lib/db'
 import { DateTime } from 'luxon'
+import { getBlobURL } from '@/lib/paths'
 
 const db = await loadDB()
 
@@ -21,6 +22,17 @@ const filter = ref<Filter>({})
 const scroller = ref<HTMLDivElement | null>(null)
 
 const showFilterDialog = ref<boolean>(false)
+
+const trainDetailId = ref<number | undefined>()
+const showTrainDetailDialog = computed(() => {
+  return trainDetailId.value !== undefined
+})
+const showTrainDetailTrain = computed(() => {
+  if (trainDetailId.value === undefined) {
+    return
+  }
+  return getTrain(db, trainDetailId.value)
+})
 
 function updateFilter(newFilter: Filter, reset: boolean = false) {
   if (reset) {
@@ -46,6 +58,9 @@ function updateFilter(newFilter: Filter, reset: boolean = false) {
   noMoreData.value = false
 
   showFilterDialog.value = false
+
+  trainDetailId.value = undefined
+
   loadNextData()
 }
 
@@ -99,9 +114,10 @@ onUnmounted(() => {
   </Teleport>
 
   <div ref="scroller" v-if="trains !== null">
-    <TrainList :trains="trains" :noMoreData="noMoreData" />
+    <TrainList :trains="trains" :noMoreData="noMoreData" @trainSelected="trainDetailId = $event" />
   </div>
 
+  <!-- Filter -->
   <v-dialog
     v-model="showFilterDialog"
     fullscreen
@@ -200,6 +216,38 @@ onUnmounted(() => {
           ><template v-slot:prepend> <v-icon icon="mdi-arrow-left"></v-icon> </template
         ></v-list-item>
       </v-list>
+    </v-card>
+  </v-dialog>
+
+  <!-- GIF -->
+  <v-dialog
+    v-model="showTrainDetailDialog"
+    v-if="showTrainDetailDialog"
+    fullscreen
+    :scrim="false"
+    transition="dialog-bottom-transition"
+  >
+    <v-card>
+      <v-toolbar color="primary">
+        <v-btn icon="" @click="trainDetailId = undefined">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <v-toolbar-title>Train Detail (#{{ trainDetailId }})</v-toolbar-title>
+      </v-toolbar>
+
+      <v-card-text v-if="showTrainDetailTrain !== undefined">
+        Timestamp: {{ showTrainDetailTrain.start_ts.toSQL() }}
+        <a :href="getBlobURL(showTrainDetailTrain?.image_file_path)" target="_blank">
+          <img :src="getBlobURL(showTrainDetailTrain?.image_file_path)" style="width: 100%" />
+        </a>
+
+        <a :href="getBlobURL(showTrainDetailTrain?.gif_file_path)" target="_blank">
+          <img :src="getBlobURL(showTrainDetailTrain?.gif_file_path)" />
+        </a>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" block @click="trainDetailId = undefined">Close</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
