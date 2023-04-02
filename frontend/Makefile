@@ -1,6 +1,7 @@
 .PHONY: run format build deploy
 
 FRONTEND_DEPLOY_TARGET_SSH_HOST_ = ${FRONTEND_DEPLOY_TARGET_SSH_HOST}
+VITE_FRONTEND_BASE_URL_ = ${VITE_FRONTEND_BASE_URL}
 
 run:
 	VITE_DB_URL=http://localhost:5173/data/db.sqlite3 \
@@ -17,8 +18,8 @@ format:
 	yarn run format
 
 build:
-	VITE_DB_URL=data/db.sqlite3 \
-	VITE_BLOBS_URL=data/blobs \
+	VITE_DB_URL=$(VITE_FRONTEND_BASE_URL_)/data/db.sqlite3 \
+	VITE_BLOBS_URL=$(VITE_FRONTEND_BASE_URL_)/data/blobs \
 		yarn run build
 
 deploy: build
