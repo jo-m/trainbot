@@ -39,13 +39,15 @@ function getURL(blobName: string): string {
     </v-col>
 
     <v-col cols="12" sm="12" md="6" lg="8">
-      <v-sheet
-        class="ma-1 train-preview"
-        :style="`background-image: url(${getURL(train.image_file_path)}); background-position-x: ${
-          train.speed_px_s > 0 ? 'right' : 'left'
-        }`"
-      >
-      </v-sheet>
+      <a :href="getURL(train.image_file_path)" target="_blank">
+        <v-sheet
+          class="ma-1 train-preview"
+          :style="`background-image: url(${getURL(
+            train.image_file_path
+          )}); background-position-x: ${train.speed_px_s > 0 ? 'right' : 'left'}`"
+        >
+        </v-sheet>
+      </a>
     </v-col>
   </v-row>
 </template>
