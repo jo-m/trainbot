@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import TrainList from '@/components/TrainList.vue'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { loadDB, getTrains, getTrain, type Train as TrainType, type Filter } from '@/lib/db'
+import { ref, onMounted, onUnmounted, inject } from 'vue'
+import { dbKey, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
+import type SqlJs from 'sql.js'
 import { DateTime } from 'luxon'
-import { getBlobURL } from '@/lib/paths'
 
-const db = await loadDB()
+const db = inject(dbKey) as SqlJs.Database
 
 // How many trains to load at a time.
 const pageSize = 20
@@ -14,7 +14,7 @@ const trains = ref<TrainType[] | null>(null)
 const filteredCount = ref<number | null>(null)
 const totalCount = ref<number | null>(null)
 // If we have reached the end of pagination.
-const noMoreData = ref<boolean>(false)
+const allDataLoaded = ref<boolean>(false)
 // Currently active filter.
 // When this changes, data must be reset.
 const filter = ref<Filter>({})
@@ -22,17 +22,6 @@ const filter = ref<Filter>({})
 const scroller = ref<HTMLDivElement | null>(null)
 
 const showFilterDialog = ref<boolean>(false)
-
-const trainDetailId = ref<number | undefined>()
-const showTrainDetailDialog = computed(() => {
-  return trainDetailId.value !== undefined
-})
-const showTrainDetailTrain = computed(() => {
-  if (trainDetailId.value === undefined) {
-    return
-  }
-  return getTrain(db, trainDetailId.value)
-})
 
 function updateFilter(newFilter: Filter, reset: boolean = false) {
   if (reset) {
@@ -55,22 +44,20 @@ function updateFilter(newFilter: Filter, reset: boolean = false) {
   trains.value = null
   filteredCount.value = null
   totalCount.value = null
-  noMoreData.value = false
+  allDataLoaded.value = false
 
   showFilterDialog.value = false
-
-  trainDetailId.value = undefined
 
   loadNextData()
 }
 
 function loadNextData() {
-  if (noMoreData.value) return
+  if (allDataLoaded.value) return
 
   const currentLen = trains.value?.length || 0
   const result = getTrains(db, pageSize, currentLen, filter.value)
   if (result.trains.length < pageSize) {
-    noMoreData.value = true
+    allDataLoaded.value = true
   }
 
   if (trains.value === null) {
@@ -104,17 +91,19 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- App bar -->
   <Teleport to="#app-bar-teleport">
     <v-btn
       variant="text"
       icon="mdi-filter"
       @click="showFilterDialog = true"
-      :title="`${filteredCount} of ${totalCount}`"
+      :active="Object.keys(filter).length > 0"
     ></v-btn>
   </Teleport>
 
+  <!-- List -->
   <div ref="scroller" v-if="trains !== null">
-    <TrainList :trains="trains" :noMoreData="noMoreData" @trainSelected="trainDetailId = $event" />
+    <TrainList :trains="trains" :allDataLoaded="allDataLoaded" />
   </div>
 
   <!-- Filter -->
@@ -133,9 +122,7 @@ onUnmounted(() => {
       </v-toolbar>
 
       <v-list>
-        <v-list-item
-          title="Reset (show all, most recent first)"
-          @click="updateFilter({ orderBy: 'start_ts DESC' }, true)"
+        <v-list-item title="Reset (show all, most recent first)" @click="updateFilter({}, true)"
           ><template v-slot:prepend> <v-icon icon="mdi-arrow-u-left-top"></v-icon> </template
         ></v-list-item>
         <v-divider></v-divider>
@@ -216,38 +203,6 @@ onUnmounted(() => {
           ><template v-slot:prepend> <v-icon icon="mdi-arrow-left"></v-icon> </template
         ></v-list-item>
       </v-list>
-    </v-card>
-  </v-dialog>
-
-  <!-- GIF -->
-  <v-dialog
-    v-model="showTrainDetailDialog"
-    v-if="showTrainDetailDialog"
-    fullscreen
-    :scrim="false"
-    transition="dialog-bottom-transition"
-  >
-    <v-card>
-      <v-toolbar color="primary">
-        <v-btn icon="" @click="trainDetailId = undefined">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-        <v-toolbar-title>Train Detail (#{{ trainDetailId }})</v-toolbar-title>
-      </v-toolbar>
-
-      <v-card-text v-if="showTrainDetailTrain !== undefined">
-        Timestamp: {{ showTrainDetailTrain.start_ts.toSQL() }}
-        <a :href="getBlobURL(showTrainDetailTrain?.image_file_path)" target="_blank">
-          <img :src="getBlobURL(showTrainDetailTrain?.image_file_path)" style="width: 100%" />
-        </a>
-
-        <a :href="getBlobURL(showTrainDetailTrain?.gif_file_path)" target="_blank">
-          <img :src="getBlobURL(showTrainDetailTrain?.gif_file_path)" />
-        </a>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" block @click="trainDetailId = undefined">Close</v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

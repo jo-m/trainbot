@@ -1,6 +1,7 @@
 import SqlJs from 'sql.js'
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import { DateTime } from 'luxon'
+import type { InjectionKey } from 'vue'
 
 let sqlJs: SqlJs.SqlJsStatic | null = null
 
@@ -117,6 +118,9 @@ export function getTrain(db: SqlJs.Database, id: number): Train | undefined {
   console.log(query.trim())
 
   const result = db.exec(query)
+  if (result.length === 0) return undefined
 
   return convertRow(result[0].columns, result[0].values[0]) as Train
 }
+
+export const dbKey = Symbol() as InjectionKey<SqlJs.Database>

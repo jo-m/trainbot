@@ -5,8 +5,12 @@ import { RouterLink, RouterView } from 'vue-router'
 <template>
   <v-app>
     <v-app-bar color="primary">
-      <v-toolbar-title>Trainspotter</v-toolbar-title>
-      <!-- <router-link :to="{name:'root'}">Trains</router-link> -->
+      <router-link
+        :to="{ name: 'root' }"
+        style="text-decoration: none; color: inherit; margin-inline-start: 16px"
+      >
+        <v-toolbar-title>Trainspotter</v-toolbar-title>
+      </router-link>
 
       <v-spacer></v-spacer>
 
@@ -18,6 +22,8 @@ import { RouterLink, RouterView } from 'vue-router'
     <v-main>
       <Suspense>
         <router-view />
+
+        <template v-slot:fallback>Loading...</template>
       </Suspense>
     </v-main>
   </v-app>
