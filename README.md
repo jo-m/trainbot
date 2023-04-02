@@ -1,9 +1,11 @@
 # Trainbot
 
-**THIS IS A WORK IN PROGRESS AND INCOMPLETE**
+**THIS IS A WORK IN PROGRESS**
 
 Trainbot watches a piece of train track, detects passing trains, and stitches together images of them.
 Should work with any video4linux USB cam, or Raspberry Pi camera v3 modules.
+
+Frontend: <https://trains.jo-m.ch/>
 
 [<img src="internal/pkg/stitch/testdata/day.jpg">](internal/pkg/stitch/testdata/day.jpg)
 [<img src="internal/pkg/stitch/testdata/night.jpg">](internal/pkg/stitch/testdata/night.jpg)
@@ -84,11 +86,47 @@ libcamera-vid -t 0 --inline --nopreview --width 4608 --height 2592 --rotation 18
 ffplay http://pi4:8080/video.mjpeg
 ```
 
-## Running on Raspberry Pi
+## Deployment
+
+### Raspberry Pi
 
 ```bash
+sudo usermod -a -G video pi
+
+# confighelper
 ./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
 ```
+
+The current production deployment is in a Tmux session...
+
+```bash
+source env
+
+while true; do
+./trainbot-arm64 --log-pretty --log-level=info \
+   --input picam3 \
+   --camera-format-fourcc=MJPG \
+   -X 1200 -Y 930 -W 206 -H 320 \
+   --px-per-m=42
+done
+```
+
+Download latest data from Raspberry Pi:
+
+```bash
+ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST" sqlite3 data/db.sqlite3
+.backup data/db.sqlite3.bak
+# Ctrl+D
+rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:data/" data/
+rm data/db.sqlite3-shm data/db.sqlite3-wal
+mv data/db.sqlite3.bak data/db.sqlite3
+```
+
+### Web frontend
+
+Images and database are uploaded to a web server via FTP.
+The frontend served as a static HTML/JS bundle from the same server.
+All database access happens in the browser via sql.js.
 
 ## Code notes
 
@@ -111,6 +149,7 @@ ffplay http://pi4:8080/video.mjpeg
 - [ ] Train detail view
 - [ ] Color theming, dark mode
 - [ ] Do something about GIFs
+- [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Delete old data after upload
 - [ ] More debug logging and better filtering, clean up data
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)

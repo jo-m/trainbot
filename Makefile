@@ -8,7 +8,7 @@ GO_VERSION = 1.20.2
 GO_ARCHIVE_SHA256 = 4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768
 GO_STATICCHECK_VERSION = 2023.1.3
 
-TARGET_SSH_HOST = pi4
+TRAINBOT_DEPLOY_TARGET_SSH_HOST_ = ${TRAINBOT_DEPLOY_TARGET_SSH_HOST}
 
 DEFAULT: format build_host build_arm64
 
@@ -101,4 +101,8 @@ run_videofile:
 		-X 800 -Y 450 -W 300 -H 300
 
 deploy_trainbot: build_arm64
-	scp build/trainbot-arm64 $(TARGET_SSH_HOST):
+	scp env $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
+	scp build/trainbot-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
+
+deploy_confighelper: build_arm64
+	scp build/confighelper-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
