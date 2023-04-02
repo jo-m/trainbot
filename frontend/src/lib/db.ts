@@ -44,7 +44,11 @@ function convertValue(colname: string, value: any): any {
 }
 
 function convertRow(cols: string[], row: any[]) {
-  return Object.fromEntries(cols.map((colname, ix) => [colname, convertValue(colname, row[ix])]))
+  const ret = Object.fromEntries(
+    cols.map((colname, ix) => [colname, convertValue(colname, row[ix])])
+  )
+  Object.freeze(ret)
+  return ret
 }
 
 interface Result {
