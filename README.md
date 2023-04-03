@@ -150,6 +150,7 @@ All database access happens in the browser via sql.js.
 - [ ] Store filter state in URL
 - [ ] Create some screenshots
 - [ ] Color theming, dark mode
+- [ ] Logo/Favicon
 - [ ] Set up aggressive caching on web server
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Delete old data after upload
