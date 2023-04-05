@@ -23,8 +23,8 @@ const agoHours = DateTime.now().diff(date, 'hours').hours
         <v-card-title>Stale Data Warning</v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-          No data has been uploaded since {{ date.toRelative() }}. This probably means that trainbot
-          is currently offline. Note that this frontend is hosted independently.
+          The last data upload from trainbot was {{ date.toRelative() }}. This probably means that
+          trainbot is currently offline. Note that this frontend is hosted independently.
         </v-card-text>
         <v-card-actions>
           <v-btn color="primary" block @click="showDialog = false">Close</v-btn>
