@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TrainList from '@/components/TrainList.vue'
 import FilterDialog from '@/components/FilterDialog.vue'
+import StaleDataWarning from '@/components/StaleDataWarning.vue'
 import { ref, onMounted, onUnmounted, inject } from 'vue'
 import { dbKey, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
 import type SqlJs from 'sql.js'
@@ -93,6 +94,8 @@ onUnmounted(() => {
 <template>
   <!-- App bar -->
   <Teleport to="#app-bar-teleport">
+    <StaleDataWarning />
+
     <v-btn
       variant="text"
       icon="mdi-filter"
