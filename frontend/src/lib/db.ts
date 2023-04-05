@@ -33,7 +33,6 @@ export interface Train {
   px_per_m: number
   image_file_path: string
   gif_file_path: string
-  // TODO: Parse dates
   uploaded_at?: DateTime
 }
 
