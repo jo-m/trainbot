@@ -55,6 +55,8 @@ watch(filter, () => {
   loadNextData()
 })
 
+const filterSnackbarShow = ref<boolean>(false)
+
 function loadNextData() {
   if (allDataLoaded.value) return
 
@@ -71,6 +73,7 @@ function loadNextData() {
   }
   filteredCount.value = result.filteredCount
   totalCount.value = result.totalCount
+  filterSnackbarShow.value = true
 }
 
 function handleScroll() {
@@ -118,4 +121,16 @@ onUnmounted(() => {
     @updateFilter="updateFilter($event)"
     @close="showFilterDialog = false"
   />
+
+  <!-- Filter Snackbar -->
+  <v-snackbar v-model="filterSnackbarShow" :timeout="2000">
+    Current filter includes {{ filteredCount === totalCount ? 'all' : `${filteredCount} of` }}
+    {{ totalCount }} trains.
+
+    <template v-slot:actions>
+      <v-btn color="secondary" variant="outlined" @click="filterSnackbarShow = false">
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>

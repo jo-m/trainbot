@@ -148,6 +148,7 @@ All database access happens in the browser via sql.js.
 - [x] Fix stale relative timestamps
 - [x] Improve train detail view
 - [x] Store filter state in URL
+- [x] Show "showing X of Y" counter somewhere
 - [ ] Create some screenshots
 - [ ] Color theming, dark mode
 - [ ] Logo/Favicon
