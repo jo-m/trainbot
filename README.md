@@ -149,10 +149,10 @@ All database access happens in the browser via sql.js.
 - [x] Improve train detail view
 - [x] Store filter state in URL
 - [x] Show "showing X of Y" counter somewhere
-- [ ] Create some screenshots
 - [ ] Color theming, dark mode
-- [ ] Logo/Favicon
+- [x] Logo/Favicon
 - [ ] Set up aggressive caching on web server
+- [ ] Create some screenshots
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Delete old data after upload
 - [ ] More debug logging and better filtering, clean up data
