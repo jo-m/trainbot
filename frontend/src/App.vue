@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
+import logoDayUrl from '@/assets/logo-day.svg'
+import logoNightUrl from '@/assets/logo-night.svg'
+import { useTheme } from 'vuetify'
+
+const theme = useTheme()
 </script>
 
 <template>
@@ -7,9 +13,14 @@ import { RouterLink, RouterView } from 'vue-router'
     <v-app-bar color="primary">
       <router-link
         :to="{ name: 'root' }"
-        style="text-decoration: none; color: inherit; margin-inline-start: 16px"
+        style="text-decoration: none; color: inherit; margin-inline-start: 16px; padding-top: 6px"
       >
-        <v-toolbar-title>Trainspotter</v-toolbar-title>
+        <v-toolbar-title style="float: left">Trains</v-toolbar-title>
+        <img
+          width="36"
+          :src="theme.global.current.value.dark ? logoNightUrl : logoDayUrl"
+          style="margin-left: 10px; margin-top: -4px"
+        />
       </router-link>
 
       <v-spacer></v-spacer>

@@ -61,4 +61,7 @@ div.train-preview {
   background-size: auto 100%;
   background-repeat: no-repeat;
 }
+div.train-preview.v-theme--dark {
+  background-color: #222;
+}
 </style>
