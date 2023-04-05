@@ -115,6 +115,8 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 		return nil, fmt.Errorf("unsupported image format '%s'", c.Format.String())
 	}
 
+	log.Info().Strs("args", args).Msg("libcamera-vid args")
+
 	// #nosec G204
 	cmd := exec.Command("libcamera-vid", args...)
 
