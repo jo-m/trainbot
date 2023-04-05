@@ -2,8 +2,9 @@
 import TrainList from '@/components/TrainList.vue'
 import FilterDialog from '@/components/FilterDialog.vue'
 import StaleDataWarning from '@/components/StaleDataWarning.vue'
-import { ref, onMounted, onUnmounted, inject } from 'vue'
+import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { dbKey, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
+import useQueryParam from '@/lib/useQueryParam'
 import type SqlJs from 'sql.js'
 
 const db = inject(dbKey) as SqlJs.Database
@@ -18,7 +19,7 @@ const totalCount = ref<number | null>(null)
 const allDataLoaded = ref<boolean>(false)
 // Currently active filter.
 // When this changes, data must be reset.
-const filter = ref<Filter>({})
+const filter = useQueryParam<Filter>('filter', {})
 
 const scroller = ref<HTMLDivElement | null>(null)
 
@@ -42,15 +43,17 @@ function updateFilter(newFilter: Filter, reset: boolean = false) {
     filter.value = copy
   }
 
+  showFilterDialog.value = false
+}
+
+watch(filter, () => {
   trains.value = null
   filteredCount.value = null
   totalCount.value = null
   allDataLoaded.value = false
 
-  showFilterDialog.value = false
-
   loadNextData()
-}
+})
 
 function loadNextData() {
   if (allDataLoaded.value) return

@@ -18,7 +18,7 @@ const router = createRouter({
       redirect: { name: 'trainsList' },
       children: [
         {
-          path: 'list/:filter?',
+          path: 'list',
           name: 'trainsList',
           component: TrainsListView
         },
