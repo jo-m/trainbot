@@ -42,11 +42,11 @@ if (train === undefined) {
           </tr>
           <tr>
             <td>End timestamp</td>
-            <td>{{ train.end_ts.toSQL() }} (<RelativeTime :ts="train.start_ts" />)</td>
+            <td>{{ train.end_ts.toSQL() }}</td>
           </tr>
           <tr v-if="train.uploaded_at">
             <td>Upload timestamp</td>
-            <td>{{ train.uploaded_at.toSQL() }} (<RelativeTime :ts="train.uploaded_at" />)</td>
+            <td>{{ train.uploaded_at.toSQL() }}</td>
           </tr>
           <tr>
             <td>Direction</td>
