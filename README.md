@@ -1,6 +1,6 @@
 # Trainbot
 
-**THIS IS A WORK IN PROGRESS**
+<img src="frontend/src/assets/logo-day.svg" height="100" width="100">
 
 Trainbot watches a piece of train track, detects passing trains, and stitches together images of them.
 Should work with any video4linux USB cam, or Raspberry Pi camera v3 modules.
