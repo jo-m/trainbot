@@ -101,8 +101,10 @@ run_videofile:
 		-X 800 -Y 450 -W 300 -H 300
 
 deploy_trainbot: build_arm64
+	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var
 	scp env $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
 	scp build/trainbot-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
 
 deploy_confighelper: build_arm64
+	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var
 	scp build/confighelper-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):

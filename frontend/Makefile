@@ -18,10 +18,12 @@ format:
 	yarn run format
 
 build:
+	test -n "$(VITE_FRONTEND_BASE_URL_)" # missing env var
 	VITE_DB_URL=$(VITE_FRONTEND_BASE_URL_)/data/db.sqlite3 \
 	VITE_BLOBS_URL=$(VITE_FRONTEND_BASE_URL_)/data/blobs \
 		yarn run build
 
 deploy: build
+	test -n "$(FRONTEND_DEPLOY_TARGET_SSH_HOST_)" # missing env var
 	rm -rf dist/_data
 	rsync --verbose --archive --compress --rsh=ssh dist/ $(FRONTEND_DEPLOY_TARGET_SSH_HOST_)
