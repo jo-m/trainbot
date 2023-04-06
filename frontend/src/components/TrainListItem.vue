@@ -15,16 +15,12 @@ const { mdAndUp } = useDisplay()
 <template>
   <v-row class="pa-0" no-gutters align="center">
     <v-col cols="5" sm="3" md="2" lg="2">
-      <v-tooltip :text="train.start_ts.toSQL()" location="top">
-        <template v-slot:activator="{ props }">
-          <v-sheet v-bind="props" class="pa-2">
-            <RelativeTime :ts="train.start_ts" />
-            <div class="text-caption" v-if="mdAndUp">
-              {{ train.start_ts.toLocaleString(DateTime.DATETIME_SHORT) }}
-            </div>
-          </v-sheet>
-        </template>
-      </v-tooltip>
+      <v-sheet class="pa-2">
+        <RelativeTime :ts="train.start_ts" />
+        <div class="text-caption" v-if="mdAndUp">
+          {{ train.start_ts.toLocaleString(DateTime.DATETIME_SHORT) }}
+        </div>
+      </v-sheet>
     </v-col>
 
     <v-col cols="7" sm="9" md="3" lg="2">
