@@ -20,3 +20,6 @@ CREATE TABLE IF NOT EXISTS trains (
     -- Set if files from blob dir were uploaded.
     uploaded_at DATETIME NULL DEFAULT NULL
 );
+
+CREATE INDEX IF NOT EXISTS trains_length ON trains(length_px / px_per_m);
+CREATE INDEX IF NOT EXISTS trains_speed ON trains(ABS(speed_px_s / px_per_m));
