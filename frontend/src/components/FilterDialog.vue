@@ -38,7 +38,7 @@ const emit = defineEmits<{
         <v-list-subheader inset>ORDER</v-list-subheader>
         <v-list-item
           title="Longest"
-          @click="emit('updateFilter', { orderBy: 'length_px * px_per_m DESC' }, false)"
+          @click="emit('updateFilter', { orderBy: 'length_px / px_per_m DESC' }, false)"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-arrow-expand-horizontal"></v-icon>
@@ -46,20 +46,20 @@ const emit = defineEmits<{
         </v-list-item>
         <v-list-item
           title="Shortest"
-          @click="emit('updateFilter', { orderBy: 'length_px * px_per_m ASC' }, false)"
+          @click="emit('updateFilter', { orderBy: 'length_px / px_per_m ASC' }, false)"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-arrow-collapse-horizontal"></v-icon> </template
         ></v-list-item>
         <v-list-item
           title="Fastest"
-          @click="emit('updateFilter', { orderBy: 'ABS(speed_px_s * px_per_m) DESC' }, false)"
+          @click="emit('updateFilter', { orderBy: 'ABS(speed_px_s / px_per_m) DESC' }, false)"
         >
           <template v-slot:prepend> <v-icon icon="mdi-speedometer"></v-icon> </template
         ></v-list-item>
         <v-list-item
           title="Slowest"
-          @click="emit('updateFilter', { orderBy: 'ABS(speed_px_s * px_per_m) ASC' }, false)"
+          @click="emit('updateFilter', { orderBy: 'ABS(speed_px_s / px_per_m) ASC' }, false)"
         >
           <template v-slot:prepend> <v-icon icon="mdi-speedometer-slow"></v-icon> </template
         ></v-list-item>
