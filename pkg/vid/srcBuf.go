@@ -5,9 +5,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/rs/zerolog/log"
 )
+
+const queueSize = 200
 
 type frameWithTS struct {
 	frame image.Image
@@ -23,13 +24,16 @@ type SrcBuf struct {
 	err             chan error
 }
 
+// Compile time interface check.
+var _ Src = (*SrcBuf)(nil)
+
 // NewSrcBuf creates a new SrcBuf.
 // Will not close src, caller needs to do that after last frame is read.
 func NewSrcBuf(src Src, maxFailedFrames int) *SrcBuf {
 	ret := SrcBuf{
 		src:             src,
 		maxFailedFrames: maxFailedFrames,
-		queue:           make(chan frameWithTS, 1),
+		queue:           make(chan frameWithTS, queueSize),
 		err:             make(chan error),
 	}
 
@@ -71,7 +75,7 @@ func (s *SrcBuf) run() {
 		failedFrames = 0
 
 		// Create copy.
-		frame = imutil.ToRGBA(frame)
+		frame = imCopy(frame)
 
 		if live {
 			select {
@@ -87,6 +91,7 @@ func (s *SrcBuf) run() {
 
 // GetFrame returns the next frame.
 // As soon as this returns an error once, the instance needs to be discarded.
+// The underlying image buffer will be owned by the caller, src will not reuse or modify it.
 func (s *SrcBuf) GetFrame() (image.Image, *time.Time, error) {
 	f, ok := <-s.queue
 	if ok {
