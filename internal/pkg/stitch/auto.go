@@ -86,7 +86,7 @@ type sequence struct {
 type AutoStitcher struct {
 	c Config
 
-	prevFrameIx int
+	prevFrameIx uint64
 	// Those are all together zero/nil or not.
 	prevFrameTS    time.Time
 	prevFrameColor image.Image
@@ -201,7 +201,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
 
-	log.Trace().Time("ts", ts).Int("frameIx", r.prevFrameIx).Msg("Frame()")
+	log.Trace().Time("ts", ts).Uint64("frameIx", r.prevFrameIx).Msg("Frame()")
 
 	// Convert to gray.
 	frameGray := imutil.ToGray(frameColor)
@@ -234,7 +234,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	maxDx := r.c.maxPxPerFrame(framePeriodS)
 
 	dx, score := findOffset(r.prevFrameGray, frameGray, maxDx)
-	log.Debug().Int("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
+	log.Debug().Uint64("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0
 	if isActive {
