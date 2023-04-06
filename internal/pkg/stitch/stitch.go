@@ -100,14 +100,25 @@ type Train struct {
 	StartTS time.Time
 	EndTS   time.Time
 
-	NFrames   int
-	LengthPx  float64
-	SpeedPxS  float64
+	// Always positive.
+	NFrames int
+
+	// Always positive (absolute value).
+	LengthPx float64
+	// Positive sign means movement to the right, negative to the left.
+	SpeedPxS float64
+	// Positive sign means increasing speed for trains going to the right, breaking for trains going to the left.
 	AccelPxS2 float64
-	Conf      Config
+
+	Conf Config
 
 	Image *image.RGBA `json:"-"`
 	GIF   *gif.GIF    `json:"-"`
+}
+
+// LengthM returns the absolute length in m.
+func (t *Train) LengthM() float64 {
+	return math.Abs(t.LengthPx) / t.Conf.PixelsPerM
 }
 
 // SpeedMpS returns the absolute speed in m/s.

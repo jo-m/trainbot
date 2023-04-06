@@ -21,7 +21,7 @@ func genTestSeq(dx []int) sequence {
 	return seq
 }
 
-func sum(val []int) int {
+func sumAbs(val []int) int {
 	var ret int
 	for _, v := range val {
 		ret += v
@@ -48,7 +48,7 @@ func Test_fitDx_simple(t *testing.T) {
 	assert.Equal(t, truth, res)
 	assert.InDelta(t, 35, v0, 0.1)
 	assert.InDelta(t, 0.015, a, 0.001)
-	assert.InDelta(t, sum(truth), ds, 1)
+	assert.InDelta(t, sumAbs(truth), ds, 1)
 }
 
 func Test_fitDx_difficult(t *testing.T) {
@@ -93,7 +93,7 @@ func Test_fitDx_difficult(t *testing.T) {
 	assert.Equal(t, truth, res)
 	assert.InDelta(t, 33.6, v0, 0.1)
 	assert.InDelta(t, 0.002, a, 0.001)
-	assert.InDelta(t, sum(truth), ds, 1)
+	assert.InDelta(t, sumAbs(truth), ds, 1)
 }
 
 func Test_fitDx_negative(t *testing.T) {
@@ -108,7 +108,7 @@ func Test_fitDx_negative(t *testing.T) {
 	assert.Equal(t, truth, res)
 	assert.InDelta(t, -8.7, v0, 0.01)
 	assert.InDelta(t, -0.09, a, 0.01)
-	assert.InDelta(t, sum(truth), ds, 1)
+	assert.InDelta(t, sumAbs(truth), ds, 1)
 }
 
 func Test_fitDx_rounding(t *testing.T) {

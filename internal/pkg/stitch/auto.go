@@ -22,6 +22,7 @@ const (
 )
 
 // Config is the configuration for a AutoStitcher.
+// All values must be > 0, except for MinSpeedKPH which might also be 0.
 type Config struct {
 	PixelsPerM  float64
 	MinSpeedKPH float64
