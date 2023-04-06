@@ -201,6 +201,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
 
+	log.Trace().Time("ts", ts).Int("frameIx", r.prevFrameIx).Msg("Frame()")
+
 	// Convert to gray.
 	frameGray := imutil.ToGray(frameColor)
 	// Make sure we always save the previous frame.
