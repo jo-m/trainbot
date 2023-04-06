@@ -15,11 +15,10 @@ const theme = useTheme()
         :to="{ name: 'root' }"
         style="text-decoration: none; color: inherit; margin-inline-start: 16px; padding-top: 6px"
       >
-        <v-toolbar-title style="float: left">Trains</v-toolbar-title>
         <img
-          width="36"
+          width="48"
           :src="theme.global.current.value.dark ? logoNightUrl : logoDayUrl"
-          style="margin-left: 10px; margin-top: -4px"
+          style="margin-left: -16px; margin-top: -2px"
         />
       </router-link>
 
