@@ -17,9 +17,11 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 	// logging.MustInit(logging.LogConfig{LogLevel: "debug", LogPretty: true})
 	log.Logger = zerolog.Nop()
 
+	var src vid.Src
 	src, err := vid.NewFileSrc(video, false)
 	require.NoError(t, err)
 	defer src.Close()
+	src = vid.NewSrcBuf(src, 0)
 
 	c := Config{
 		PixelsPerM:  50,

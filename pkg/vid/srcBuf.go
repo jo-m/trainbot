@@ -100,3 +100,19 @@ func (s *SrcBuf) GetFrame() (image.Image, *time.Time, error) {
 
 	return nil, nil, <-s.err
 }
+
+func (s *SrcBuf) GetFPS() float64 {
+	return s.src.GetFPS()
+}
+
+func (s *SrcBuf) IsLive() bool {
+	return s.src.IsLive()
+}
+
+func (s *SrcBuf) Close() error {
+	panic("do not call this, instead close the underlying source yourself")
+}
+
+func (s *SrcBuf) GetFrameRaw() ([]byte, FourCC, *time.Time, error) {
+	panic("not implemented")
+}

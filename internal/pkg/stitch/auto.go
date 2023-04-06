@@ -196,13 +196,12 @@ func (r *AutoStitcher) TryStitchAndReset() *Train {
 }
 
 // Frame adds a frame to the AutoStitcher.
-// Will make a deep copy of the frame.
+// Takes ownership of the image data buffer, so be sure to make a copy before passing it.
 func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
 
-	// Make copies and convert to gray.
-	frameColor = imutil.ToRGBA(frameColor)
+	// Convert to gray.
 	frameGray := imutil.ToGray(frameColor)
 	// Make sure we always save the previous frame.
 	defer func() {
