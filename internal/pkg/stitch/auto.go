@@ -247,7 +247,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		}
 
 		// We have reached the end of a sequence.
-		if r.dxAbsLowPass < r.c.MinSpeedKPH {
+		if r.dxAbsLowPass < float64(minDx) {
 			log.Debug().Float64("dxAbsLowPass", r.dxAbsLowPass).Msg("r.dxAbsLowPass < float64(minDx)")
 			return r.TryStitchAndReset()
 		}
