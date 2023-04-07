@@ -5,7 +5,12 @@ import logoDayUrl from '@/assets/logo-day.svg'
 import logoNightUrl from '@/assets/logo-night.svg'
 import { useTheme } from 'vuetify'
 
+const devMode = import.meta.env.MODE === 'development'
+
 const theme = useTheme()
+function toggleTheme() {
+  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+}
 </script>
 
 <template>
@@ -26,6 +31,10 @@ const theme = useTheme()
 
       <div id="app-bar-teleport"></div>
 
+      <!-- Dark mode toggle - only in development -->
+      <v-btn v-if="devMode" variant="text" icon="mdi-theme-light-dark" @click="toggleTheme"></v-btn>
+
+      <!-- Github link -->
       <v-btn variant="text" icon="mdi-github" href="https://github.com/jo-m/trainbot"></v-btn>
     </v-app-bar>
 
