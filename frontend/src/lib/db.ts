@@ -16,7 +16,10 @@ async function loadSqlJS(): Promise<SqlJs.SqlJsStatic> {
 }
 
 export async function loadDB(): Promise<SqlJs.Database> {
-  const url = import.meta.env.VITE_DB_URL
+  // Add timestamp to query string so this never gets cached.
+  const url = new URL(import.meta.env.VITE_DB_URL, document.location.toString())
+  url.searchParams.append('ts', new Date().getTime().toString())
+
   const dbFile = await fetch(url)
   const dbBuf = await dbFile.arrayBuffer()
   return new (await loadSqlJS()).Database(new Uint8Array(dbBuf))
