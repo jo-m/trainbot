@@ -106,7 +106,7 @@ while true; do
 ./trainbot-arm64 --log-pretty --log-level=info \
    --input picam3 \
    --camera-format-fourcc=MJPG \
-   -X 1200 -Y 930 -W 206 -H 320 \
+   -X 1200 -Y 920 -W 206 -H 290 \
    --px-per-m=42
 done
 ```
