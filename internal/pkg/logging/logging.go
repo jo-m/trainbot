@@ -29,5 +29,5 @@ func MustInit(config LogConfig) {
 	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000Z07:00"
 	zerolog.TimestampFunc = func() time.Time { return time.Now() }
 
-	log.Logger = log.Logger.Level(level).With().Timestamp().Caller().Logger()
+	log.Logger = log.Logger.Level(level).With().Caller().Logger()
 }
