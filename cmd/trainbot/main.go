@@ -202,19 +202,21 @@ func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train,
 			log.Err(err).Send()
 			continue
 		}
-		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
+		log.Debug().Str("imgFileName", imgFileName).Msg("wrote JPEG")
 
+		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
 		err = imutil.DumpGIF(filepath.Join(blobsDir, gifFileName), train.GIF)
 		if err != nil {
 			log.Err(err).Send()
 			continue
 		}
+		log.Debug().Str("gifFileName", gifFileName).Msg("wrote GIF")
 
 		id, err := db.Insert(dbx, *train, imgFileName, gifFileName)
 		if err != nil {
 			log.Err(err).Send()
 		}
-		log.Debug().Int64("id", id).Msg("added train to db")
+		log.Info().Int64("id", id).Msg("added train to db")
 	}
 }
 
@@ -231,7 +233,7 @@ func uploadOnce(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
 	if err != nil {
 		log.Err(err).Msg("uploading all failed")
 	} else {
-		log.Info().Int("n", n).Msg("uploaded files")
+		log.Debug().Int("n", n).Msg("uploaded files")
 	}
 }
 
