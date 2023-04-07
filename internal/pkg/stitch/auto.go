@@ -242,11 +242,13 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 		// Bail out before we use too much memory.
 		if len(r.seq.dx) > maxSeqLen {
+			log.Debug().Msg("len(r.seq.dx) > maxSeqLen")
 			return r.TryStitchAndReset()
 		}
 
 		// We have reached the end of a sequence.
 		if r.dxAbsLowPass < r.c.MinSpeedKPH {
+			log.Debug().Float64("dxAbsLowPass", r.dxAbsLowPass).Msg("r.dxAbsLowPass < float64(minDx)")
 			return r.TryStitchAndReset()
 		}
 
