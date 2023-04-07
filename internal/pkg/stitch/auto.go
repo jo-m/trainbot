@@ -13,7 +13,7 @@ import (
 
 const (
 	goodScoreNoMove   = 0.99
-	goodScoreMove     = 0.95
+	goodScoreMove     = 0.925
 	maxSeqLen         = 1000
 	minFramePeriodS   = 0.01
 	dxLowPassFactor   = 0.9
