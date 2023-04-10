@@ -54,9 +54,9 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 	require.NotNil(t, train)
 
 	// Speed/accel estimation.
-	assert.InDelta(t, speed, train.SpeedMpS(), 0.1)
-	assert.InDelta(t, accel, train.AccelMpS2(), 0.1)
-	assert.True(t, train.Direction() == direction)
+	assert.InDelta(t, speed, train.SpeedMpS(), 0.1, video+": speed does not match")
+	assert.InDelta(t, accel, train.AccelMpS2(), 0.1, video+": acceleration does not match")
+	assert.True(t, train.Direction() == direction, video+": direction does not match")
 
 	// imutil.Dump("truth-"+path.Base(truthImg), train.Image)
 
