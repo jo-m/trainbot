@@ -82,6 +82,7 @@ func NewPiCam3Src(c PiCam3Config) (*PiCam3Src, error) {
 	sy := float64(sensorH)
 	roi := fmt.Sprintf("%f,%f,%f,%f", float64(c.Rect.Min.X)/sx, float64(c.Rect.Min.Y)/sy, float64(c.Rect.Dx())/sx, float64(c.Rect.Dy())/sy)
 
+	// https://www.raspberrypi.com/documentation/computers/camera_software.html#introduction
 	args := []string{
 		"--verbose=1",
 		"--timeout=0",
