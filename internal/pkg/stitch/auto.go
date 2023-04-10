@@ -1,7 +1,6 @@
 package stitch
 
 import (
-	"fmt"
 	"image"
 	"math"
 	"time"
@@ -115,8 +114,8 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	// Centered crop from prev frame,
 	// width is 3x max pixels per frame given by max velocity
 	w := maxDx * 3
-	if w > prev.Rect.Dx() {
-		panic(fmt.Sprintf("image is not wide enough to resolve the given max speed (%d > %d)", w, prev.Rect.Dx()))
+	if prev.Rect.Dx() < w {
+		panic("frame width is too small")
 	}
 	// and height 3/4 of frame.
 	h := int(float64(prev.Rect.Dy())*3/4 + 1)
@@ -222,12 +221,6 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	avg, avgDev := avg.GrayOpt(frameGray)
-	if avg < minContrastAvg || avgDev < minContrastAvgDev {
-		log.Trace().Float64("avgDev", avgDev).Float64("avg", avg).Msg("contrast too low, discarding")
-		return nil
-	}
-
 	// Compute fps and min/max allowed pixel difference.
 	framePeriodS := ts.Sub(r.prevFrameTS).Seconds()
 	if framePeriodS < minFramePeriodS {
@@ -236,6 +229,18 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	}
 	minDx := r.c.minPxPerFrame(framePeriodS)
 	maxDx := r.c.maxPxPerFrame(framePeriodS)
+
+	// Sanity check.
+	if frameGray.Rect.Dx() < maxDx*3 {
+		log.Error().Int("dx", frameGray.Rect.Dx()).Int("maxDx*3", maxDx*3).Float64("framePeriodS", framePeriodS).Msg("image is not wide enough to resolve the given max speed")
+	}
+
+	// Check for minimal contrast and brightness.
+	avg, avgDev := avg.GrayOpt(frameGray)
+	if avg < minContrastAvg || avgDev < minContrastAvgDev {
+		log.Trace().Float64("avgDev", avgDev).Float64("avg", avg).Msg("contrast too low, discarding")
+		return nil
+	}
 
 	dx, score := findOffset(r.prevFrameGray, frameGray, maxDx)
 	log.Debug().Uint64("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
