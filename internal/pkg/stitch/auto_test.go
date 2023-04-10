@@ -67,8 +67,8 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 }
 
 func Test_AutoStitcher_1(t *testing.T) {
-	runTest(t, "testdata/day.mp4", "testdata/day.jpg", 21.53, -0.6, false)
-	runTest(t, "testdata/night.mp4", "testdata/night.jpg", 22.6, -0.5, true)
-	runTest(t, "testdata/rain.mp4", "testdata/rain.jpg", 17.5, 0, true)
+	runTest(t, "testdata/day.mp4", "testdata/day.jpg", 21.53, 0.27, false)
+	runTest(t, "testdata/night.mp4", "testdata/night.jpg", 22.7, -0.5, true)
+	runTest(t, "testdata/rain.mp4", "testdata/rain.jpg", 17.9, 0, true)
 	runTest(t, "testdata/snow.mp4", "testdata/snow.jpg", 20.5, -0.75, true)
 }

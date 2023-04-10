@@ -9,20 +9,19 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const modelNParams = 3
+const modelNParams = 2
 
-// model computes current distance at given time t, assuming constant acceleration.
+// model computes velocity at a given time, assuming constant acceleration.
 func model(t float64, params []float64) float64 {
-	s0 := params[0]
-	v0 := params[1]
-	a := params[2]
-	return s0 + v0*t + 0.5*a*t*t
+	v0 := params[0]
+	a := params[1]
+	return v0 + a*t
 }
 
 // Returns fitted dx values. Length will always be the same as the input.
 // Does not modify seq.
 // Also returns estimated length [px], v0 [px/s] and acceleration [px/s^2].
-func fitDx(seq sequence) ([]int, float64, float64, float64, error) {
+func fitDx(seq sequence, maxSpeedPxS float64) ([]int, float64, float64, float64, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
 
@@ -31,44 +30,57 @@ func fitDx(seq sequence) ([]int, float64, float64, float64, error) {
 		return nil, 0, 0, 0, errors.New("sequence length too short")
 	}
 
-	// For fitting, we want 1. time [s] and total distance [px],
-	// both as float. The first entries for both remain 0.
+	// Prepare data for fitting.
 	n := len(seq.dx)
-	t := make([]float64, n+1)
-	x := make([]float64, n+1)
-	dxSum := 0
+	dt := make([]float64, n) // Time since last data point [s].
+	t := make([]float64, n)  // Time since start [s].
+	v := make([]float64, n)  // Current velocity [px/s].
 	for i := range seq.dx {
-		t[i+1] = seq.ts[i].Sub(*seq.startTS).Seconds()
-		dxSum += seq.dx[i]
-		x[i+1] = float64(dxSum)
+		if i == 0 {
+			dt[i] = seq.ts[i].Sub(*seq.startTS).Seconds()
+		} else {
+			dt[i] = seq.ts[i].Sub(seq.ts[i-1]).Seconds()
+		}
+		t[i] = seq.ts[i].Sub(*seq.startTS).Seconds()
+		v[i] = float64(seq.dx[i]) / dt[i]
 	}
 
-	// Fit model.
+	// Fit.
 	params := ransac.MetaParams{
 		MinModelPoints:  modelNParams + 1,
 		MaxIter:         25,
-		MinInliers:      len(x) / 2,
-		InlierThreshold: 25., // TODO: should depend on pixel density
+		MinInliers:      len(v) / 2,
+		InlierThreshold: maxSpeedPxS * 0.05, // 5% of max speed. TODO: maybe make it min(maxSpeedPxS, max(seq.dx/dt)).
 		Seed:            0,
 	}
-	fit, err := ransac.Ransac(t, x, model, modelNParams, params)
+	log.Debug().Floats64("t", t).Floats64("v", v).Ints("dx", seq.dx).Interface("params", params).Msg("RANSAC")
+	fit, err := ransac.Ransac(t, v, model, modelNParams, params)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 
-	// Generate dx from fit, optimized for accumulated rounding error.
+	// Generate dx from fit.
 	dxFit := make([]int, n)
-	xSum := int(math.Round(model(0, fit.X)))
+	var roundErr float64 // Sum of values we have rounded away.
 	for i := range seq.dx {
-		x := math.Round(model(t[i+1], fit.X))
-		dxFit[i] = int(x) - xSum
-		xSum += dxFit[i]
+		dxF := model(t[i], fit.X) * dt[i]
+		dxRound := math.Round(dxF)
+		roundErr += dxF - dxRound
+
+		if math.Abs(roundErr) >= 0.5 {
+			dxRound += roundErr
+			roundErr -= sign(roundErr)
+		}
+
+		dxFit[i] = int(dxRound)
 	}
 
-	a := fit.X[2]
-	v0 := fit.X[1] + a*t[1] // Adjusted to first sample.
-	ds := (model(t[len(t)-1], fit.X) - model(0, fit.X))
-	if v0 < 0 {
+	log.Debug().Floats64("fit", fit.X).Ints("dxFit", dxFit).Float64("roundErr", roundErr).Msg("RANSAC results")
+
+	v0 := fit.X[0]
+	a := fit.X[1]
+	ds := v0*t[len(t)-1] + 0.5*a*t[len(t)-1]*t[len(t)-1]
+	if ds < 0 {
 		ds = -ds
 	}
 	return dxFit, ds, v0, a, nil

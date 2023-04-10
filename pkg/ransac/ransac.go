@@ -134,7 +134,6 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 			}
 		}
 		if len(xIn) < p.MinInliers {
-			log.Trace().Int("inliers", len(xIn)).Int("minInliers", p.MinInliers).Msg("not enough inliers")
 			continue
 		}
 

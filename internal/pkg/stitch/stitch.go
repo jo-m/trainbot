@@ -210,7 +210,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
 
-	dxFit, ds, v0, a, err := fitDx(seq)
+	dxFit, ds, v0, a, err := fitDx(seq, float64(c.maxPxPerFrame(1)))
 	if err != nil {
 		return nil, fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
