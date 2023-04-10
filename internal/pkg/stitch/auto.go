@@ -1,6 +1,7 @@
 package stitch
 
 import (
+	"fmt"
 	"image"
 	"math"
 	"time"
@@ -114,6 +115,9 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	// Centered crop from prev frame,
 	// width is 3x max pixels per frame given by max velocity
 	w := maxDx * 3
+	if w > prev.Rect.Dx() {
+		panic(fmt.Sprintf("image is not wide enough to resolve the given max speed (%d > %d)", w, prev.Rect.Dx()))
+	}
 	// and height 3/4 of frame.
 	h := int(float64(prev.Rect.Dy())*3/4 + 1)
 	subRect := image.Rect(0, 0, w, h).
