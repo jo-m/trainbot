@@ -5,16 +5,16 @@ import { createVuetify, type ThemeDefinition } from 'vuetify'
 const light: ThemeDefinition = {
   dark: false,
   colors: {
-    primary: '#1867C0',
-    secondary: '#5CBBF6'
+    primary: '#3949AB',
+    secondary: '#F44336'
   }
 }
 
 const dark: ThemeDefinition = {
   dark: true,
   colors: {
-    primary: '#212121',
-    secondary: '#F4511E'
+    primary: '#223147',
+    secondary: '#E53935'
   }
 }
 

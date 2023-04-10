@@ -29,8 +29,9 @@ const { mdAndUp } = useDisplay()
           density="comfortable"
           label
           :prepend-icon="train.speed_px_s > 0 ? 'mdi-arrow-right-bold' : 'mdi-arrow-left-bold'"
-          >{{ Math.abs(Math.round((train.speed_px_s / train.px_per_m) * 3.6)) }} km/h</v-chip
         >
+          {{ Math.abs(Math.round((train.speed_px_s / train.px_per_m) * 3.6)) }} km/h
+        </v-chip>
         &nbsp;
         <v-chip density="comfortable" label
           >{{ Math.round(train.length_px / train.px_per_m) }} m</v-chip
@@ -51,6 +52,9 @@ const { mdAndUp } = useDisplay()
 </template>
 
 <style scoped>
+div.v-sheet {
+  background-color: inherit;
+}
 div.train-preview {
   background-color: #eee;
   height: 4em;

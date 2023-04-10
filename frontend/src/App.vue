@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import logoDayUrl from '@/assets/logo-day.svg'
 import logoNightUrl from '@/assets/logo-night.svg'
 import { useTheme } from 'vuetify'
-
-const devMode = import.meta.env.MODE === 'development'
+import browserInDarkMode from '@/lib/darkMode'
 
 const theme = useTheme()
-function toggleTheme() {
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
-}
+theme.global.name.value = browserInDarkMode.value ? 'dark' : 'light'
+watch(browserInDarkMode, (val) => {
+  theme.global.name.value = val ? 'dark' : 'light'
+})
 </script>
 
 <template>
@@ -30,9 +30,6 @@ function toggleTheme() {
       <v-spacer></v-spacer>
 
       <div id="app-bar-teleport"></div>
-
-      <!-- Dark mode toggle - only in development -->
-      <v-btn v-if="devMode" variant="text" icon="mdi-theme-light-dark" @click="toggleTheme"></v-btn>
 
       <!-- Github link -->
       <v-btn variant="text" icon="mdi-github" href="https://github.com/jo-m/trainbot"></v-btn>

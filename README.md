@@ -167,7 +167,8 @@ All database access happens in the browser via sql.js.
 - [x] Improve train detail view
 - [x] Store filter state in URL
 - [x] Show "showing X of Y" counter somewhere
-- [ ] Color theming, auto dark mode (also change favicon)
+- [x] Auto dark mode
+- [x] Nicer dark mode colors
 - [x] Logo/Favicon
 - [ ] Set up aggressive caching on web server
 - [ ] Create some screenshots
