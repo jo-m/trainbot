@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TrainList from '@/components/TrainList.vue'
-import FilterDialog from '@/components/FilterDialog.vue'
+import FilterDialog, { type updateFilterArgs } from '@/components/FilterDialog.vue'
 import StaleDataWarning from '@/components/StaleDataWarning.vue'
 import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { dbKey, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
@@ -22,11 +22,13 @@ const allDataLoaded = ref<boolean>(false)
 const filter = useQueryParam<Filter>('filter', {})
 
 const scroller = ref<HTMLDivElement | null>(null)
-
 const showFilterDialog = ref<boolean>(false)
+const filterSnackbarShow = ref<boolean>(true)
 
-function updateFilter(newFilter: Filter, reset: boolean = false) {
-  if (reset) {
+function updateFilter(args: updateFilterArgs) {
+  const { newFilter, replace } = args
+
+  if (replace) {
     filter.value = newFilter
   } else {
     const copy = filter.value !== undefined ? JSON.parse(JSON.stringify(filter.value)) : {}
@@ -55,8 +57,6 @@ watch(filter, () => {
   loadNextData()
 })
 
-const filterSnackbarShow = ref<boolean>(false)
-
 function loadNextData() {
   if (allDataLoaded.value) return
 
@@ -73,7 +73,6 @@ function loadNextData() {
   }
   filteredCount.value = result.filteredCount
   totalCount.value = result.totalCount
-  filterSnackbarShow.value = true
 }
 
 function handleScroll() {
@@ -85,6 +84,10 @@ function handleScroll() {
     loadNextData()
   }
 }
+
+watch(filteredCount, () => {
+  filterSnackbarShow.value = true
+})
 
 onMounted(async () => {
   loadNextData()

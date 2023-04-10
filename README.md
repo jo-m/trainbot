@@ -170,7 +170,7 @@ All database access happens in the browser via sql.js.
 - [x] Auto dark mode
 - [x] Nicer dark mode colors
 - [x] Logo/Favicon
-- [ ] Set up aggressive caching on web server
+- [x] Set up aggressive caching on web server
 - [ ] Create some screenshots
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Delete old data after upload

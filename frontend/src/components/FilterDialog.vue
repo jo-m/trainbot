@@ -1,3 +1,10 @@
+<script lang="ts">
+export interface updateFilterArgs {
+  newFilter: Filter
+  replace: boolean
+}
+</script>
+
 <script setup lang="ts">
 import type { Filter } from '@/lib/db'
 import { DateTime } from 'luxon'
@@ -7,9 +14,13 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'updateFilter', newFilter: Filter, replace: boolean): void
+  (e: 'updateFilter', args: updateFilterArgs): void
   (e: 'close'): void
 }>()
+
+function emitUpdate(newFilter: Filter, replace: boolean = false) {
+  emit('updateFilter', { newFilter, replace })
+}
 </script>
 
 <template>
@@ -28,17 +39,15 @@ const emit = defineEmits<{
       </v-toolbar>
 
       <v-list>
-        <v-list-item
-          title="Reset (show all, most recent first)"
-          @click="emit('updateFilter', {}, true)"
-          ><template v-slot:prepend> <v-icon icon="mdi-arrow-u-left-top"></v-icon> </template
+        <v-list-item title="Reset (show all, most recent first)" @click="emitUpdate({}, true)">
+          <template v-slot:prepend> <v-icon icon="mdi-arrow-u-left-top"></v-icon> </template
         ></v-list-item>
         <v-divider></v-divider>
 
         <v-list-subheader inset>ORDER</v-list-subheader>
         <v-list-item
           title="Longest"
-          @click="emit('updateFilter', { orderBy: 'length_px / px_per_m DESC' }, false)"
+          @click="emitUpdate({ orderBy: 'length_px / px_per_m DESC' }, false)"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-arrow-expand-horizontal"></v-icon>
@@ -46,20 +55,20 @@ const emit = defineEmits<{
         </v-list-item>
         <v-list-item
           title="Shortest"
-          @click="emit('updateFilter', { orderBy: 'length_px / px_per_m ASC' }, false)"
+          @click="emitUpdate({ orderBy: 'length_px / px_per_m ASC' }, false)"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-arrow-collapse-horizontal"></v-icon> </template
         ></v-list-item>
         <v-list-item
           title="Fastest"
-          @click="emit('updateFilter', { orderBy: 'ABS(speed_px_s / px_per_m) DESC' }, false)"
+          @click="emitUpdate({ orderBy: 'ABS(speed_px_s / px_per_m) DESC' }, false)"
         >
           <template v-slot:prepend> <v-icon icon="mdi-speedometer"></v-icon> </template
         ></v-list-item>
         <v-list-item
           title="Slowest"
-          @click="emit('updateFilter', { orderBy: 'ABS(speed_px_s / px_per_m) ASC' }, false)"
+          @click="emitUpdate({ orderBy: 'ABS(speed_px_s / px_per_m) ASC' }, false)"
         >
           <template v-slot:prepend> <v-icon icon="mdi-speedometer-slow"></v-icon> </template
         ></v-list-item>
@@ -69,8 +78,7 @@ const emit = defineEmits<{
         <v-list-item
           title="Today"
           @click="
-            emit(
-              'updateFilter',
+            emitUpdate(
               {
                 where: { start_ts: `DATE(start_ts) = DATE('${DateTime.now().toSQLDate()}')` }
               },
@@ -82,8 +90,7 @@ const emit = defineEmits<{
         <v-list-item
           title="Yesterday"
           @click="
-            emit(
-              'updateFilter',
+            emitUpdate(
               {
                 where: {
                   start_ts: `DATE(start_ts) = DATE('${DateTime.now()
@@ -99,8 +106,7 @@ const emit = defineEmits<{
         <v-list-item
           title="Right"
           @click="
-            emit(
-              'updateFilter',
+            emitUpdate(
               {
                 where: {
                   dir: `speed_px_s > 0`
@@ -114,8 +120,7 @@ const emit = defineEmits<{
         <v-list-item
           title="Left"
           @click="
-            emit(
-              'updateFilter',
+            emitUpdate(
               {
                 where: {
                   dir: `speed_px_s < 0`
