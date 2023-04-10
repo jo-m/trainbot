@@ -131,7 +131,12 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 		MaxSpeedKPH: c.MaxSpeedKPH,
 		MinLengthM:  c.MinLengthM,
 	})
-	defer stitcher.TryStitchAndReset()
+	defer func() {
+		train := stitcher.TryStitchAndReset()
+		if train != nil {
+			trainsOut <- train
+		}
+	}()
 
 	for i := uint64(0); ; i++ {
 		frame, ts, err := srcBuf.GetFrame()

@@ -47,6 +47,10 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 		}
 	}
 
+	if t := auto.TryStitchAndReset(); t != nil {
+		train = t
+	}
+
 	require.NotNil(t, train)
 
 	// Speed/accel estimation.
