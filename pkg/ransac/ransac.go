@@ -89,6 +89,10 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 	}
 	p.Check(len(x))
 
+	// Plot(
+	// 	"~/Desktop/data.png",
+	// 	x, y, nil, nil, "x", "y = f(x)")
+
 	src := rand.NewSource(p.Seed)
 	// #nosec G404
 	rnd := rand.New(src)
@@ -118,7 +122,7 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 
 		// Plot(
 		// 	fmt.Sprintf("~/Desktop/fit_sample_%03d_%f.png", i, hypoParams.F),
-		// 	xS, yS, hypoParams.X, model, "f(x) = a + b*x*x")
+		// 	xS, yS, hypoParams.X, model, "x", "y = f(x)")
 
 		// Select inliers.
 		xIn, yIn := []float64{}, []float64{}
@@ -130,6 +134,7 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 			}
 		}
 		if len(xIn) < p.MinInliers {
+			log.Trace().Int("inliers", len(xIn)).Int("minInliers", p.MinInliers).Msg("not enough inliers")
 			continue
 		}
 
@@ -148,11 +153,9 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 			continue
 		}
 
-		// TODO: require from input distribution of inliers that they are somewhat linearly distributed
-
 		// Plot(
 		// 	fmt.Sprintf("~/Desktop/fit_inliers_%03d_%f.png", i, hypoParams.F),
-		// 	xIn, yIn, hypoParams.X, model, "f(x) = a + b*x*x")
+		// 	xIn, yIn, hypoParams.X, model, "x", "y = f(x)")
 
 		if hypoParams.F < bestFit.F {
 			bestFit = hypoParams.Location
@@ -163,29 +166,37 @@ func Ransac(x, y []float64, model ModelFn, nParams int, p MetaParams) (*optimize
 		return nil, errors.New("RANSAC unsuccessful")
 	}
 
+	// Plot(
+	// 	"~/Desktop/endresult.png",
+	// 	x, y, bestFit.X, model, "x", "y = f(x)")
+
 	return &bestFit, nil
 }
 
 // Plot is a helper to plot the results of a RANSAC iteration.
-func Plot(path string, x, y []float64, ps []float64, fn ModelFn, labelX string) {
+func Plot(path string, x, y []float64, ps []float64, fn ModelFn, labelX, labelY string) {
 	p := hplot.New()
+
 	p.X.Label.Text = labelX
-	p.Y.Label.Text = "y-data"
-	p.X.Min = -10
+	p.X.Min = -0
 	p.X.Max = +10
+
+	p.Y.Label.Text = labelY
 	p.Y.Min = 0
-	p.Y.Max = 220
+	p.Y.Max = 1200
 
 	s := hplot.NewS2D(hplot.ZipXY(x, y))
 	s.Color = color.RGBA{0, 0, 255, 255}
 	p.Add(s)
 
-	f := plotter.NewFunction(func(x float64) float64 {
-		return fn(x, ps)
-	})
-	f.Color = color.RGBA{255, 0, 0, 255}
-	f.Samples = 1000
-	p.Add(f)
+	if fn != nil {
+		f := plotter.NewFunction(func(x float64) float64 {
+			return fn(x, ps)
+		})
+		f.Color = color.RGBA{255, 0, 0, 255}
+		f.Samples = 1000
+		p.Add(f)
+	}
 
 	p.Add(plotter.NewGrid())
 
