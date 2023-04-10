@@ -17,7 +17,7 @@ const (
 	goodScoreMove     = 0.925
 	maxSeqLen         = 1000
 	minFramePeriodS   = 0.01
-	dxLowPassFactor   = 0.9
+	dxLowPassFactor   = 0.95
 	minContrastAvg    = 0.005
 	minContrastAvgDev = 0.01
 )
