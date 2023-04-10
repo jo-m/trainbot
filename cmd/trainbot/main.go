@@ -39,13 +39,15 @@ type config struct {
 
 	PixelsPerM  float64 `arg:"--px-per-m" default:"45" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)"`
 	MinSpeedKPH float64 `arg:"--min-speed-kph" default:"25" help:"Assumed train min speed, km/h"`
-	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"150" help:"Assumed train max speed, km/h"`
+	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"160" help:"Assumed train max speed, km/h"`
 	MinLengthM  float64 `arg:"--min-len-m" default:"5" help:"Minimum length of trains"`
 
 	DataDir string `arg:"--data-dir" help:"Directory to store output data" default:"data"`
 
 	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
+
+	EnableUpload bool `arg:"--enable-upload" help:"Enable uploading of data."`
 
 	upload.FTPConfig
 }
@@ -289,7 +291,9 @@ func main() {
 	done := sync.WaitGroup{}
 	done.Add(1)
 	go processTrains(blobsDir, dbx, trains, &done)
-	go uploadForever(blobsDir, c.DataDir, dbx, c.FTPConfig)
+	if c.EnableUpload {
+		go uploadForever(blobsDir, c.DataDir, dbx, c.FTPConfig)
+	}
 
 	detectTrainsForever(c, trains)
 

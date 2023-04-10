@@ -84,6 +84,23 @@ DATE=$(date +'%F_%H-%M-%S'); libcamera-vid -o $DATE.h264 --save-pts $DATE.txt --
 libcamera-vid -t 0 --inline --nopreview --width 4608 --height 2592 --rotation 180 --codec mjpeg --framerate 5 --listen -o tcp://0.0.0.0:8080 --autofocus-mode=manual --lens-position=0 --roi 0.25,0.5,0.5,0.5
 # on localhost
 ffplay http://pi4:8080/video.mjpeg
+
+# manually record video for test cases
+libcamera-vid \
+   --verbose=1 \
+   --timeout=0 \
+   --inline \
+   --nopreview \
+   --width 350 \
+   --height 290 \
+   --roi 0.488715,0.709877,0.151910,0.223765 \
+   --mode=2304:1296:12:P \
+   --framerate 30 \
+   --autofocus-mode=manual --lens-position=0.000000 \
+   --rotation=180 \
+   -o vid.h264 --save-pts vidtimestamps.txt
+
+mkvmerge -o test.mkv --timecodes 0:vid-timestamps.txt vid.h264
 ```
 
 ## Deployment
@@ -102,12 +119,13 @@ The current production deployment is in a Tmux session...
 ```bash
 source ./env
 
-while true; do
+while true; do \
 ./trainbot-arm64 --log-pretty --log-level=info \
    --input picam3 \
    --camera-format-fourcc=MJPG \
-   -X 1200 -Y 920 -W 206 -H 290 \
-   --px-per-m=42
+   -X 1126 -Y 920 -W 350 -H 290 \
+   --px-per-m=42 \
+   --enable-upload; \
 done
 ```
 
