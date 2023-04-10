@@ -4,6 +4,7 @@ package upload
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -68,13 +69,17 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.ImgPath), serverBlobPath(toUpload.ImgPath), false)
 		if err != nil {
 			log.Err(err).Send()
-			return 0, err
+			if !errors.Is(err, os.ErrNotExist) {
+				return 0, err
+			}
 		}
 
 		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.GIFPath), serverBlobPath(toUpload.GIFPath), false)
 		if err != nil {
 			log.Err(err).Send()
-			return 0, err
+			if !errors.Is(err, os.ErrNotExist) {
+				return 0, err
+			}
 		}
 
 		err = db.SetUploaded(dbx, toUpload.ID)
