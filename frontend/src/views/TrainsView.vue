@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TrainList from '@/components/TrainList.vue'
+import TrainGrid from '@/components/TrainGrid.vue'
 import FilterDialog, { type updateFilterArgs } from '@/components/FilterDialog.vue'
 import StaleDataWarning from '@/components/StaleDataWarning.vue'
 import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
@@ -9,8 +10,11 @@ import type SqlJs from 'sql.js'
 
 const db = inject(dbKey) as SqlJs.Database
 
+const tileView = useQueryParam<boolean>('tiles', false)
+// const tileView = ref<boolean>(false)
+
 // How many trains to load at a time.
-const pageSize = 20
+const pageSize = 24
 // Currently loaded data.
 const trains = ref<TrainType[] | null>(null)
 const filteredCount = ref<number | null>(null)
@@ -107,6 +111,12 @@ onUnmounted(() => {
 
     <v-btn
       variant="text"
+      :icon="tileView ? 'mdi-view-list' : 'mdi-view-grid'"
+      @click="tileView = !tileView"
+    ></v-btn>
+
+    <v-btn
+      variant="text"
       icon="mdi-filter"
       @click="showFilterDialog = true"
       :active="Object.keys(filter).length > 0"
@@ -114,9 +124,12 @@ onUnmounted(() => {
   </Teleport>
 
   <!-- List -->
-  <div ref="scroller" v-if="trains !== null">
-    <TrainList :trains="trains" :allDataLoaded="allDataLoaded" />
-  </div>
+  <template v-if="trains !== null">
+    <div ref="scroller">
+      <TrainList v-if="!tileView" :trains="trains" :allDataLoaded="allDataLoaded" />
+      <TrainGrid v-else :trains="trains" :allDataLoaded="allDataLoaded" />
+    </div>
+  </template>
 
   <!-- Filter -->
   <FilterDialog

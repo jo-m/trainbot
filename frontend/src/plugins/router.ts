@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import TrainsListView from '@/views/TrainsListView.vue'
+import TrainsView from '@/views/TrainsView.vue'
 import TrainDetailView from '@/views/TrainDetailView.vue'
 import TrainsDBProvider from '@/views/TrainsDBProvider.vue'
 import NotFound from '@/views/NotFound.vue'
@@ -20,7 +20,7 @@ const router = createRouter({
         {
           path: 'list',
           name: 'trainsList',
-          component: TrainsListView
+          component: TrainsView
         },
         {
           path: ':id',
