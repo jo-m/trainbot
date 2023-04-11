@@ -26,7 +26,7 @@ export default function useQueryParam<T>(name: string, default_: T): WritableCom
       return parseQueryParam<T>(route.query[name], default_)
     },
     set(newValue) {
-      router.push({ query: { filter: encodeQueryParam(newValue) } })
+      router.push({ query: { [name]: encodeQueryParam(newValue) } })
     }
   })
 
