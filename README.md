@@ -170,7 +170,6 @@ All database access happens in the browser via sql.js.
 - [x] Auto dark mode
 - [x] Nicer dark mode colors
 - [x] Logo/Favicon
-- [ ] Fix infinity scrolling on big screens
 - [ ] Loading animation for images
 - [ ] Set up aggressive caching on web server
 - [ ] Add favorites option

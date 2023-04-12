@@ -11,10 +11,9 @@ import type SqlJs from 'sql.js'
 const db = inject(dbKey) as SqlJs.Database
 
 const tileView = useQueryParam<boolean>('tiles', false)
-// const tileView = ref<boolean>(false)
 
 // How many trains to load at a time.
-const pageSize = 24
+const pageSize = 60
 // Currently loaded data.
 const trains = ref<TrainType[] | null>(null)
 const filteredCount = ref<number | null>(null)
