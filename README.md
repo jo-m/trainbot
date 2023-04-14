@@ -171,17 +171,12 @@ All database access happens in the browser via sql.js.
 - [x] Auto dark mode
 - [x] Nicer dark mode colors
 - [x] Logo/Favicon
-- [ ] Loading animation for images
-- [ ] Set up aggressive caching on web server
+- [x] Delete data after upload
+- [x] Clean up frontend db/blob path handling
 - [ ] Add favorites option
-- [ ] Correct for changing exposure
+- [ ] Correct for changing exposure, improve stitching seams
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
 - [ ] Create some screenshots
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
-- [ ] Delete data after upload
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
-- [ ] Improve stiching seams
-- [ ] ~~Maybe add audio~~
-- [ ] ~~Maybe make RaspiCam3 sensor mode configurable, and add support for detection~~
-- [ ] ~~Maybe move patchmatch to separate repo~~
