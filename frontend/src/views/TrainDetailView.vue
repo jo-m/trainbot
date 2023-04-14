@@ -5,6 +5,7 @@ import { getBlobURL } from '@/lib/paths'
 import type SqlJs from 'sql.js'
 import { useRouter, useRoute } from 'vue-router'
 import RelativeTime from '@/components/RelativeTime.vue'
+import FavoriteIcon from '@/components/FavoriteIcon.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -20,7 +21,7 @@ if (train === undefined) {
 <template>
   <v-card v-if="train !== undefined">
     <v-card-item>
-      <v-card-title>Train #{{ train.id }}</v-card-title>
+      <v-card-title>Train #{{ train.id }} <FavoriteIcon :id="train.id" /></v-card-title>
     </v-card-item>
 
     <v-card-text>

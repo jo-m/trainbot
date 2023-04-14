@@ -15,6 +15,8 @@
     "@mdi/font": "^7.2.96",
     "@types/sql.js": "^1.4.4",
     "luxon": "^3.3.0",
+    "pinia": "^2.0.34",
+    "pinia-plugin-persistedstate": "^3.1.0",
     "sql.js": "^1.8.0",
     "vite-plugin-vuetify": "^1.0.2",
     "vue": "^3.2.47",

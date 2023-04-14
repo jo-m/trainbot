@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import TrainsView from '@/views/TrainsView.vue'
+import FavoritesView from '@/views/FavoritesView.vue'
 import TrainDetailView from '@/views/TrainDetailView.vue'
 import TrainsDBProvider from '@/views/TrainsDBProvider.vue'
 import NotFound from '@/views/NotFound.vue'
@@ -21,6 +22,11 @@ const router = createRouter({
           path: 'list',
           name: 'trainsList',
           component: TrainsView
+        },
+        {
+          path: 'favs',
+          name: 'trainFavs',
+          component: FavoritesView
         },
         {
           path: ':id',

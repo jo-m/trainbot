@@ -4,6 +4,10 @@ import { getBlobURL } from '@/lib/paths'
 import { DateTime } from 'luxon'
 import { useDisplay } from 'vuetify'
 import RelativeTime from '@/components/RelativeTime.vue'
+import FavoriteIcon from '@/components/FavoriteIcon.vue'
+import useFavoritesStore from '@/lib/favorites'
+
+const favs = useFavoritesStore()
 
 defineProps<{
   train: Train
@@ -15,8 +19,10 @@ const { mdAndUp } = useDisplay()
 <template>
   <v-row class="pa-0" no-gutters align="center">
     <v-col cols="5" sm="3" md="2" lg="2">
-      <v-sheet class="pa-2">
+      <v-sheet class="pa-2" @click.prevent.stop="favs.toggle(train.id)">
+        <FavoriteIcon :id="train.id" />
         <RelativeTime :ts="train.start_ts" />
+
         <div class="text-caption" v-if="mdAndUp">
           {{ train.start_ts.toLocaleString(DateTime.DATETIME_SHORT) }}
         </div>

@@ -108,6 +108,8 @@ onUnmounted(() => {
   <Teleport to="#app-bar-teleport">
     <StaleDataWarning />
 
+    <v-btn variant="text" icon="mdi-star" :to="{ name: 'trainFavs' }"></v-btn>
+
     <v-btn
       variant="text"
       :icon="tileView ? 'mdi-view-list' : 'mdi-view-grid'"

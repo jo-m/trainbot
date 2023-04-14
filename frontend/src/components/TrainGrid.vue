@@ -2,6 +2,7 @@
 import type { Train as TrainType } from '@/lib/db'
 import { getBlobURL } from '@/lib/paths'
 import RelativeTime from '@/components/RelativeTime.vue'
+import FavoriteIcon from '@/components/FavoriteIcon.vue'
 
 defineProps<{
   trains: TrainType[]
@@ -25,7 +26,10 @@ defineProps<{
               height="200px"
               cover
             >
-              <v-card-title class="text-white"><RelativeTime :ts="train.start_ts" /></v-card-title>
+              <v-card-title class="text-white">
+                <RelativeTime :ts="train.start_ts" />
+                <FavoriteIcon :id="train.id" />
+              </v-card-title>
             </v-img>
           </v-card>
         </router-link>
