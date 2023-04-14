@@ -120,10 +120,11 @@ The current production deployment is in a Tmux session...
 source ./env
 
 while true; do \
-./trainbot-arm64 --log-pretty --log-level=info \
+./trainbot-arm64 \
+   --log-pretty --log-level=debug \
    --input picam3 \
    --camera-format-fourcc=MJPG \
-   -X 1126 -Y 920 -W 350 -H 290 \
+   -X 800 -Y 686 -W 350 -H 290 \
    --px-per-m=42 \
    --enable-upload; \
 done
