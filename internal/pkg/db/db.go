@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -58,7 +59,7 @@ func Open(path string) (*sqlx.DB, error) {
 // Backup safely backs up a SQLite database to a new file.
 func Backup(src *sqlx.DB, destPath string) error {
 	err := os.Remove(destPath)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
 

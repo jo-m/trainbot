@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -55,7 +56,7 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 	for {
 		toUpload, err := db.GetNextUpload(dbx)
 		if err != nil {
-			if err == sql.ErrNoRows {
+			if errors.Is(err, sql.ErrNoRows) {
 				log.Debug().Msg("no more files to upload")
 				break
 			}
@@ -69,7 +70,7 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.ImgPath), serverBlobPath(toUpload.ImgPath), false)
 		if err != nil {
 			log.Err(err).Send()
-			if !errors.Is(err, os.ErrNotExist) {
+			if !errors.Is(err, fs.ErrNotExist) {
 				return 0, err
 			}
 		}
@@ -77,7 +78,7 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.GIFPath), serverBlobPath(toUpload.GIFPath), false)
 		if err != nil {
 			log.Err(err).Send()
-			if !errors.Is(err, os.ErrNotExist) {
+			if !errors.Is(err, fs.ErrNotExist) {
 				return 0, err
 			}
 		}
