@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jo-m/trainbot/internal/pkg/db"
@@ -17,7 +16,6 @@ import (
 )
 
 const (
-	dbFile    = "db.sqlite3"
 	dbBakFile = "db.sqlite3.bak"
 )
 
@@ -29,7 +27,7 @@ type Uploader interface {
 }
 
 func serverBlobPath(blobName string) string {
-	return path.Join("blobs", blobName)
+	return path.Join(blobsDir, blobName)
 }
 
 func uploadFile(ctx context.Context, uploader Uploader, localPath, remotePath string, atomic bool) error {
@@ -51,7 +49,7 @@ func uploadFile(ctx context.Context, uploader Uploader, localPath, remotePath st
 
 // All uploads all pending trains, until an error is hit or there are no more pending uploads.
 // Also updates the database, and uploads the updated database.
-func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir string) (int, error) {
+func All(ctx context.Context, store DataStore, dbx *sqlx.DB, uploader Uploader) (int, error) {
 	var nUploads int
 	for {
 		toUpload, err := db.GetNextUpload(dbx)
@@ -67,7 +65,7 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 
 		log.Info().Str("img", toUpload.ImgPath).Str("gif", toUpload.GIFPath).Int64("id", toUpload.ID).Msg("uploading")
 
-		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.ImgPath), serverBlobPath(toUpload.ImgPath), false)
+		err = uploadFile(ctx, uploader, store.GetBlobPath(toUpload.ImgPath), serverBlobPath(toUpload.ImgPath), false)
 		if err != nil {
 			log.Err(err).Send()
 			if !errors.Is(err, fs.ErrNotExist) {
@@ -75,7 +73,7 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 			}
 		}
 
-		err = uploadFile(ctx, uploader, filepath.Join(blobsDir, toUpload.GIFPath), serverBlobPath(toUpload.GIFPath), false)
+		err = uploadFile(ctx, uploader, store.GetBlobPath(toUpload.GIFPath), serverBlobPath(toUpload.GIFPath), false)
 		if err != nil {
 			log.Err(err).Send()
 			if !errors.Is(err, fs.ErrNotExist) {
@@ -99,12 +97,11 @@ func All(ctx context.Context, dbx *sqlx.DB, uploader Uploader, dataDir, blobsDir
 
 	// Create db backup.
 	log.Info().Msg("creating db backup")
-	dbBakPath := filepath.Join(dataDir, dbBakFile)
-	err := db.Backup(dbx, dbBakPath)
+	err := db.Backup(dbx, store.GetDataPath(dbBakFile))
 	if err != nil {
 		log.Err(err).Send()
 		return 0, err
 	}
 
-	return nUploads, uploadFile(ctx, uploader, dbBakPath, dbFile, true)
+	return nUploads, uploadFile(ctx, uploader, store.GetDataPath(dbBakFile), dbFile, true)
 }

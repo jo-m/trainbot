@@ -22,8 +22,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const dbFile = "db.sqlite3"
-
 type config struct {
 	logging.LogConfig
 
@@ -42,14 +40,13 @@ type config struct {
 	MaxSpeedKPH float64 `arg:"--max-speed-kph" default:"160" help:"Assumed train max speed, km/h"`
 	MinLengthM  float64 `arg:"--min-len-m" default:"5" help:"Minimum length of trains"`
 
-	DataDir string `arg:"--data-dir" help:"Directory to store output data" default:"data"`
-
 	CPUProfile  bool `arg:"--cpu-profile" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile" help:"Write memory heap profiles"`
 
 	EnableUpload bool `arg:"--enable-upload" help:"Enable uploading of data."`
 
 	upload.FTPConfig
+	upload.DataStore
 }
 
 func (c *config) getRect() image.Rectangle {
@@ -190,7 +187,7 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	}
 }
 
-func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
+func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch.Train, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for train := range trainsIn {
@@ -204,7 +201,7 @@ func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train,
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
 		imgFileName := fmt.Sprintf("train_%s.jpg", tsString)
-		err := imutil.Dump(filepath.Join(blobsDir, imgFileName), train.Image)
+		err := imutil.Dump(store.GetBlobPath(imgFileName), train.Image)
 		if err != nil {
 			log.Err(err).Send()
 			continue
@@ -212,7 +209,7 @@ func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train,
 		log.Debug().Str("imgFileName", imgFileName).Msg("wrote JPEG")
 
 		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
-		err = imutil.DumpGIF(filepath.Join(blobsDir, gifFileName), train.GIF)
+		err = imutil.DumpGIF(store.GetBlobPath(gifFileName), train.GIF)
 		if err != nil {
 			log.Err(err).Send()
 			continue
@@ -227,7 +224,7 @@ func processTrains(blobsDir string, dbx *sqlx.DB, trainsIn <-chan *stitch.Train,
 	}
 }
 
-func uploadOnce(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
+func uploadOnce(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
 	ctx := context.Background()
 	uploader, err := upload.NewFTP(ctx, c)
 	if err != nil {
@@ -236,7 +233,7 @@ func uploadOnce(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
 	}
 	defer uploader.Close()
 
-	n, err := upload.All(ctx, dbx, uploader, dataDir, blobsDir)
+	n, err := upload.All(ctx, store, dbx, uploader)
 	if err != nil {
 		log.Err(err).Msg("uploading all failed")
 	} else {
@@ -244,9 +241,9 @@ func uploadOnce(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
 	}
 }
 
-func uploadForever(blobsDir, dataDir string, dbx *sqlx.DB, c upload.FTPConfig) {
+func uploadForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
 	for {
-		uploadOnce(blobsDir, dataDir, dbx, c)
+		uploadOnce(store, dbx, c)
 		time.Sleep(time.Second * 5)
 	}
 }
@@ -281,7 +278,7 @@ func main() {
 		log.Panic().Err(err).Msg("could not create data and blobs directory")
 	}
 
-	dbx, err := db.Open(filepath.Join(c.DataDir, dbFile))
+	dbx, err := db.Open(c.GetDBPath())
 	if err != nil {
 		log.Panic().Err(err).Msg("could not create/open database")
 	}
@@ -290,9 +287,10 @@ func main() {
 	trains := make(chan *stitch.Train)
 	done := sync.WaitGroup{}
 	done.Add(1)
-	go processTrains(blobsDir, dbx, trains, &done)
+	go processTrains(c.DataStore, dbx, trains, &done)
 	if c.EnableUpload {
-		go uploadForever(blobsDir, c.DataDir, dbx, c.FTPConfig)
+		go uploadForever(c.DataStore, dbx, c.FTPConfig)
+
 	}
 
 	detectTrainsForever(c, trains)
