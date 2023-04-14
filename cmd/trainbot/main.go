@@ -3,8 +3,11 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"image"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime/pprof"
@@ -248,6 +251,57 @@ func uploadForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
 	}
 }
 
+func deleteOldBlobsOnce(store upload.DataStore, dbx *sqlx.DB) error {
+	for {
+		toCleanup, err := db.GetNextCleanup(dbx)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.Debug().Msg("no more files to clean up")
+				return nil
+			}
+
+			log.Err(err).Send()
+			return err
+		}
+
+		err = os.Remove(store.GetBlobPath(toCleanup.ImgPath))
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				log.Debug().Str("path", toCleanup.ImgPath).Msg("tried removing but file does not exist")
+			} else {
+				log.Err(err).Send()
+				return err
+			}
+		}
+
+		err = os.Remove(store.GetBlobPath(toCleanup.GIFPath))
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				log.Debug().Str("path", toCleanup.GIFPath).Msg("tried removing but file does not exist")
+			} else {
+				log.Err(err).Send()
+				return err
+			}
+		}
+
+		err = db.SetCleanedUp(dbx, toCleanup.ID)
+		if err != nil {
+			log.Err(err).Send()
+			return err
+		}
+	}
+}
+
+func deleteOldBlobsForever(store upload.DataStore, dbx *sqlx.DB) {
+	for {
+		err := deleteOldBlobsOnce(store, dbx)
+		if err != nil {
+			log.Err(err).Msg("failed up clean up")
+		}
+		time.Sleep(time.Second * 5)
+	}
+}
+
 func main() {
 	c := parseCheckArgs()
 
@@ -290,7 +344,7 @@ func main() {
 	go processTrains(c.DataStore, dbx, trains, &done)
 	if c.EnableUpload {
 		go uploadForever(c.DataStore, dbx, c.FTPConfig)
-
+		go deleteOldBlobsForever(c.DataStore, dbx)
 	}
 
 	detectTrainsForever(c, trains)

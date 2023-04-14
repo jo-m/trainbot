@@ -1,3 +1,4 @@
+-- Train sightings.
 CREATE TABLE IF NOT EXISTS trains (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -23,3 +24,10 @@ CREATE TABLE IF NOT EXISTS trains (
 
 CREATE INDEX IF NOT EXISTS trains_length ON trains(length_px / px_per_m);
 CREATE INDEX IF NOT EXISTS trains_speed ON trains(ABS(speed_px_s / px_per_m));
+
+-- Blobs we have deleted locally after upload.
+CREATE TABLE IF NOT EXISTS trains_blob_cleanups (
+    train_id INTEGER PRIMARY KEY,
+    cleaned_up_at DATETIME NOT NULL,
+    FOREIGN KEY(train_id) REFERENCES trains(id)
+);

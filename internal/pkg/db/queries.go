@@ -41,7 +41,7 @@ func Insert(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error)
 	return id, nil
 }
 
-// Upload represents a pending upload.
+// Upload represents a set of blobs for a train sighting.
 type Upload struct {
 	ID      int64  `db:"id"`
 	ImgPath string `db:"image_file_path"`
@@ -55,7 +55,7 @@ func GetNextUpload(db *sqlx.DB) (*Upload, error) {
 		id, image_file_path, gif_file_path
 	FROM trains
 	WHERE uploaded_at IS NULL
-	ORDER BY start_ts ASC
+	ORDER BY id ASC
 	LIMIT 1;
 	`
 
@@ -73,5 +73,45 @@ func SetUploaded(db *sqlx.DB, id int64) error {
 	UPDATE trains SET uploaded_at = ? WHERE id = ?;
 	`
 	_, err := db.Exec(q, time.Now(), id)
+	return err
+}
+
+// GetNextCleanup returns the next train sighting for which we can delete the blobs locally.
+func GetNextCleanup(db *sqlx.DB) (*Upload, error) {
+	const keepLastN = 100
+
+	const q = `
+	SELECT
+		id, image_file_path, gif_file_path
+	FROM trains
+	LEFT JOIN trains_blob_cleanups
+		ON trains_blob_cleanups.train_id = trains.id
+	WHERE
+		uploaded_at IS NOT NULL
+		AND trains_blob_cleanups.cleaned_up_at IS NULL
+	ORDER BY id DESC
+	LIMIT 1
+	-- Always keep n last blobs.
+	OFFSET ?;
+	`
+
+	ret := Upload{}
+	err := db.Get(&ret, q, keepLastN)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// SetCleanedUp marks a train sighting as uploaded in the database.
+func SetCleanedUp(db *sqlx.DB, id int64) error {
+	const q = `
+	INSERT INTO trains_blob_cleanups (
+		train_id,
+		cleaned_up_at
+	)
+	VALUES(?, ?);
+	`
+	_, err := db.Exec(q, id, time.Now())
 	return err
 }
