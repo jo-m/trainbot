@@ -128,7 +128,7 @@ onUnmounted(() => {
   <template v-if="trains !== null">
     <div ref="scroller">
       <TrainList v-if="!tileView" :trains="trains" :allDataLoaded="allDataLoaded" />
-      <TrainGrid v-else :trains="trains" :allDataLoaded="allDataLoaded" />
+      <TrainGrid v-else :trains="trains" />
     </div>
   </template>
 

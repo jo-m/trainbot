@@ -6,7 +6,6 @@ import FavoriteIcon from '@/components/FavoriteIcon.vue'
 
 defineProps<{
   trains: TrainType[]
-  allDataLoaded: boolean
 }>()
 </script>
 
