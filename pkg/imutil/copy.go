@@ -1,21 +1,22 @@
-package vid
+package imutil
 
 import (
 	"image"
 )
 
-func imCopy(in image.Image) (dst image.Image) {
+// Copy creates a complete copy of an image (copies buffers).
+func Copy(in image.Image) (ret image.Image) {
 	switch i := in.(type) {
 	case *image.Gray:
 		cp := *i
 		cp.Pix = make([]uint8, len(i.Pix))
 		copy(cp.Pix, i.Pix)
-		dst = &cp
+		ret = &cp
 	case *image.RGBA:
 		cp := *i
 		cp.Pix = make([]uint8, len(i.Pix))
 		copy(cp.Pix, i.Pix)
-		dst = &cp
+		ret = &cp
 	case *image.YCbCr:
 		cp := *i
 		cp.Y = make([]uint8, len(i.Y))
@@ -24,12 +25,12 @@ func imCopy(in image.Image) (dst image.Image) {
 		copy(cp.Cb, i.Cb)
 		cp.Cr = make([]uint8, len(i.Cr))
 		copy(cp.Cr, i.Cr)
-		dst = &cp
+		ret = &cp
 	case *YCbCr:
 		cp := *i
 		cp.Pix = make([]uint8, len(i.Pix))
 		copy(cp.Pix, i.Pix)
-		dst = &cp
+		ret = &cp
 	default:
 		panic("not implemented")
 	}

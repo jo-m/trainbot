@@ -5,6 +5,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/rs/zerolog/log"
 )
 
@@ -75,7 +76,7 @@ func (s *SrcBuf) run() {
 		failedFrames = 0
 
 		// Create copy.
-		frame = imCopy(frame)
+		frame = imutil.Copy(frame)
 
 		if live {
 			select {

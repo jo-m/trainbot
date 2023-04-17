@@ -11,6 +11,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/vladimirvivien/go4vl/device"
 	"github.com/vladimirvivien/go4vl/v4l2"
 )
@@ -223,7 +224,7 @@ func (s *CamSrc) convertFrame(frame []byte) (image.Image, error) {
 		rect := image.Rectangle{image.Point{}, s.c.FrameSize}
 		buf := make([]byte, len(frame))
 		copy(buf, frame)
-		return &YCbCr{
+		return &imutil.YCbCr{
 			Pix:  buf,
 			Rect: rect,
 		}, nil

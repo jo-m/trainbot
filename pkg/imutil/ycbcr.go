@@ -1,4 +1,4 @@
-package vid
+package imutil
 
 import (
 	"image"
