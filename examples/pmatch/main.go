@@ -6,7 +6,7 @@ import (
 	"image"
 	"time"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/pmatch"
 )
 

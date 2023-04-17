@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/testutil"
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

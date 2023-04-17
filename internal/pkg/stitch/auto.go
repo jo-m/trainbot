@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/avg"
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/pmatch"
 	"github.com/rs/zerolog/log"
 )

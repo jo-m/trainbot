@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jo-m/trainbot/internal/pkg/imutil"
 	"github.com/jo-m/trainbot/internal/pkg/testutil"
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/stretchr/testify/require"
 )
 
