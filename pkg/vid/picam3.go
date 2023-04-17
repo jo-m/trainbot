@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/rs/zerolog/log"
 )
 
@@ -187,7 +188,7 @@ func (s *PiCam3Src) GetFrame() (image.Image, *time.Time, error) {
 	ts := time.Now()
 	switch s.c.Format {
 	case FourCCYUV420:
-		return NewYuv420(buf, s.c.Rect.Dx(), s.c.Rect.Dy()), &ts, nil
+		return imutil.NewYuv420(buf, s.c.Rect.Dx(), s.c.Rect.Dy()), &ts, nil
 	case FourCCMJPEG:
 		im, err := jpeg.Decode(bytes.NewBuffer(buf))
 		if err != nil {

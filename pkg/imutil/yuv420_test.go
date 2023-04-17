@@ -1,11 +1,11 @@
-package vid
+package imutil
 
 import (
 	"os"
 	"testing"
 
 	"github.com/jo-m/trainbot/internal/pkg/testutil"
-	"github.com/jo-m/trainbot/pkg/imutil"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +20,7 @@ func Test_NewYuv420(t *testing.T) {
 	require.Equal(t, len(buf), w*h*12/8)
 
 	im := NewYuv420(buf, w, h)
-	truth, err := imutil.Load("testdata/512x256.yuv420p.jpg")
+	truth, err := Load("testdata/512x256.yuv420p.jpg")
 	require.NoError(t, err)
 	testutil.AssertImagesAlmostEqual(t, truth, im)
 }
