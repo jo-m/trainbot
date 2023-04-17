@@ -233,6 +233,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	// Sanity check.
 	if frameGray.Rect.Dx() < maxDx*3 {
 		log.Error().Int("dx", frameGray.Rect.Dx()).Int("maxDx*3", maxDx*3).Float64("framePeriodS", framePeriodS).Msg("image is not wide enough to resolve the given max speed")
+		return nil
 	}
 
 	// Check for minimal contrast and brightness.
