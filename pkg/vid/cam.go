@@ -224,8 +224,8 @@ func (s *CamSrc) convertFrame(frame []byte) (image.Image, error) {
 		buf := make([]byte, len(frame))
 		copy(buf, frame)
 		return &YCbCr{
-			rect: rect,
-			buf:  buf,
+			Pix:  buf,
+			Rect: rect,
 		}, nil
 	default:
 		return nil, errors.New("unsupported format")

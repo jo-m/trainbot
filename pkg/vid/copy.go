@@ -27,8 +27,8 @@ func imCopy(in image.Image) (dst image.Image) {
 		dst = &cp
 	case *YCbCr:
 		cp := *i
-		cp.buf = make([]uint8, len(i.buf))
-		copy(cp.buf, i.buf)
+		cp.Pix = make([]uint8, len(i.Pix))
+		copy(cp.Pix, i.Pix)
 		dst = &cp
 	default:
 		panic("not implemented")
