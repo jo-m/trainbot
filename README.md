@@ -7,10 +7,10 @@ Should work with any video4linux USB cam, or Raspberry Pi camera v3 modules.
 
 Frontend: <https://trains.jo-m.ch/>
 
-[<img src="internal/pkg/stitch/testdata/day.jpg">](internal/pkg/stitch/testdata/day.jpg)
-[<img src="internal/pkg/stitch/testdata/night.jpg">](internal/pkg/stitch/testdata/night.jpg)
-[<img src="internal/pkg/stitch/testdata/rain.jpg">](internal/pkg/stitch/testdata/rain.jpg)
-[<img src="internal/pkg/stitch/testdata/snow.jpg">](internal/pkg/stitch/testdata/snow.jpg)
+[<img src="internal/pkg/stitch/testdata/set0/day.jpg">](internal/pkg/stitch/testdata/set0/day.jpg)
+[<img src="internal/pkg/stitch/testdata/set0/night.jpg">](internal/pkg/stitch/testdata/set0/night.jpg)
+[<img src="internal/pkg/stitch/testdata/set0/rain.jpg">](internal/pkg/stitch/testdata/set0/rain.jpg)
+[<img src="internal/pkg/stitch/testdata/set0/snow.jpg">](internal/pkg/stitch/testdata/set0/snow.jpg)
 [<img src="demo.gif">](demo.gif)
 
 It also contains some packages which might be useful for other purposes:

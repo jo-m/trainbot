@@ -66,9 +66,9 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 	testutil.AssertImagesAlmostEqual(t, truth, train.Image)
 }
 
-func Test_AutoStitcher_1(t *testing.T) {
-	runTest(t, "testdata/day.mp4", "testdata/day.jpg", 21.53, 0.27, false)
-	runTest(t, "testdata/night.mp4", "testdata/night.jpg", 22.7, -0.5, true)
-	runTest(t, "testdata/rain.mp4", "testdata/rain.jpg", 17.9, 0, true)
-	runTest(t, "testdata/snow.mp4", "testdata/snow.jpg", 20.5, -0.75, true)
+func Test_AutoStitcher_Set0(t *testing.T) {
+	runTest(t, "testdata/set0/day.mp4", "testdata/set0/day.jpg", 21.53, 0.27, false)
+	runTest(t, "testdata/set0/night.mp4", "testdata/set0/night.jpg", 22.7, -0.5, true)
+	runTest(t, "testdata/set0/rain.mp4", "testdata/set0/rain.jpg", 17.9, 0, true)
+	runTest(t, "testdata/set0/snow.mp4", "testdata/set0/snow.jpg", 20.5, -0.75, true)
 }
