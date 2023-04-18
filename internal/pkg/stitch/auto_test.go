@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func runTest(t *testing.T, video string, truthImg string, speed, accel float64, direction bool) {
+func runTestDetailed(t *testing.T, video string, truthImg string, speed, accel float64, direction bool) {
 	// logging.MustInit(logging.LogConfig{LogLevel: "debug", LogPretty: true})
 	log.Logger = zerolog.Nop()
 
@@ -67,8 +67,8 @@ func runTest(t *testing.T, video string, truthImg string, speed, accel float64, 
 }
 
 func Test_AutoStitcher_Set0(t *testing.T) {
-	runTest(t, "testdata/set0/day.mp4", "testdata/set0/day.jpg", 21.53, 0.27, false)
-	runTest(t, "testdata/set0/night.mp4", "testdata/set0/night.jpg", 22.7, -0.5, true)
-	runTest(t, "testdata/set0/rain.mp4", "testdata/set0/rain.jpg", 17.9, 0, true)
-	runTest(t, "testdata/set0/snow.mp4", "testdata/set0/snow.jpg", 20.5, -0.75, true)
+	runTestDetailed(t, "testdata/set0/day.mp4", "testdata/set0/day.jpg", 21.53, 0.27, false)
+	runTestDetailed(t, "testdata/set0/night.mp4", "testdata/set0/night.jpg", 22.7, -0.5, true)
+	runTestDetailed(t, "testdata/set0/rain.mp4", "testdata/set0/rain.jpg", 17.9, 0, true)
+	runTestDetailed(t, "testdata/set0/snow.mp4", "testdata/set0/snow.jpg", 20.5, -0.75, true)
 }
