@@ -38,15 +38,12 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 				pxPi := v * ps
 
 				for u := 0; u < du; u++ {
-					pxI := img.Pix[imgPatStartIx+pxIi]
-					pxP := pat.Pix[pxPi]
+					pxI := img.Pix[imgPatStartIx+pxIi+u]
+					pxP := pat.Pix[pxPi+u]
 
 					dot += uint64(pxI) * uint64(pxP)
 					sqSumI += uint64(pxI) * uint64(pxI)
 					sqSumP += uint64(pxP) * uint64(pxP)
-
-					pxIi++
-					pxPi++
 				}
 			}
 

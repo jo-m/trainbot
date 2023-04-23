@@ -20,15 +20,12 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
         int pxPi = v * ps;
 
         for (int u = 0; u < du; u++) {
-          const int pxI = imgPix[imgPatStartIx + pxIi];
-          const int pxP = patPix[pxPi];
+          const int pxI = imgPix[imgPatStartIx + pxIi + u];
+          const int pxP = patPix[pxPi + u];
 
           dot += (uint64_t)(pxI) * (uint64_t)(pxP);
           sqSumI += (uint64_t)(pxI) * (uint64_t)(pxI);
           sqSumP += (uint64_t)(pxP) * (uint64_t)(pxP);
-
-          pxIi++;
-          pxPi++;
         }
       }
 
