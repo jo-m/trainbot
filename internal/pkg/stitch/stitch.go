@@ -42,7 +42,7 @@ func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("stitch() duration")
 
-	log.Debug().Ints("dx", dx).Int("len(frames)", len(frames)).Msg("stitch()")
+	log.Info().Ints("dx", dx).Int("len(frames)", len(frames)).Msg("stitch()")
 
 	// Sanity checks.
 	if len(dx) < 2 {
@@ -190,7 +190,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	start := time.Now()
 	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitAndStitch() duration")
 
-	log.Debug().Ints("dx", seq.dx).Int("len(frames)", len(seq.frames)).Msg("fitAndStitch()")
+	log.Info().Ints("dx", seq.dx).Int("len(frames)", len(seq.frames)).Msg("fitAndStitch()")
 
 	// Sanity checks.
 	if len(seq.frames) != len(seq.dx) || len(seq.frames) != len(seq.ts) {
