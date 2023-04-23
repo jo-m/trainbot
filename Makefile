@@ -1,4 +1,4 @@
-.PHONY: format lint test bench check build_host build_arm64 build_docker clean run_confighelper run_camera run_videofile
+.PHONY: format lint test test_more bench check build_host build_arm64 build_docker clean run_confighelper run_camera run_videofile
 
 DOCKER_BUILDER_IMG_TAG = trainbot-builder
 DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
@@ -27,6 +27,13 @@ lint:
 
 test:
 	go test -race -v ./...
+
+test_more:
+	# This needs additional test data which is not committed to the repo.
+	# Instructions:
+	#	curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
+	#	unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
+	go test -v --tags=moretests -run Test_AutoStitcher_Set ./...
 
 bench:
 	go test -v -run= -bench=. ./...

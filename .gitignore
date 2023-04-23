@@ -3,3 +3,9 @@
 /build/
 /prof-*.gz
 /env
+
+/internal/pkg/stitch/*.jpg
+/internal/pkg/stitch/*.MISSING
+/internal/pkg/stitch/testdata/*.zip
+/internal/pkg/stitch/testdata/set1
+/internal/pkg/stitch/testdata/set2
