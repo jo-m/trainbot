@@ -117,8 +117,8 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	if prev.Rect.Dx() < w {
 		panic("frame width is too small")
 	}
-	// and height 3/4 of frame.
-	h := int(float64(prev.Rect.Dy())*3/4 + 1)
+	// and height 1/2 of frame.
+	h := int(float64(prev.Rect.Dy())*1/2 + 1)
 	subRect := image.Rect(0, 0, w, h).
 		Add(curr.Rect.Min).
 		Add(
@@ -132,8 +132,7 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	}
 
 	// Centered slice crop from next frame,
-	// width is 1x max pixels per frame given by max velocity
-	// and height 3/4 of frame.
+	// width is 1x max pixels per frame given by max velocity and same height as above.
 	w = maxDx
 	sliceRect := image.Rect(0, 0, w, h).
 		Add(curr.Rect.Min).
