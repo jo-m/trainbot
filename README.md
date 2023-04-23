@@ -34,7 +34,7 @@ The assumptions are (there might be more implicit ones):
 1. There are no large fast brightness changes.
 1. Trains have a given min and max speed.
 1. We are looking at the tracks more or less perpendicularly in the chosen image crop region.
-1. Trains are coming from one direction at a time, crossings are not yet handled properly.
+1. Trains are coming from one direction at a time, crossings are not handled properly.
 1. Trains have a constant acceleration (might be 0) and do not stop and turn around while in front of the camera.
 
 ## Build system
@@ -173,6 +173,8 @@ All database access happens in the browser via sql.js.
 - [x] Delete data after upload
 - [x] Clean up frontend db/blob path handling
 - [x] Add favorites feature
+- [ ] grep -R TODO .
+- [ ] (Maybe) Search in multiple horizontal slices for robustness
 - [ ] Stats
 - [ ] Correct for changing exposure, improve stitching seams
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)

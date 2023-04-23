@@ -90,7 +90,7 @@ type AutoStitcher struct {
 	// Those are all together zero/nil or not.
 	prevFrameTS    time.Time
 	prevFrameColor image.Image
-	prevFrameGray  *image.Gray
+	prevFrameRGBA  *image.RGBA
 
 	seq          sequence
 	dxAbsLowPass float64
@@ -103,7 +103,7 @@ func NewAutoStitcher(c Config) *AutoStitcher {
 	}
 }
 
-func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
+func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, score float64) {
 	t0 := time.Now()
 	defer log.Trace().Dur("dur", time.Since(t0)).Msg("findOffset() duration")
 
@@ -150,7 +150,7 @@ func findOffset(prev, curr *image.Gray, maxDx int) (dx int, score float64) {
 	// We expect this x value to be found by the search if the frame has not moved.
 	xZero := sliceRect.Min.Sub(subRect.Min).X
 
-	x, _, score := pmatch.SearchGrayC(sub.(*image.Gray), slice.(*image.Gray))
+	x, _, score := pmatch.SearchRGBAC(sub.(*image.RGBA), slice.(*image.RGBA))
 	return x - xZero, score
 }
 
@@ -206,13 +206,13 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	log.Trace().Time("ts", ts).Uint64("frameIx", r.prevFrameIx).Msg("Frame()")
 
 	// Convert to gray.
-	frameGray := imutil.ToGray(frameColor)
+	frameRGBA := imutil.ToRGBA(frameColor)
 	// Make sure we always save the previous frame.
 	defer func() {
 		r.prevFrameIx++
 		r.prevFrameTS = ts
 		r.prevFrameColor = frameColor
-		r.prevFrameGray = frameGray
+		r.prevFrameRGBA = frameRGBA
 	}()
 
 	if r.prevFrameColor == nil {
@@ -230,19 +230,19 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	maxDx := r.c.maxPxPerFrame(framePeriodS)
 
 	// Sanity check.
-	if frameGray.Rect.Dx() < maxDx*3 {
-		log.Error().Int("dx", frameGray.Rect.Dx()).Int("maxDx*3", maxDx*3).Float64("framePeriodS", framePeriodS).Msg("image is not wide enough to resolve the given max speed")
+	if frameRGBA.Rect.Dx() < maxDx*3 {
+		log.Error().Int("dx", frameRGBA.Rect.Dx()).Int("maxDx*3", maxDx*3).Float64("framePeriodS", framePeriodS).Msg("image is not wide enough to resolve the given max speed")
 		return nil
 	}
 
-	// Check for minimal contrast and brightness.
-	avg, avgDev := avg.GrayOpt(frameGray)
+	// Check for minimal contrast and brightness. TODO: Maybe do directly on RGBA image.
+	avg, avgDev := avg.GrayOpt(imutil.ToGray(frameColor))
 	if avg < minContrastAvg || avgDev < minContrastAvgDev {
 		log.Trace().Float64("avgDev", avgDev).Float64("avg", avg).Msg("contrast too low, discarding")
 		return nil
 	}
 
-	dx, score := findOffset(r.prevFrameGray, frameGray, maxDx)
+	dx, score := findOffset(r.prevFrameRGBA, frameRGBA, maxDx)
 	log.Debug().Uint64("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0
