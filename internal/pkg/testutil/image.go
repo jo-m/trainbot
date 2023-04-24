@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func iabs(i int) int {
@@ -18,7 +17,10 @@ func iabs(i int) int {
 
 // AssertImagesAlmostEqual asserts that two images are almost equal.
 func AssertImagesAlmostEqual(t *testing.T, truth image.Image, test image.Image) {
-	require.Equal(t, truth.Bounds().Size(), test.Bounds().Size())
+	assert.Equal(t, truth.Bounds().Size(), test.Bounds().Size())
+	if truth.Bounds().Size() != test.Bounds().Size() {
+		return
+	}
 
 	var diff uint64
 	for y := 0; y < truth.Bounds().Dy(); y++ {

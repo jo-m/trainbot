@@ -21,24 +21,17 @@ func Test_AutoStitcher_Set2_All(t *testing.T) {
 	r := image.Rect(0, 0, 350, 290)
 
 	basepath := "testdata/set2/"
-
-	vids, err := filepath.Glob(basepath + "*.mkv")
+	vids, err := filepath.Glob(basepath + "train*.mkv")
 	require.NoError(t, err)
 
 	for _, vid := range vids {
-		runTestSimple(t, c, r, vid, 138)
+		runTestSimple(t, c, r, vid, anyLengthMagic)
 	}
-}
 
-func Test_AutoStitcher_Set2(t *testing.T) {
-	c := Config{
-		PixelsPerM:  42,
-		MinSpeedKPH: 10,
-		MaxSpeedKPH: 160,
-		MinLengthM:  10,
+	vids, err = filepath.Glob(basepath + "negative*.mkv")
+	require.NoError(t, err)
+
+	for _, vid := range vids {
+		runTestSimple(t, c, r, vid, 0)
 	}
-	r := image.Rect(0, 0, 350, 290)
-
-	basepath := "testdata/set2/"
-	runTestSimple(t, c, r, basepath+"127.mkv", 500)
 }

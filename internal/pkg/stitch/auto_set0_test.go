@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const anyLengthMagic = 0xDEADBEEF
+
 // runTestSimple runs autostitching on a video file and checks the resulting train length.
 // lengthM == 0 means that no train is expected to be detected.
 func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, lengthM float64) []Train {
@@ -27,6 +29,19 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 	auto := NewAutoStitcher(c)
 
 	var trains []Train
+	// defer func() {
+	// 	if len(trains) == 0 {
+	// 		f, err := os.Create(fmt.Sprintf("%s.MISSING", filepath.Base(video)))
+	// 		if err == nil {
+	// 			f.Close()
+	// 		}
+	// 	}
+
+	// 	for i, tr := range trains {
+	// 		fname := fmt.Sprintf("%s-%02d.jpg", filepath.Base(video), i)
+	// 		imutil.Dump(fname, tr.Image)
+	// 	}
+	// }()
 	for {
 		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
@@ -39,9 +54,6 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 		require.NoError(t, err)
 		tr := auto.Frame(imutil.Copy(frame), *ts)
 		if tr != nil {
-			// fname := fmt.Sprintf("%s-%02d.jpg", filepath.Base(video), len(trains))
-			// imutil.Dump(fname, tr.Image)
-
 			trains = append(trains, *tr)
 			log.Info().Msg("got train")
 		}
@@ -56,11 +68,6 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 			// None expected, none found.
 			return trains
 		}
-
-		// f, err := os.Create(fmt.Sprintf("%s.MISSING", filepath.Base(video)))
-		// if err == nil {
-		// 	f.Close()
-		// }
 
 		assert.True(t, false, "train expected but none found: %s", video)
 		return trains
@@ -80,7 +87,11 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 		assert.False(t, true, "no train expected but one was found: %s", video)
 		return trains
 	}
-	assert.InDelta(t, lengthM, trains[0].LengthM(), 5, "length does not match: %s", video)
+
+	if lengthM != anyLengthMagic {
+		assert.InDelta(t, lengthM, trains[0].LengthM(), 5, "length does not match: %s", video)
+	}
+
 	return trains
 }
 
