@@ -36,5 +36,5 @@ func GrayOpt(img *image.Gray) (avg, avgDev float64) {
 		}
 	}
 
-	return float64(avgPx) / float64(1<<8), float64(sum) / float64(cnt) / float64(1<<8)
+	return float64(avgPx) / 255, float64(sum) / float64(cnt) / 255
 }
