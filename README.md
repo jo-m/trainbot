@@ -173,7 +173,6 @@ All database access happens in the browser via sql.js.
 - [x] Delete data after upload
 - [x] Clean up frontend db/blob path handling
 - [x] Add favorites feature
-- [ ] grep -R TODO .
 - [ ] (Maybe) Search in multiple horizontal slices for robustness
 - [ ] Stats
 - [ ] Correct for changing exposure, improve stitching seams

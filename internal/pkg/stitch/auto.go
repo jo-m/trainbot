@@ -197,6 +197,10 @@ func (r *AutoStitcher) TryStitchAndReset() *Train {
 	return train
 }
 
+func sum3(v [3]float64) float64 {
+	return v[0] + v[1] + v[2]
+}
+
 // Frame adds a frame to the AutoStitcher.
 // Takes ownership of the image data buffer, so be sure to make a copy before passing it.
 func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
@@ -236,9 +240,9 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	}
 
 	// Check for minimal contrast and brightness. TODO: Maybe do directly on RGBA image.
-	avg, avgDev := avg.GrayOpt(imutil.ToGray(frameColor))
-	if avg < minContrastAvg || avgDev < minContrastAvgDev {
-		log.Trace().Float64("avgDev", avgDev).Float64("avg", avg).Msg("contrast too low, discarding")
+	avg, avgDev := avg.RGBA(frameRGBA)
+	if sum3(avg)/3 < minContrastAvg || sum3(avgDev)/3 < minContrastAvgDev {
+		log.Trace().Interface("avgDev", avgDev).Interface("avg", avg).Msg("contrast too low, discarding")
 		return nil
 	}
 
@@ -280,8 +284,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	log.Debug().
 		Float64("score", score).
 		Float64("goodScoreMove", goodScoreMove).
-		Float64("avgDev", avgDev).
-		Float64("avg", avg).
+		Interface("avgDev", avgDev).
+		Interface("avg", avg).
 		Int("dx", dx).
 		Int("minDx", minDx).
 		Int("maxDx", maxDx).

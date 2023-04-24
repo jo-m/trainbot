@@ -50,7 +50,7 @@ func fitDx(seq sequence, maxSpeedPxS float64) ([]int, float64, float64, float64,
 		MinModelPoints:  modelNParams + 1,
 		MaxIter:         25,
 		MinInliers:      len(v) / 2,
-		InlierThreshold: maxSpeedPxS * 0.05, // 5% of max speed. TODO: maybe make it min(maxSpeedPxS, max(seq.dx/dt)).
+		InlierThreshold: maxSpeedPxS * 0.05, // 5% of max speed.
 		Seed:            0,
 	}
 	log.Debug().Floats64("t", t).Floats64("v", v).Ints("dx", seq.dx).Interface("params", params).Msg("RANSAC")
