@@ -38,8 +38,6 @@ watch(browserInDarkMode, (val) => {
     <v-main>
       <Suspense>
         <router-view />
-
-        <template v-slot:fallback>Loading...</template>
       </Suspense>
     </v-main>
   </v-app>
