@@ -9,6 +9,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/mccutchen/palettor"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
@@ -231,6 +232,14 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	img, err := stitch(seq.frames, dxFit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to assemble image: %w", err)
+	}
+
+	// Theoretically, we can crop away 1/3 of the width of 1 frame.
+	// We crop away 1/4 to leave some margin.
+	dw := seq.frames[0].Bounds().Dx() / 4
+	cropped, err := imutil.Sub(img, image.Rect(dw, 0, img.Rect.Dx()-dw, img.Rect.Dy()))
+	if err == nil {
+		img = cropped.(*image.RGBA)
 	}
 
 	gif, err := createGIF(seq, img)
