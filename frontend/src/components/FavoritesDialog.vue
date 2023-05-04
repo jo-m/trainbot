@@ -44,12 +44,22 @@ function copyLink() {
 
 <template>
   <v-btn variant="text" icon>
-    <v-icon>mdi-share</v-icon>
+    <v-icon>mdi-star</v-icon>
 
     <v-dialog v-model="showDialog" activator="parent" width="auto">
       <v-card>
-        <v-card-title>Share</v-card-title>
+        <v-card-title
+          >Favorites <v-icon icon="mdi-star" color="#FFC107" style="padding-bottom: 6px"
+        /></v-card-title>
+        <v-card-actions>
+          <router-link :to="linkParams"
+            ><v-btn color="primary" variant="flat" @click="showDialog = false"
+              >Show favorites</v-btn
+            ></router-link
+          >
+        </v-card-actions>
         <v-divider></v-divider>
+        <v-card-title>Share</v-card-title>
         <v-card-text>
           Share the link below to share your favorites list:
           <br />
