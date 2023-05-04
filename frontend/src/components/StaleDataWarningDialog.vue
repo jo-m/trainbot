@@ -27,7 +27,7 @@ const agoHours = DateTime.now().diff(date, 'hours').hours
           trainbot is currently offline. Note that this frontend is hosted independently.
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" block @click="showDialog = false">Close</v-btn>
+          <v-btn color="primary" variant="flat" block @click="showDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -58,8 +58,8 @@ function copyLink() {
           </span>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" @click="copyLink">Copy to clipboard</v-btn>
-          <v-btn color="primary" @click="showDialog = false">Close</v-btn>
+          <v-btn color="primary" variant="flat" @click="copyLink">Copy to clipboard</v-btn>
+          <v-btn color="primary" variant="flat" @click="showDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
