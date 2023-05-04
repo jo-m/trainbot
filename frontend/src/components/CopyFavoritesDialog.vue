@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed } from 'vue'
 import useFavoritesStore from '@/lib/favorites'
 import { encodeQueryParam } from '@/lib/useQueryParam'
 import router from '@/plugins/router'
 import type { RouteLocationRaw } from 'vue-router'
-
-const favs = useFavoritesStore()
 
 const showDialog = ref<boolean>(false)
 
@@ -13,23 +11,22 @@ const showSnackbar = ref<boolean>(false)
 const snackbarMessage = ref<string>('')
 
 const baseURL = import.meta.env.VITE_BASE_URL.replace(/\/+$/, '')
-const link = ref<string>('')
-
 function resolveFull(to: RouteLocationRaw): string {
   return baseURL + '/' + router.resolve(to).href
 }
 
-const linkText = resolveFull({ name: 'trainsList', query: { filter: '...' } })
+const favs = useFavoritesStore()
+const linkParams = computed(() => {
+  const ids = Array.from(favs.favorites).join(',')
+  const filter = { where: { favs: `id IN (${ids})` } }
+  return { name: 'trainsList', query: { filter: encodeQueryParam(filter) } }
+})
 
-watch(
-  favs.favorites,
-  () => {
-    const ids = Array.from(favs.favorites).join(',')
-    const filter = { where: { favs: `id IN (${ids})` } }
-    link.value = resolveFull({ name: 'trainsList', query: { filter: encodeQueryParam(filter) } })
-  },
-  { immediate: true }
-)
+const link = computed(() => {
+  return resolveFull(linkParams.value)
+})
+
+const linkText = resolveFull({ name: 'trainsList', query: { filter: '...' } })
 
 function copyLink() {
   navigator.clipboard.writeText(link.value).then(
@@ -56,9 +53,9 @@ function copyLink() {
         <v-card-text>
           Share the link below to share your favorites list:
           <br />
-          <span style="font-family: monospace"
-            ><a :href="link">{{ linkText }}</a></span
-          >
+          <span style="font-family: monospace">
+            <router-link :to="linkParams">{{ linkText }}</router-link>
+          </span>
         </v-card-text>
         <v-card-actions>
           <v-btn color="primary" @click="copyLink">Copy to clipboard</v-btn>
