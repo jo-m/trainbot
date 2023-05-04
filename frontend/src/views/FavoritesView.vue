@@ -31,5 +31,17 @@ watch(
 
   <template v-if="trains !== null">
     <TrainGrid :trains="trains" />
-  </template>
+
+    <v-card v-if="trains?.length == 0" min-height="50%">
+      <v-card-item>
+        <v-card-title>Nothing to see here</v-card-title>
+      </v-card-item>
+
+      <v-card-text>
+        You have no favorites yet. Click on the
+        <v-icon icon="mdi-star" color="#FFC107" style="padding-bottom: 2px" /> icon to save trains
+        to favorites <v-icon icon="mdi-star-outline" color="#BDBDBD" style="padding-bottom: 2px" />.
+      </v-card-text>
+    </v-card></template
+  >
 </template>
