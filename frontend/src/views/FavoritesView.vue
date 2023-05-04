@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TrainGrid from '@/components/TrainGrid.vue'
+import CopyFavoritesDialog from '@/components/CopyFavoritesDialog.vue'
 import { ref, inject, watch } from 'vue'
 import { dbKey, getTrains, type Train as TrainType } from '@/lib/db'
 import useFavoritesStore from '@/lib/favorites'
@@ -25,7 +26,7 @@ watch(
 <template>
   <!-- App bar -->
   <Teleport to="#app-bar-teleport">
-    <v-btn variant="text" @click="favs.clear()" icon="mdi-delete"></v-btn>
+    <CopyFavoritesDialog />
   </Teleport>
 
   <template v-if="trains !== null">

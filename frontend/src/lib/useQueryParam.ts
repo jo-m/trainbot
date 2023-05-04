@@ -2,7 +2,7 @@ import { computed, type WritableComputedRef } from 'vue'
 import { useRoute, type LocationQueryValue } from 'vue-router'
 import router from '@/plugins/router'
 
-function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[], default_: T): T {
+export function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[], default_: T): T {
   if (!val || Array.isArray(val)) {
     return default_
   }
@@ -14,7 +14,7 @@ function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[], defa
   }
 }
 
-function encodeQueryParam(val: any): string {
+export function encodeQueryParam(val: any): string {
   return encodeURIComponent(JSON.stringify(val))
 }
 
