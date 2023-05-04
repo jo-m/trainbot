@@ -127,9 +127,29 @@ onUnmounted(() => {
   <!-- List -->
   <template v-if="trains !== null">
     <div ref="scroller">
-      <TrainList v-if="!tileView" :trains="trains" :allDataLoaded="allDataLoaded" />
+      <TrainList v-if="!tileView" :trains="trains" />
       <TrainGrid v-else :trains="trains" />
     </div>
+    <v-container class="pa-2">
+      <v-row no-gutters>
+        <v-col cols="12">
+          <v-row class="pa-0" no-gutters align="center">
+            <v-col cols="12">
+              <v-sheet class="pa-2" v-if="allDataLoaded">
+                <v-icon icon="mdi-arrow-collapse-down"></v-icon>
+                End of list ({{ trains.length }} trains).
+                <v-btn
+                  variant="tonal"
+                  size="small"
+                  @click="updateFilter({ newFilter: {}, replace: true })"
+                  >Reset filters.</v-btn
+                >
+              </v-sheet>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
   </template>
 
   <!-- Filter -->
