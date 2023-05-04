@@ -2,7 +2,7 @@
 import TrainList from '@/components/TrainList.vue'
 import TrainGrid from '@/components/TrainGrid.vue'
 import FilterDialog, { type updateFilterArgs } from '@/components/FilterDialog.vue'
-import StaleDataWarning from '@/components/StaleDataWarning.vue'
+import StaleDataWarningDialog from '@/components/StaleDataWarningDialog.vue'
 import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { dbKey, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
 import useQueryParam from '@/lib/useQueryParam'
@@ -106,7 +106,7 @@ onUnmounted(() => {
 <template>
   <!-- App bar -->
   <Teleport to="#app-bar-teleport">
-    <StaleDataWarning />
+    <StaleDataWarningDialog />
 
     <v-btn variant="text" icon="mdi-star" :to="{ name: 'trainFavs' }"></v-btn>
 
