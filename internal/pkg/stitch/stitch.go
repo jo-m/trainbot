@@ -52,19 +52,17 @@ func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 	if len(frames) != len(dx) {
 		log.Panic().Msg("frames and dx do not have the same length, this should not happen")
 	}
-	fsz := frames[0].Bounds().Size()
+	fb := frames[0].Bounds()
 	for _, f := range frames {
-		if f.Bounds().Min.X != 0 ||
-			f.Bounds().Min.Y != 0 ||
-			f.Bounds().Size() != fsz {
+		if f.Bounds() != fb {
 			log.Panic().Msg("frame bounds or size not consistent, this should not happen")
 		}
 	}
 
 	// Calculate base width.
 	sign := isign(dx[0])
-	w := fsz.X * sign
-	h := fsz.Y
+	w := fb.Dx() * sign
+	h := fb.Dy()
 	for _, x := range dx[1:] {
 		if isign(x) != sign {
 			return nil, errors.New("dx elements do not have consistent sign")
@@ -83,14 +81,14 @@ func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 	if w > 0 {
 		pos := 0
 		for i, f := range frames {
-			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
+			draw.Draw(img, img.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
 			pos += dx[i]
 		}
 	} else {
 		// Backwards.
-		pos := -w - fsz.X
+		pos := -w - fb.Dx()
 		for i, f := range frames {
-			draw.Draw(img, f.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
+			draw.Draw(img, img.Bounds().Add(image.Pt(pos, 0)), f, f.Bounds().Min, draw.Src)
 			pos += dx[i]
 		}
 	}
