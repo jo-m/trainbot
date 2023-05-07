@@ -102,6 +102,10 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+function scrollUp() {
+  window.scrollTo(0, 0)
+}
 </script>
 
 <template>
@@ -171,4 +175,10 @@ onUnmounted(() => {
       </v-btn>
     </template>
   </v-snackbar>
+
+  <v-layout-item model-value position="bottom" class="text-end" size="88">
+    <div class="ma-4">
+      <v-btn icon="mdi-chevron-up" size="large" color="primary" elevation="8" @click="scrollUp()" />
+    </div>
+  </v-layout-item>
 </template>
