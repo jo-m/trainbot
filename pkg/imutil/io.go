@@ -42,10 +42,22 @@ func Dump(path string, img image.Image) error {
 	}
 
 	if strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".jpeg") {
-		return jpeg.Encode(f, img, &jpeg.Options{Quality: 98})
+		return jpeg.Encode(f, img, &jpeg.Options{Quality: 95})
 	}
 
 	return errors.New("unknown image suffix")
+}
+
+// Dump dumps a JPEG to a file with a given quality.
+func DumpJPEG(path string, img image.Image, quality int) error {
+	// #nosec 304
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
 }
 
 // DumpGIF will dump a GIF image to a file.

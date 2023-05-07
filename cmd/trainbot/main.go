@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime/pprof"
@@ -22,6 +23,7 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/upload"
 	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/vid"
+	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
 )
 
@@ -203,6 +205,8 @@ func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch
 			Msg("found train")
 
 		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
+
+		// Dump stitched image.
 		imgFileName := fmt.Sprintf("train_%s.jpg", tsString)
 		err := imutil.Dump(store.GetBlobPath(imgFileName), train.Image)
 		if err != nil {
@@ -211,6 +215,15 @@ func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch
 		}
 		log.Debug().Str("imgFileName", imgFileName).Msg("wrote JPEG")
 
+		// Dump thumbnail.
+		thumb := resize.Thumbnail(math.MaxUint, 64, train.Image, resize.Bilinear)
+		err = imutil.DumpJPEG(store.GetBlobThumbPath(imgFileName), thumb, 75)
+		if err != nil {
+			log.Err(err).Send()
+			continue
+		}
+
+		// Dump GIF.
 		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
 		err = imutil.DumpGIF(store.GetBlobPath(gifFileName), train.GIF)
 		if err != nil {

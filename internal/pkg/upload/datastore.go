@@ -1,6 +1,9 @@
 package upload
 
-import "path/filepath"
+import (
+	"path/filepath"
+	"strings"
+)
 
 const (
 	// Relative to data dir.
@@ -27,4 +30,15 @@ func (d DataStore) GetDBPath() string {
 // GetBlobPath gets the path to a blob.
 func (d DataStore) GetBlobPath(blobname string) string {
 	return filepath.Join(d.DataDir, blobsDir, blobname)
+}
+
+func GetThumbName(blobname string) string {
+	ext := filepath.Ext(blobname)
+	name := strings.TrimSuffix(blobname, ext)
+	return name + ".thumb" + ext
+}
+
+// GetBlobPath gets the path to a blob thumbnail.
+func (d DataStore) GetBlobThumbPath(blobname string) string {
+	return d.GetBlobPath(GetThumbName(blobname))
 }

@@ -73,6 +73,14 @@ func All(ctx context.Context, store DataStore, dbx *sqlx.DB, uploader Uploader) 
 			}
 		}
 
+		err = uploadFile(ctx, uploader, store.GetBlobThumbPath(toUpload.ImgPath), serverBlobPath(GetThumbName(toUpload.ImgPath)), false)
+		if err != nil {
+			log.Err(err).Send()
+			if !errors.Is(err, fs.ErrNotExist) {
+				return 0, err
+			}
+		}
+
 		err = uploadFile(ctx, uploader, store.GetBlobPath(toUpload.GIFPath), serverBlobPath(toUpload.GIFPath), false)
 		if err != nil {
 			log.Err(err).Send()
