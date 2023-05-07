@@ -101,10 +101,28 @@ function emitUpdate(newFilter: Filter, replace: boolean = false) {
               false
             )
           "
-          ><template v-slot:prepend> <v-icon icon="mdi-calendar-arrow-left"></v-icon> </template
-        ></v-list-item>
+        >
+          <template v-slot:prepend> <v-icon icon="mdi-calendar-arrow-left"></v-icon></template>
+        </v-list-item>
+        <v-list-item>
+          <template v-slot:prepend> <v-icon icon="mdi-calendar-search"></v-icon></template>
+          <v-text-field
+            label="Select Date"
+            type="date"
+            @input="
+              emitUpdate(
+                {
+                  where: {
+                    start_ts: `DATE(start_ts) = DATE('${$event.target.value}')`
+                  }
+                },
+                false
+              )
+            "
+          />
+        </v-list-item>
         <v-list-item
-          title="Right"
+          title="Direction right"
           @click="
             emitUpdate(
               {
@@ -118,7 +136,7 @@ function emitUpdate(newFilter: Filter, replace: boolean = false) {
           ><template v-slot:prepend> <v-icon icon="mdi-arrow-right"></v-icon> </template
         ></v-list-item>
         <v-list-item
-          title="Left"
+          title="Direction left"
           @click="
             emitUpdate(
               {
