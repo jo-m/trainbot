@@ -107,8 +107,8 @@ run_videofile:
 		--log-pretty \
 		--log-level=info \
 		\
-		--input="vids/day.mp4" \
-		-X 800 -Y 450 -W 300 -H 300
+		--input="internal/pkg/stitch/testdata/set0/day.mp4" \
+		-X 0 -Y 0 -W 300 -H 300
 
 deploy_trainbot: build_arm64
 	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var
