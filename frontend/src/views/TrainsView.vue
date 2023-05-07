@@ -113,6 +113,8 @@ function scrollUp() {
   <Teleport to="#app-bar-teleport">
     <StaleDataWarningDialog />
 
+    <v-btn variant="text" icon="mdi-chart-bar" :to="{ name: 'trainStats' }"></v-btn>
+
     <v-btn
       variant="text"
       :icon="tileView ? 'mdi-view-list' : 'mdi-view-grid'"

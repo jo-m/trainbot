@@ -125,4 +125,12 @@ export function getTrain(db: SqlJs.Database, id: number): Train | undefined {
   return convertRow(result[0].columns, result[0].values[0]) as Train
 }
 
+export function queryOne(db: SqlJs.Database, query: string): SqlJs.SqlValue | undefined {
+  console.log(query.trim())
+  const result = db.exec(query)
+  if (result.length === 0) return undefined
+
+  return result[0].values[0][0]
+}
+
 export const dbKey = Symbol() as InjectionKey<SqlJs.Database>

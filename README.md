@@ -173,7 +173,7 @@ All database access happens in the browser via sql.js.
 - [x] Delete data after upload
 - [x] Clean up frontend db/blob path handling
 - [x] Add favorites feature
-- [ ] Stats page
+- [x] Stats page
 - [ ] Correct for changing exposure, improve stitching seams
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
 - [ ] Create some screenshots
