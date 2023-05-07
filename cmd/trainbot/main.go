@@ -287,6 +287,16 @@ func deleteOldBlobsOnce(store upload.DataStore, dbx *sqlx.DB) error {
 			}
 		}
 
+		err = os.Remove(store.GetBlobThumbPath(toCleanup.ImgPath))
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				log.Debug().Str("path", toCleanup.ImgPath).Msg("tried removing but file does not exist")
+			} else {
+				log.Err(err).Send()
+				return err
+			}
+		}
+
 		err = os.Remove(store.GetBlobPath(toCleanup.GIFPath))
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
