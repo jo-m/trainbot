@@ -1,5 +1,8 @@
 <IfModule mod_headers.c>
-    <FilesMatch "\.(jpg|gif|png)$">
+    <FilesMatch "\.(jpg|gif|png|css|js|svg|.woff2)$">
         Header set Cache-Control "public, max-age=31536000, no-transform"
     </FilesMatch>
 </IfModule>
+
+SetOutputFilter DEFLATE
+SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|ico)$" no-gzip
