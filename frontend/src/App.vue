@@ -19,11 +19,14 @@ watch(browserInDarkMode, (val) => {
       <router-link
         :to="{ name: 'root' }"
         style="text-decoration: none; color: inherit; margin-inline-start: 16px; padding-top: 6px"
+        aria-label="Go to home page"
       >
         <img
           width="48"
+          height="48"
           :src="theme.global.current.value.dark ? logoNightUrl : logoDayUrl"
           style="margin-left: -16px; margin-top: -2px"
+          alt="trainbot logo"
         />
       </router-link>
 
@@ -32,7 +35,12 @@ watch(browserInDarkMode, (val) => {
       <div id="app-bar-teleport"></div>
 
       <!-- Github link -->
-      <v-btn variant="text" icon="mdi-github" href="https://github.com/jo-m/trainbot"></v-btn>
+      <v-btn
+        variant="text"
+        icon="mdi-github"
+        href="https://github.com/jo-m/trainbot"
+        aria-label="Go to the projects GitHub page"
+      ></v-btn>
     </v-app-bar>
 
     <v-main>

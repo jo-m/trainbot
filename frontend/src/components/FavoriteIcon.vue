@@ -14,5 +14,7 @@ defineProps<{
     :color="favs.isFav(id) ? '#FFC107' : '#BDBDBD'"
     @click.prevent.stop="favs.toggle(id)"
     style="padding-bottom: 2px"
+    role="button"
+    :aria-label="`Toggle favorite status for train ${id}`"
   />
 </template>

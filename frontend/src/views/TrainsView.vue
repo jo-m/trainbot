@@ -113,12 +113,18 @@ function scrollUp() {
   <Teleport to="#app-bar-teleport">
     <StaleDataWarningDialog />
 
-    <v-btn variant="text" icon="mdi-chart-bar" :to="{ name: 'trainStats' }"></v-btn>
+    <v-btn
+      variant="text"
+      icon="mdi-chart-bar"
+      :to="{ name: 'trainStats' }"
+      aria-label="Show the stats page"
+    ></v-btn>
 
     <v-btn
       variant="text"
       :icon="tileView ? 'mdi-view-list' : 'mdi-view-grid'"
       @click="tileView = !tileView"
+      aria-label="Toggle between grid and list view"
     ></v-btn>
 
     <v-btn
@@ -126,6 +132,7 @@ function scrollUp() {
       icon="mdi-filter"
       @click="showFilterDialog = true"
       :active="Object.keys(filter).length > 0"
+      aria-label="Show the filter dialog"
     ></v-btn>
 
     <FavoritesDialog />
@@ -180,7 +187,14 @@ function scrollUp() {
 
   <v-layout-item model-value position="bottom" class="text-end" size="88">
     <div class="ma-4">
-      <v-btn icon="mdi-chevron-up" size="large" color="primary" elevation="8" @click="scrollUp()" />
+      <v-btn
+        icon="mdi-chevron-up"
+        size="large"
+        color="primary"
+        elevation="8"
+        @click="scrollUp()"
+        aria-label="Scroll to top"
+      />
     </div>
   </v-layout-item>
 </template>

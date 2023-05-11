@@ -44,7 +44,7 @@ function copyLink() {
 
 <template>
   <v-btn variant="text" icon>
-    <v-icon>mdi-star</v-icon>
+    <v-icon aria-label="Show favorites" role="button">mdi-star</v-icon>
 
     <v-dialog v-model="showDialog" activator="parent" width="auto">
       <v-card>
