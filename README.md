@@ -174,9 +174,9 @@ All database access happens in the browser via sql.js.
 - [x] Clean up frontend db/blob path handling
 - [x] Add favorites feature
 - [x] Stats page
+- [x] Create some screenshots
 - [ ] Correct for changing exposure, improve stitching seams
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
-- [ ] Create some screenshots
 - [ ] Better deployment setup, remove hardcoded stuff, document deployment
 - [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
 - [ ] Add run/deploy instructions to README (including confighelper)
