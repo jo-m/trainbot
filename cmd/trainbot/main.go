@@ -96,7 +96,7 @@ func openSrc(c config) (vid.Src, error) {
 		return vid.NewPiCam3Src(vid.PiCam3Config{
 			Rect:      c.getRect(),
 			Focus:     0,
-			Rotate180: true,
+			Rotate180: false,
 			Format:    vid.FourCCFromString(c.CameraFormatFourCC),
 			FPS:       30,
 		})

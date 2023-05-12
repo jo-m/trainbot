@@ -91,12 +91,12 @@ libcamera-vid \
    --timeout=0 \
    --inline \
    --nopreview \
-   --width 350 --height 280 \
-   --roi 0.368924,0.532407,0.151910,0.216049 \
+   --width 244 --height 290 \
+   --roi 0.490451,0.569444,0.105903,0.223765 \
    --mode=2304:1296:12:P \
    --framerate 30 \
    --autofocus-mode=manual --lens-position=0.000000 \
-   --rotation=180 \
+   --rotation=0 \
    -o vid.h264 --save-pts vid-timestamps.txt
 
 mkvmerge -o test.mkv --timecodes 0:vid-timestamps.txt vid.h264
@@ -123,8 +123,9 @@ while true; do \
    --log-pretty --log-level=debug \
    --input picam3 \
    --camera-format-fourcc=MJPG \
-   -X 850 -Y 690 -W 350 -H 280 \
+   -X 1130 -Y 738 -W 244 -H 290 \
    --px-per-m=42 \
+   --max-speed-kph=130 \
    --enable-upload; \
 done
 ```
