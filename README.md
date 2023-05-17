@@ -91,8 +91,8 @@ libcamera-vid \
    --timeout=0 \
    --inline \
    --nopreview \
-   --width 244 --height 290 \
-   --roi 0.490451,0.569444,0.105903,0.223765 \
+   --width 240 --height 280 \
+   --roi 0.429688,0.185185,0.104167,0.216049 \
    --mode=2304:1296:12:P \
    --framerate 30 \
    --autofocus-mode=manual --lens-position=0.000000 \
@@ -119,14 +119,7 @@ The current production deployment is in a Tmux session...
 source ./env
 
 while true; do \
-./trainbot-arm64 \
-   --log-pretty --log-level=debug \
-   --input picam3 \
-   --camera-format-fourcc=MJPG \
-   -X 1130 -Y 738 -W 244 -H 290 \
-   --px-per-m=42 \
-   --max-speed-kph=130 \
-   --enable-upload; \
+  ./trainbot-arm64; \
 done
 ```
 

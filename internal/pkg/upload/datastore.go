@@ -14,7 +14,7 @@ const (
 
 // DataStore is a utility to centralize data store file system paths and access.
 type DataStore struct {
-	DataDir string `arg:"--data-dir" help:"Directory to store output data" default:"data"`
+	DataDir string `arg:"--data-dir,env:DATA_DIR" help:"Directory to store output data" default:"data" placeholder:"DIR"`
 }
 
 // GetDataPath gets the path to a file in the top level data directory.

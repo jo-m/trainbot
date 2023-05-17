@@ -13,11 +13,11 @@ import (
 
 // FTPConfig is the configuration to connect to a FTP server.
 type FTPConfig struct {
-	Host     string `arg:"--upload-ftp-host,env:UPLOAD_FTP_HOST" help:"FTP hostname"`
-	Port     uint16 `arg:"--upload-ftp-port,env:UPLOAD_FTP_PORT" help:"FTP port" default:"21"`
-	User     string `arg:"--upload-ftp-user,env:UPLOAD_FTP_USER" help:"FTP username"`
-	Password string `arg:"--upload-ftp-password,env:UPLOAD_FTP_PASSWORD" help:"FTP password"`
-	PWD      string `arg:"--upload-ftp-pwd,env:UPLOAD_FTP_PWD" help:"FTP working directory to change to, expected to exist" default:"."`
+	Host     string `arg:"--upload-ftp-host,env:UPLOAD_FTP_HOST" help:"FTP hostname" placeholder:"HOST"`
+	Port     uint16 `arg:"--upload-ftp-port,env:UPLOAD_FTP_PORT" help:"FTP port" default:"21" placeholder:"PORT"`
+	User     string `arg:"--upload-ftp-user,env:UPLOAD_FTP_USER" help:"FTP username" placeholder:"USER"`
+	Password string `arg:"--upload-ftp-password,env:UPLOAD_FTP_PASSWORD" help:"FTP password" placeholder:"PASS"`
+	PWD      string `arg:"--upload-ftp-pwd,env:UPLOAD_FTP_PWD" help:"FTP working directory to change to, expected to exist" default:"." placeholder:"DIR"`
 }
 
 // FTP is a FTP uploader. Use NewFTP to create an instance.
