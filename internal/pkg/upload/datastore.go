@@ -38,7 +38,7 @@ func GetThumbName(blobname string) string {
 	return name + ".thumb" + ext
 }
 
-// GetBlobPath gets the path to a blob thumbnail.
+// GetBlobThumbPath gets the path to a blob thumbnail.
 func (d DataStore) GetBlobThumbPath(blobname string) string {
 	return d.GetBlobPath(GetThumbName(blobname))
 }
