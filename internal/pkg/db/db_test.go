@@ -31,7 +31,7 @@ func Test_Backup(t *testing.T) {
 	assert.NotNil(t, db)
 
 	// insert row
-	id, err := Insert(db, stitch.Train{
+	id, err := InsertTrain(db, stitch.Train{
 		StartTS: time.Now(),
 		EndTS:   time.Now(),
 	}, "testimgpath", "gif")
@@ -65,7 +65,7 @@ func Test_Train_Queries(t *testing.T) {
 	defer db.Close()
 
 	// insert
-	id, err := Insert(db, stitch.Train{
+	id, err := InsertTrain(db, stitch.Train{
 		StartTS: time.Now(),
 		EndTS:   time.Now(),
 	}, "testimgpath", "gif")
@@ -93,4 +93,18 @@ func Test_Train_Queries(t *testing.T) {
 	assert.NoError(t, err)
 	err = SetCleanedUp(db, upl.ID)
 	assert.Error(t, err)
+}
+
+func Test_Temperature_Queries(t *testing.T) {
+	tmp := t.TempDir()
+	dbpath := filepath.Join(tmp, "test.db")
+	db, err := Open(dbpath)
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
+	defer db.Close()
+
+	// insert
+	id, err := InsertTemp(db, time.Now(), 123.456)
+	assert.NoError(t, err)
+	assert.Greater(t, id, int64(0))
 }

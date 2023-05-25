@@ -31,3 +31,11 @@ CREATE TABLE IF NOT EXISTS trains_blob_cleanups (
     cleaned_up_at DATETIME NOT NULL,
     FOREIGN KEY(train_id) REFERENCES trains(id)
 );
+
+-- Periodic temperature measurements from trainbot compute hardware board.
+-- Going to be interesting in summer.
+CREATE TABLE IF NOT EXISTS temperatures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp DATETIME NOT NULL UNIQUE,
+    temp_deg_c DOUBLE NOT NULL
+);

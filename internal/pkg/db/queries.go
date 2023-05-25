@@ -7,8 +7,9 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
-// Insert inserts a new train sighting into the database.
-func Insert(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error) {
+// InsertTrain inserts a new train sighting into the database.
+// Returns the db id of the new row.
+func InsertTrain(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error) {
 	var id int64
 	const q = `
 	INSERT INTO trains (
@@ -114,4 +115,24 @@ func SetCleanedUp(db *sqlx.DB, id int64) error {
 	`
 	_, err := db.Exec(q, id, time.Now())
 	return err
+}
+
+// InsertTemp inserts a new temperature measurement.
+// Returns the db id of the new row.
+func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
+	var id int64
+	const q = `
+	INSERT INTO temperatures (
+		timestamp,
+		temp_deg_c
+	)
+	VALUES (?, ?)
+	RETURNING id;`
+	err := db.Get(&id, q,
+		ts, tempDegC)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
