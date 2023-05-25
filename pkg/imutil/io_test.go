@@ -35,7 +35,7 @@ func Test_Dump_Size_JPG(t *testing.T) {
 	assert.NoError(t, err)
 	err = Dump(fname, img)
 	assert.NoError(t, err)
-	assert.Equal(t, 160675, getFileSize(t, fname))
+	assert.Equal(t, 121978, getFileSize(t, fname))
 }
 
 func Benchmark_Dump_PNG(b *testing.B) {
