@@ -48,7 +48,7 @@ func Dump(path string, img image.Image) error {
 	return errors.New("unknown image suffix")
 }
 
-// Dump dumps a JPEG to a file with a given quality.
+// DumpJPEG dumps a JPEG to a file with a given quality.
 func DumpJPEG(path string, img image.Image, quality int) error {
 	// #nosec 304
 	f, err := os.Create(path)

@@ -32,6 +32,7 @@ func (d DataStore) GetBlobPath(blobname string) string {
 	return filepath.Join(d.DataDir, blobsDir, blobname)
 }
 
+// GetThumbName gets the file name of a blob thumbnail.
 func GetThumbName(blobname string) string {
 	ext := filepath.Ext(blobname)
 	name := strings.TrimSuffix(blobname, ext)
