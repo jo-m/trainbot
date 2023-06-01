@@ -3,6 +3,7 @@ import TrainList from '@/components/TrainList.vue'
 import TrainGrid from '@/components/TrainGrid.vue'
 import FilterDialog, { type updateFilterArgs } from '@/components/FilterDialog.vue'
 import StaleDataWarningDialog from '@/components/StaleDataWarningDialog.vue'
+import TemperatureDisplay from '@/components/TemperatureDisplay.vue'
 import FavoritesDialog from '@/components/FavoritesDialog.vue'
 import { ref, onMounted, onUnmounted, inject, watch } from 'vue'
 import { dbKey, getTrains, type Train as TrainType, type Filter } from '@/lib/db'
@@ -111,6 +112,7 @@ function scrollUp() {
 <template>
   <!-- App bar -->
   <Teleport to="#app-bar-teleport">
+    <TemperatureDisplay />
     <StaleDataWarningDialog />
 
     <v-btn
