@@ -12,7 +12,9 @@ const tempTS = DateTime.fromSQL(tempRes[0].values[0][0] as string)
 </script>
 
 <template>
-  <span :title="`Recorded at ${tempTS.toLocaleString(DateTime.DATETIME_FULL)}`">
+  <span
+    :title="`Raspberry Pi Core Temperature, at ${tempTS.toLocaleString(DateTime.DATETIME_FULL)}`"
+  >
     {{ Math.round(tempDegC as number) }} °C
   </span>
 </template>
