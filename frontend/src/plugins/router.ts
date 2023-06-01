@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import TrainsView from '@/views/TrainsView.vue'
 import TrainDetailView from '@/views/TrainDetailView.vue'
 import TrainStatsView from '@/views/TrainStatsView.vue'
+import CleanupView from '@/views/CleanupView.vue'
 import TrainsDBProvider from '@/views/TrainsDBProvider.vue'
 import NotFound from '@/views/NotFound.vue'
 
@@ -27,6 +28,11 @@ const router = createRouter({
           path: 'stats',
           name: 'trainStats',
           component: TrainStatsView
+        },
+        {
+          path: 'cleanup',
+          name: 'trainCleanup',
+          component: CleanupView
         },
         {
           path: ':id',
