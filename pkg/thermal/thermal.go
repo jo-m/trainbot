@@ -13,6 +13,7 @@ const basePath = "/sys/class/thermal/thermal_zone0"
 // MeasureDegC reads a thermal measurement from sysfs.
 func MeasureDegC() (float64, error) {
 	path := filepath.Join(basePath, "temp")
+	// #nosec 304
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return 0, err
