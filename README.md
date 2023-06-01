@@ -1,11 +1,13 @@
-# Trainbot
+# Onlytrains
 
 <img src="frontend/src/assets/logo-day.svg" height="100" width="100">
 
-Trainbot watches a piece of train track, detects passing trains, and stitches together images of them.
+Watches a piece of train track, detects passing trains, and stitches together images of them.
 Should work with any video4linux USB cam, or Raspberry Pi camera v3 modules.
 
 Frontend: <https://trains.jo-m.ch/>
+
+The name Onlytrains is credited to [@timethy](https://github.com/timethy).
 
 [<img src="internal/pkg/stitch/testdata/set0/day.jpg">](internal/pkg/stitch/testdata/set0/day.jpg)
 [<img src="internal/pkg/stitch/testdata/set0/night.jpg">](internal/pkg/stitch/testdata/set0/night.jpg)
