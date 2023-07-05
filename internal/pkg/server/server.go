@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/jpeg"
 	"net/http"
+	"sync"
 
 	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/mattn/go-mjpeg"
@@ -18,6 +19,9 @@ import (
 type Server struct {
 	mux    *http.ServeMux
 	stream *mjpeg.Stream
+
+	lastFrameLock sync.Mutex
+	lastFrame     []byte
 }
 
 // NewServer creates a new server.
@@ -36,6 +40,7 @@ func NewServer(embed bool) (*Server, error) {
 
 	mux.HandleFunc("/cameras", s.handleCameras)
 	mux.HandleFunc("/stream.mjpeg", s.stream.ServeHTTP)
+	mux.HandleFunc("/stream.jpeg", s.handleStreamSnapshot)
 
 	mux.Handle("/", http.FileServer(wwwRoot))
 
@@ -64,6 +69,21 @@ func (s *Server) handleCameras(resp http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+// handleStreamSnapshot returns a JPEG of the last frame.
+// Test via
+//
+//	http localhost:8080/stream.jpeg
+func (s *Server) handleStreamSnapshot(resp http.ResponseWriter, _ *http.Request) {
+	resp.Header().Add("content-type", "image/jpeg")
+	resp.WriteHeader(http.StatusOK)
+
+	s.lastFrameLock.Lock()
+	ref := s.lastFrame
+	s.lastFrameLock.Unlock()
+
+	resp.Write(ref)
+}
+
 // GetMux returns the router.
 func (s *Server) GetMux() *http.ServeMux {
 	return s.mux
@@ -82,5 +102,10 @@ func (s *Server) SetFrame(frame image.Image) error {
 // SetFrameRawJPEG streams a raw encoded JPEG frame.
 func (s *Server) SetFrameRawJPEG(frame []byte) error {
 	cp := append([]byte(nil), frame...)
+
+	s.lastFrameLock.Lock()
+	s.lastFrame = cp
+	s.lastFrameLock.Unlock()
+
 	return s.stream.Update(cp)
 }
