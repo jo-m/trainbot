@@ -149,6 +149,19 @@ All database access happens in the browser via sql.js.
 * Zerolog is used as logging framework
 * "Library" code uses `panic()`, "application" code use `log.Panic()...`
 
+## Hardware setup
+
+My deployment is installed on my balcony in a waterproof case, as seen in the [MagPi Magazine](https://magpi.raspberrypi.com/issues/131).
+
+The case is this one from AliExpress: https://www.aliexpress.com/item/1005003010275396.html
+
+Mounting plate for Camera: https://www.tinkercad.com/things/1FowVwonymJ
+
+Mounting plate for Raspberry Pi: https://www.tinkercad.com/things/djlEF6oQSY1
+
+The prints were ordered from JLCPCB.
+Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the 86mm stated in the picture on the Aliexpress product page are in reality a bit less. You can solve that by changing the 3d design, or by cutting off a bit from the print. It might however also depend on your specific case.
+
 ## TODOs
 
 - [x] Also create GIFs
