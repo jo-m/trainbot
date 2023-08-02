@@ -3,7 +3,6 @@ import { inject } from 'vue'
 import { dbKey, queryOne } from '@/lib/db'
 import type SqlJs from 'sql.js'
 import {
-  avgSpeedMPS,
   avgLengthM,
   histCountPerDayOfWeek,
   dayOfWeekLabels,
@@ -37,10 +36,6 @@ const widthPx = 200
           <tr>
             <td>Going left</td>
             <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains WHERE speed_px_s < 0;') }}</td>
-          </tr>
-          <tr>
-            <td>Average speed</td>
-            <td>{{ Math.round(avgSpeedMPS(db) * 3.6 * 10) / 10 }} km/h</td>
           </tr>
           <tr>
             <td>Average length</td>

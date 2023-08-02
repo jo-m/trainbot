@@ -1,14 +1,6 @@
 import { queryOne } from '@/lib/db'
 import type SqlJs from 'sql.js'
 
-export const avgSpeedMPS = (db: SqlJs.Database): number =>
-  queryOne(
-    db,
-    `SELECT
-        SUM(ABS(speed_px_s / px_per_m)) / COUNT(*)
-    FROM trains;`
-  ) as number
-
 export const avgLengthM = (db: SqlJs.Database): number =>
   queryOne(
     db,
