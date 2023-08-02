@@ -7,12 +7,12 @@ import {
   histCountPerDayOfWeek,
   dayOfWeekLabels,
   histHourOfDay,
-  histSpeedKPH
+  histSpeedKPH,
+  tempDegCPast24hAvg
 } from '@/lib/stats'
+
 import VerticalHist from '@/components/VerticalHist.vue'
-
 const db = inject(dbKey) as SqlJs.Database
-
 const widthPx = 200
 </script>
 
@@ -69,6 +69,21 @@ const widthPx = 200
                 :data="histHourOfDay(db)"
                 :width-px="widthPx"
                 color="#009900"
+              ></VerticalHist>
+            </td>
+          </tr>
+          <tr>
+            <td>Hist: Avg core temperature [°C, 24h]</td>
+            <td>
+              <VerticalHist
+                :data="tempDegCPast24hAvg(db)"
+                :width-px="widthPx"
+                :labels="
+                  Object.fromEntries(
+                    Array.from({ length: 24 }, (x, i) => [i, `00${i}:00`.slice(-5)])
+                  )
+                "
+                color="#cc0000"
               ></VerticalHist>
             </td>
           </tr>
