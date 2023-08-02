@@ -59,12 +59,6 @@ const dayOfWeek: { [key: number]: string } = {
 
     <v-card-text>
       <v-table>
-        <thead>
-          <tr>
-            <th class="text-left">Name</th>
-            <th class="text-left">Value</th>
-          </tr>
-        </thead>
         <tbody>
           <tr>
             <td>Number of trains</td>
