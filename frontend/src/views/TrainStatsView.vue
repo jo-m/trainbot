@@ -73,7 +73,7 @@ const widthPx = 200
             </td>
           </tr>
           <tr>
-            <td>Hist: Avg core temperature [°C, 24h]</td>
+            <td>Avg core temperature 24h [°C]</td>
             <td>
               <VerticalHist
                 :data="tempDegCPast24hAvg(db)"
