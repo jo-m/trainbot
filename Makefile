@@ -4,10 +4,10 @@ DOCKER_BUILDER_IMG_TAG = trainbot-builder
 DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
 
 # https://hub.docker.com/_/debian
-DOCKER_BASE_IMAGE = debian:bullseye-20230612
+DOCKER_BASE_IMAGE = debian:bullseye-20230725
 # https://go.dev/dl/
-GO_VERSION = 1.20.5
-GO_ARCHIVE_SHA256 = d7ec48cde0d3d2be2c69203bc3e0a44de8660b9c09a6e85c4732a3f7dc442612
+GO_VERSION = 1.20.7
+GO_ARCHIVE_SHA256 = f0a87f1bcae91c4b69f8dc2bc6d7e6bfcd7524fceec130af525058c0c17b1b44
 # https://github.com/dominikh/go-tools/releases
 GO_STATICCHECK_VERSION = 2023.1.3
 
