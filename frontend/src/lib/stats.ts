@@ -47,3 +47,19 @@ export const histHourOfDay = (db: SqlJs.Database): number[][] =>
   GROUP BY hod
   ORDER BY hod;`
   )[0].values as number[][]
+
+// no magic needed to fill in missing bins, we have values for everything
+export const histSpeedKPH = (db: SqlJs.Database, binSz: number = 10): number[][] =>
+  db.exec(
+    `WITH speed_rounded AS (
+      SELECT
+        CAST(ABS(speed_px_s / px_per_m * 3.6)/${binSz} AS INTEGER) * ${binSz} AS speed_rounded
+      FROM trains
+    )
+    SELECT
+      speed_rounded,
+      COUNT(*)
+  FROM speed_rounded
+  GROUP BY speed_rounded
+  ORDER BY speed_rounded;`
+  )[0].values as number[][]

@@ -7,13 +7,14 @@ import {
   avgLengthM,
   histCountPerDayOfWeek,
   dayOfWeekLabels,
-  histHourOfDay
+  histHourOfDay,
+  histSpeedKPH
 } from '@/lib/stats'
 import VerticalHist from '@/components/VerticalHist.vue'
 
 const db = inject(dbKey) as SqlJs.Database
 
-const widthPx = 150
+const widthPx = 200
 </script>
 
 <template>
@@ -44,6 +45,16 @@ const widthPx = 150
           <tr>
             <td>Average length</td>
             <td>{{ Math.round(avgLengthM(db) * 10) / 10 }} m</td>
+          </tr>
+          <tr>
+            <td>Hist: Speed [&gt; km/h]</td>
+            <td>
+              <VerticalHist
+                :data="histSpeedKPH(db)"
+                :width-px="widthPx"
+                color="#0000aa"
+              ></VerticalHist>
+            </td>
           </tr>
           <tr>
             <td>Hist: Day of week</td>
