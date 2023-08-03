@@ -81,7 +81,10 @@ func (s *Server) handleStreamSnapshot(resp http.ResponseWriter, _ *http.Request)
 	ref := s.lastFrame
 	s.lastFrameLock.Unlock()
 
-	resp.Write(ref)
+	_, err := resp.Write(ref)
+	if err != nil {
+		log.Err(err).Send()
+	}
 }
 
 // GetMux returns the router.
