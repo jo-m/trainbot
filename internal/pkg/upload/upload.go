@@ -124,20 +124,21 @@ func All(ctx context.Context, store DataStore, dbx *sqlx.DB, uploader Uploader) 
 }
 
 // CleanupOrphanedRemoteBlobs removes from the remote storage all blobs which are unknown to the database.
-func CleanupOrphanedRemoteBlobs(ctx context.Context, dbx *sqlx.DB, uploader Uploader) error {
+func CleanupOrphanedRemoteBlobs(ctx context.Context, dbx *sqlx.DB, uploader Uploader) (int, error) {
 	// Get list of blobs from remote.
 	remoteBlobs, err := uploader.ListFiles(ctx, blobsDir)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	sort.Strings(remoteBlobs)
 
 	// Map of blobs existing in the database, for comparison.
 	knownBlobs, err := db.GetAllBlobs(dbx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
+	var nDeletions int
 	for _, remoteBlob := range remoteBlobs {
 		_, known := knownBlobs[remoteBlob]
 		_, knownThumb := knownBlobs[RevertThumbName(remoteBlob)]
@@ -146,10 +147,11 @@ func CleanupOrphanedRemoteBlobs(ctx context.Context, dbx *sqlx.DB, uploader Uplo
 			err := uploader.DeleteFile(ctx, serverBlobPath(remoteBlob))
 			if err != nil {
 				log.Err(err).Send()
-				return err
+				return 0, err
 			}
+			nDeletions++
 		}
 	}
 
-	return nil
+	return nDeletions, nil
 }

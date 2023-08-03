@@ -255,9 +255,10 @@ func uploadOnce(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
 	n, err := upload.All(ctx, store, dbx, uploader)
 	if err != nil {
 		log.Err(err).Msg("uploading all failed")
-	} else {
-		log.Debug().Int("n", n).Msg("uploaded files")
+		return
 	}
+
+	log.Debug().Int("n", n).Msg("uploaded files")
 }
 
 func uploadForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
@@ -276,10 +277,13 @@ func cleanupOrphanedRemoteBlobsOnce(store upload.DataStore, dbx *sqlx.DB, c uplo
 	}
 	defer uploader.Close()
 
-	err = upload.CleanupOrphanedRemoteBlobs(ctx, dbx, uploader)
+	n, err := upload.CleanupOrphanedRemoteBlobs(ctx, dbx, uploader)
 	if err != nil {
 		log.Err(err).Msg("cleaning up orphaned remote blobs failed")
+		return
 	}
+
+	log.Info().Int("n", n).Msg("cleaned up orphaned remote blobs")
 }
 
 func cleanupOrphanedRemoteBlobsForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
