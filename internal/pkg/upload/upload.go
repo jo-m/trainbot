@@ -25,6 +25,9 @@ type Uploader interface {
 	Upload(ctx context.Context, remotePath string, contents io.Reader) error
 	// AtomicUpload uploads a file, trying to swap out the file in an atomic operation.
 	AtomicUpload(ctx context.Context, remotePath string, contents io.Reader) error
+	// ListFiles lists all regular files in a remote directory.
+	// Any non-regular files (e.g. directories) are to be ignored.
+	ListFiles(ctx context.Context, remotePath string) ([]string, error)
 	// Close terminates the connection and frees any resources.
 	Close() error
 }

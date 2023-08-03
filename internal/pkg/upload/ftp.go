@@ -103,3 +103,21 @@ func (f *FTP) AtomicUpload(ctx context.Context, remotePath string, contents io.R
 
 	return f.conn.Rename(tempName, remotePath)
 }
+
+// ListFiles implements Uploader.
+func (f *FTP) ListFiles(_ context.Context, remotePath string) ([]string, error) {
+	l, err := f.conn.List(remotePath)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := []string{}
+	for _, e := range l {
+		if e.Type != ftp.EntryTypeFile {
+			continue
+		}
+		ret = append(ret, e.Name)
+	}
+
+	return ret, nil
+}
