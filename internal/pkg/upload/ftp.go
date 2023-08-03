@@ -29,7 +29,7 @@ type FTP struct {
 // Compile time interface check.
 var _ Uploader = (*FTP)(nil)
 
-// NewFTP connects to a FTP server and returns a new uploader.
+// NewFTP connects and authenticates to an FTP server.
 func NewFTP(ctx context.Context, c FTPConfig) (*FTP, error) {
 	conn, err := ftp.Dial(fmt.Sprintf("%s:%d", c.Host, c.Port), ftp.DialWithContext(ctx))
 	if err != nil {
@@ -54,7 +54,7 @@ func NewFTP(ctx context.Context, c FTPConfig) (*FTP, error) {
 	}, nil
 }
 
-// Close terminates the connection.
+// Close implements Uploader.
 func (f *FTP) Close() error {
 	return f.conn.Quit()
 }
@@ -83,7 +83,7 @@ func (f *FTP) createDirs(dirsPath string) error {
 	return nil
 }
 
-// Upload uploads a file.
+// Upload implements Uploader.
 func (f *FTP) Upload(_ context.Context, remotePath string, contents io.Reader) error {
 	err := f.createDirs(path.Dir(remotePath))
 	if err != nil {
@@ -93,7 +93,7 @@ func (f *FTP) Upload(_ context.Context, remotePath string, contents io.Reader) e
 	return f.conn.Stor(remotePath, contents)
 }
 
-// AtomicUpload uploads a file, trying to swap out the file in an atomic operation.
+// AtomicUpload implements Uploader.
 func (f *FTP) AtomicUpload(ctx context.Context, remotePath string, contents io.Reader) error {
 	tempName := remotePath + ".__temp__"
 	err := f.Upload(ctx, tempName, contents)

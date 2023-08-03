@@ -19,10 +19,13 @@ const (
 	dbBakFile = "db.sqlite3.bak"
 )
 
-// Uploader uploads files to a remote location.
+// Uploader is an interface for interaction with a remote file storage location.
 type Uploader interface {
+	// Upload uploads a file.
 	Upload(ctx context.Context, remotePath string, contents io.Reader) error
+	// AtomicUpload uploads a file, trying to swap out the file in an atomic operation.
 	AtomicUpload(ctx context.Context, remotePath string, contents io.Reader) error
+	// Close terminates the connection and frees any resources.
 	Close() error
 }
 
