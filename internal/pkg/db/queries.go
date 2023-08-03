@@ -136,3 +136,39 @@ func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
 
 	return id, nil
 }
+
+// GetAllBlobs lists all blobs which the database knows about.
+// Does not include thumbnails.
+func GetAllBlobs(db *sqlx.DB) (map[string]struct{}, error) {
+	const q = `
+	SELECT
+		id, image_file_path
+	FROM trains
+	WHERE image_file_path IS NOT NULL
+	
+	UNION ALL
+	SELECT
+		id, gif_file_path
+	FROM trains
+		WHERE gif_file_path IS NOT NULL
+	ORDER BY id ASC;`
+
+	rows, err := db.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ret := make(map[string]struct{})
+	var id int64
+	var imgPath string
+	for rows.Next() {
+		err := rows.Scan(&id, &imgPath)
+		if err != nil {
+			return nil, err
+		}
+		ret[imgPath] = struct{}{}
+	}
+
+	return ret, nil
+}
