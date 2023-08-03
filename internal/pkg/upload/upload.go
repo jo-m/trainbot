@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"sort"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jo-m/trainbot/internal/pkg/db"
@@ -28,6 +29,8 @@ type Uploader interface {
 	// ListFiles lists all regular files in a remote directory.
 	// Any non-regular files (e.g. directories) are to be ignored.
 	ListFiles(ctx context.Context, remotePath string) ([]string, error)
+	// DeleteFile deletes a regular file at the given remote path.
+	DeleteFile(ctx context.Context, remotePath string) error
 	// Close terminates the connection and frees any resources.
 	Close() error
 }
@@ -118,4 +121,35 @@ func All(ctx context.Context, store DataStore, dbx *sqlx.DB, uploader Uploader) 
 	}
 
 	return nUploads, uploadFile(ctx, uploader, store.GetDataPath(dbBakFile), dbFile, true)
+}
+
+// CleanupOrphanedRemoteBlobs removes from the remote storage all blobs which are unknown to the database.
+func CleanupOrphanedRemoteBlobs(ctx context.Context, dbx *sqlx.DB, uploader Uploader) error {
+	// Get list of blobs from remote.
+	remoteBlobs, err := uploader.ListFiles(ctx, blobsDir)
+	if err != nil {
+		return err
+	}
+	sort.Strings(remoteBlobs)
+
+	// Map of blobs existing in the database, for comparison.
+	knownBlobs, err := db.GetAllBlobs(dbx)
+	if err != nil {
+		return err
+	}
+
+	for _, remoteBlob := range remoteBlobs {
+		_, known := knownBlobs[remoteBlob]
+		_, knownThumb := knownBlobs[RevertThumbName(remoteBlob)]
+		if !known && !knownThumb {
+			log.Info().Str("remoteBlob", remoteBlob).Msg("orphaned blob, deleting")
+			err := uploader.DeleteFile(ctx, serverBlobPath(remoteBlob))
+			if err != nil {
+				log.Err(err).Send()
+				return err
+			}
+		}
+	}
+
+	return nil
 }

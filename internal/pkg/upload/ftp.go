@@ -121,3 +121,7 @@ func (f *FTP) ListFiles(_ context.Context, remotePath string) ([]string, error) 
 
 	return ret, nil
 }
+
+func (f *FTP) DeleteFile(ctx context.Context, remotePath string) error {
+	return f.conn.Delete(remotePath)
+}
