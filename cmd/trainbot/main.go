@@ -268,7 +268,7 @@ func uploadForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
 	}
 }
 
-func cleanupOrphanedRemoteBlobsOnce(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
+func cleanupOrphanedRemoteBlobsOnce(dbx *sqlx.DB, c upload.FTPConfig) {
 	ctx := context.Background()
 	uploader, err := upload.NewFTP(ctx, c)
 	if err != nil {
@@ -286,12 +286,13 @@ func cleanupOrphanedRemoteBlobsOnce(store upload.DataStore, dbx *sqlx.DB, c uplo
 	log.Info().Int("n", n).Msg("cleaned up orphaned remote blobs")
 }
 
-func cleanupOrphanedRemoteBlobsForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
+func cleanupOrphanedRemoteBlobsForever(dbx *sqlx.DB, c upload.FTPConfig) {
 	for {
-		cleanupOrphanedRemoteBlobsOnce(store, dbx, c)
+		cleanupOrphanedRemoteBlobsOnce(dbx, c)
 
 		// Sleep for a long time because we don't want to annoy the server sysadmins with FTP LIST commands
 		// returning large listings all the time.
+		// #nosec G404
 		sleepS := 3600 + rand.Intn(3600)
 		log.Info().Int("sleepS", sleepS).Msg("sleeping until next cleanup")
 		time.Sleep(time.Duration(sleepS) * time.Second)
@@ -419,7 +420,7 @@ func main() {
 	if c.EnableUpload {
 		go uploadForever(c.DataStore, dbx, c.FTPConfig)
 		go deleteOldLocalBlobsForever(c.DataStore, dbx)
-		go cleanupOrphanedRemoteBlobsForever(c.DataStore, dbx, c.FTPConfig)
+		go cleanupOrphanedRemoteBlobsForever(dbx, c.FTPConfig)
 	}
 	if c.EnableTempMeasurement {
 		go measureTempForever(dbx)
