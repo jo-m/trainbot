@@ -9,6 +9,7 @@ import (
 	"image"
 	"io/fs"
 	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime/pprof"
@@ -266,7 +267,34 @@ func uploadForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
 	}
 }
 
-func deleteOldBlobsOnce(store upload.DataStore, dbx *sqlx.DB) error {
+func cleanupOrphanedRemoteBlobsOnce(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
+	ctx := context.Background()
+	uploader, err := upload.NewFTP(ctx, c)
+	if err != nil {
+		log.Err(err).Msg("could not create uploader")
+		return
+	}
+	defer uploader.Close()
+
+	err = upload.CleanupOrphanedRemoteBlobs(ctx, dbx, uploader)
+	if err != nil {
+		log.Err(err).Msg("cleaning up orphaned remote blobs failed")
+	}
+}
+
+func cleanupOrphanedRemoteBlobsForever(store upload.DataStore, dbx *sqlx.DB, c upload.FTPConfig) {
+	for {
+		cleanupOrphanedRemoteBlobsOnce(store, dbx, c)
+
+		// Sleep for a long time because we don't want to annoy the server sysadmins with FTP LIST commands
+		// returning large listings all the time.
+		sleepS := 3600 + rand.Intn(3600)
+		log.Info().Int("sleepS", sleepS).Msg("sleeping until next cleanup")
+		time.Sleep(time.Duration(sleepS) * time.Second)
+	}
+}
+
+func deleteOldLocalBlobsOnce(store upload.DataStore, dbx *sqlx.DB) error {
 	for {
 		toCleanup, err := db.GetNextCleanup(dbx)
 		if err != nil {
@@ -317,9 +345,9 @@ func deleteOldBlobsOnce(store upload.DataStore, dbx *sqlx.DB) error {
 	}
 }
 
-func deleteOldBlobsForever(store upload.DataStore, dbx *sqlx.DB) {
+func deleteOldLocalBlobsForever(store upload.DataStore, dbx *sqlx.DB) {
 	for {
-		err := deleteOldBlobsOnce(store, dbx)
+		err := deleteOldLocalBlobsOnce(store, dbx)
 		if err != nil {
 			log.Err(err).Msg("failed up clean up")
 		}
@@ -386,7 +414,8 @@ func main() {
 	go processTrains(c.DataStore, dbx, trains, &done)
 	if c.EnableUpload {
 		go uploadForever(c.DataStore, dbx, c.FTPConfig)
-		go deleteOldBlobsForever(c.DataStore, dbx)
+		go deleteOldLocalBlobsForever(c.DataStore, dbx)
+		go cleanupOrphanedRemoteBlobsForever(c.DataStore, dbx, c.FTPConfig)
 	}
 	if c.EnableTempMeasurement {
 		go measureTempForever(dbx)
