@@ -28,18 +28,35 @@ func (d DataStore) GetDBPath() string {
 }
 
 // GetBlobPath gets the path to a blob.
-func (d DataStore) GetBlobPath(blobname string) string {
-	return filepath.Join(d.DataDir, blobsDir, blobname)
+func (d DataStore) GetBlobPath(blobName string) string {
+	return filepath.Join(d.DataDir, blobsDir, blobName)
 }
 
 // GetThumbName gets the file name of a blob thumbnail.
-func GetThumbName(blobname string) string {
-	ext := filepath.Ext(blobname)
-	name := strings.TrimSuffix(blobname, ext)
+func GetThumbName(blobName string) string {
+	ext := filepath.Ext(blobName)
+	name := strings.TrimSuffix(blobName, ext)
+
 	return name + ".thumb" + ext
 }
 
+// RevertThumbName inverts the result of GetThumbName(), i.e. converts a thumbnail
+// name back to the initial file name.
+func RevertThumbName(thumbName string) string {
+	ext := filepath.Ext(thumbName)
+	withThumbExt := strings.TrimSuffix(thumbName, ext)
+
+	thumbExt := filepath.Ext(withThumbExt)
+	name := strings.TrimSuffix(withThumbExt, thumbExt)
+
+	if thumbExt == "" {
+		return name
+	}
+
+	return name + ext
+}
+
 // GetBlobThumbPath gets the path to a blob thumbnail.
-func (d DataStore) GetBlobThumbPath(blobname string) string {
-	return d.GetBlobPath(GetThumbName(blobname))
+func (d DataStore) GetBlobThumbPath(blobName string) string {
+	return d.GetBlobPath(GetThumbName(blobName))
 }
