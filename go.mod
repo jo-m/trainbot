@@ -12,7 +12,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rs/zerolog v1.30.0
 	github.com/stretchr/testify v1.8.4
-	github.com/u2takey/ffmpeg-go v0.4.1
+	github.com/u2takey/ffmpeg-go v0.5.0
 	github.com/vladimirvivien/go4vl v0.0.5
 	go-hep.org/x/hep v0.33.0
 	gonum.org/v1/gonum v0.13.0
@@ -23,7 +23,7 @@ require (
 	git.sr.ht/~sbinet/gg v0.5.0 // indirect
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.315 // indirect
+	github.com/aws/aws-sdk-go v1.44.322 // indirect
 	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-fonts/liberation v0.3.1 // indirect
@@ -39,12 +39,12 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/u2takey/go-utils v0.3.1 // indirect
-	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect
-	golang.org/x/image v0.10.0 // indirect
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
+	golang.org/x/image v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
-	golang.org/x/tools v0.11.1 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/tools v0.12.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
