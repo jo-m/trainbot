@@ -53,4 +53,29 @@ func Test_JPEGScanner_Scan_Multiple(t *testing.T) {
 	data, err := scanner.Scan()
 	assert.True(t, errors.Is(err, io.EOF))
 	assert.Len(t, data, 0)
+
+	data, err = scanner.Scan()
+	assert.True(t, errors.Is(err, io.EOF))
+	assert.Len(t, data, 0)
+}
+
+func Fuzz_JPEGScanner_Scan(f *testing.F) {
+	img, err := os.ReadFile(testImage)
+	require.NoError(f, err)
+
+	f.Add(img)
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		buf := bytes.Buffer{}
+		for i := 0; i < 5; i++ {
+			n, err := buf.Write(img)
+			require.NoError(t, err)
+			require.Equal(t, len(img), n)
+		}
+
+		scan := NewJPEGScanner(&buf)
+		for i := 0; i < 10; i++ {
+			scan.Scan()
+		}
+	})
 }
