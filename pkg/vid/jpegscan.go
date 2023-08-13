@@ -2,6 +2,7 @@ package vid
 
 import (
 	"bufio"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -16,8 +17,8 @@ const (
 	sosMarker  = 0xda // Start Of Scan.
 )
 
-// JPEGScanner works like bufio.Scanner but on JPEG images.
-// Useful to pull frame by frame out of a MJPEG stream.
+// JPEGScanner works similar to bufio.Scanner but on JPEG images.
+// Useful to pull frame after frame out of a MJPEG stream.
 type JPEGScanner struct {
 	r   *bufio.Reader
 	buf []byte
@@ -120,16 +121,16 @@ func (s *JPEGScanner) Scan() ([]byte, error) {
 
 	soi, err := s.readBytes(2)
 	if err != nil {
-		return nil, errors.New("could not read soi")
+		return nil, fmt.Errorf("could not read soi: %w", err)
 	}
 	if soi[0] != 0xFF || soi[1] != soiMarker {
-		return nil, errors.New("invalid soi found")
+		return nil, fmt.Errorf("invalid soi found: 0x%s", hex.EncodeToString(soi[0:2]))
 	}
 
 	for {
 		marker, err := s.readBytes(2)
 		if err != nil {
-			return nil, errors.New("could not read segment marker")
+			return nil, fmt.Errorf("could not read segment marker: %w", err)
 		}
 		if marker[0] != 0xFF {
 			return nil, fmt.Errorf("invalid segment marker 0x%x", marker[1])
