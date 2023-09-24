@@ -2,8 +2,9 @@ ARG DOCKER_BASE_IMAGE
 FROM ${DOCKER_BASE_IMAGE}
 
 # Install tools
-RUN export DEBIAN_FRONTEND=noninteractive                   \
-           DEBCONF_NONINTERACTIVE_SEEN=true              && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean               && \
     apt-get update                                       && \
     apt-get upgrade -yq                                  && \
     apt-get install -yq                                     \
@@ -11,28 +12,22 @@ RUN export DEBIAN_FRONTEND=noninteractive                   \
         clang-format                                        \
         curl                                                \
         locales                                             \
-        make                                             && \
-    apt-get clean                                        && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        make
 
 # Install cross-compilation tools and dependencies
-RUN export DEBIAN_FRONTEND=noninteractive                   \
-           DEBCONF_NONINTERACTIVE_SEEN=true              && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update                                       && \
     apt-get install -yq                                     \
         gcc-aarch64-linux-gnu                               \
-        libc6-dev-arm64-cross                            && \
-    apt-get clean                                        && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        libc6-dev-arm64-cross
 
 # Install test runtime dependencies
-RUN export DEBIAN_FRONTEND=noninteractive                   \
-           DEBCONF_NONINTERACTIVE_SEEN=true              && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update                                       && \
     apt-get install -yq                                     \
-        ffmpeg                                           && \
-    apt-get clean                                        && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        ffmpeg
 
 # Add unprivileged build user
 RUN adduser --gecos '' --disabled-password build
@@ -57,22 +52,32 @@ USER build
 
 # Install staticcheck
 ARG GO_STATICCHECK_VERSION
-RUN go install "honnef.co/go/tools/cmd/staticcheck@${GO_STATICCHECK_VERSION}"
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    go install "honnef.co/go/tools/cmd/staticcheck@${GO_STATICCHECK_VERSION}"
 
 # Get Go project modules
 COPY --chown=build:build go.mod go.sum /src/
-RUN go mod download
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    go mod download
 
 # Copy sources
 COPY --chown=build:build . /src/
 
 # Build for host and run checks and tests
-RUN make check
-RUN make build_host
 RUN mv build/* /build/
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make check
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make build_host
 
 # Build for arm64
-RUN make build_arm64
 RUN mv build/* /build/
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make build_arm64
 
 RUN ls -l /build
