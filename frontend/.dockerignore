@@ -1,0 +1,12 @@
+*
+!package.json
+!yarn.lock
+
+!env.d.ts
+!index.html
+!public/
+public/_data
+!src/
+!tsconfig.json
+!tsconfig.node.json
+!vite.config.ts

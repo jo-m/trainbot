@@ -60,7 +60,6 @@ build_arm64:
 	go build -o build/pmatch-arm64 ./examples/pmatch
 
 build_docker:
-	# Build
 	docker build \
 		--build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"              \
 		--build-arg GO_VERSION="$(GO_VERSION)"                            \
