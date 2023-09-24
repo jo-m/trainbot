@@ -1,8 +1,5 @@
 .PHONY: format lint test test_more bench check build_host build_arm64 build_docker clean run_confighelper run_camera run_videofile
 
-DOCKER_BUILDER_IMG_TAG = trainbot-builder
-DOCKER_TMP_CONTAINER_NAME = trainbot-tmp-container
-
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20230725
 # https://go.dev/dl/
@@ -65,28 +62,12 @@ build_arm64:
 build_docker:
 	# Build
 	docker build \
-		--tag "$(DOCKER_BUILDER_IMG_TAG)"                                 \
 		--build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"              \
 		--build-arg GO_VERSION="$(GO_VERSION)"                            \
 		--build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"              \
 		--build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"    \
+		--output=build --target=export                                    \
 		.
-
-	# Start temporary container
-	mkdir -p build
-	docker rm -f $(DOCKER_TMP_CONTAINER_NAME) || true
-	docker create -ti --name $(DOCKER_TMP_CONTAINER_NAME) $(DOCKER_BUILDER_IMG_TAG)
-
-	# Copy
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/trainbot build/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/confighelper build/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/pmatch build/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/trainbot-arm64 build/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/confighelper-arm64 build/
-	docker cp $(DOCKER_TMP_CONTAINER_NAME):/build/pmatch-arm64 build/
-
-	# Remove temporary container
-	docker rm -f $(DOCKER_TMP_CONTAINER_NAME)
 
 clean:
 	rm -rf build/
