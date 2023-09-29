@@ -1,0 +1,40 @@
+on: [push]
+name: ci
+
+jobs:
+  build_binary_go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run checks and build
+        run: make build_docker
+      - name: List build artifacts
+        run: ls -lah build/
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: |
+            build/
+  build_frontend_ts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run checks and build
+        run: |
+          cd frontend
+          make build_docker
+      - name: List build artifacts
+        run: ls -lah frontend/dist/
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-dist
+          path: |
+            frontend/dist/
