@@ -7,3 +7,6 @@ RUN yarn install
 
 COPY . .
 RUN yarn run build
+
+FROM scratch AS export
+COPY --from=builder /app/dist /

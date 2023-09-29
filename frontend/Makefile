@@ -34,4 +34,7 @@ deploy: build
 	rsync --verbose --archive --compress --rsh=ssh dist/ $(FRONTEND_DEPLOY_TARGET_SSH_HOST_)
 
 build_docker:
-	docker build --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)" .
+	docker build \
+		--build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"   \
+		--output=dist --target=export                          \
+		.
