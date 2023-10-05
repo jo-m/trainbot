@@ -10,13 +10,14 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/mattn/go-sqlite3"
+
+	sqlite3 "modernc.org/sqlite"
 )
 
 //go:embed schema.sql
 var sqlSchema string
 
-const driver = "sqlite3"
+const driver = "sqlite"
 
 func buildDSN(path string, readOnly bool) string {
 	pragmas := map[string]string{
@@ -63,59 +64,43 @@ func Backup(src *sqlx.DB, destPath string) error {
 		return err
 	}
 
-	dest, err := sqlx.Open(driver, destPath)
-	if err != nil {
-		return err
-	}
-	defer dest.Close()
-
-	return doBackup(dest.DB, src.DB)
+	return doBackup(destPath, src.DB)
 }
 
-func doBackup(destDB, srcDB *sql.DB) error {
-	destConn, err := destDB.Conn(context.Background())
-	if err != nil {
-		return err
-	}
-	defer destConn.Close()
+type backup interface {
+	NewBackup(string) (*sqlite3.Backup, error)
+}
 
+func doBackup(destPath string, srcDB *sql.DB) error {
 	srcConn, err := srcDB.Conn(context.Background())
 	if err != nil {
 		return err
 	}
 	defer srcConn.Close()
 
-	return destConn.Raw(func(destConn interface{}) error {
-		return srcConn.Raw(func(srcConn interface{}) error {
-			destSQLiteConn, ok := destConn.(*sqlite3.SQLiteConn)
-			if !ok {
-				return errors.New("cannot convert destination connection to SQLiteConn")
-			}
+	return srcConn.Raw(func(srcConn interface{}) error {
+		backup, ok := srcConn.(backup)
+		if !ok {
+			return errors.New("source connection does not implement NewBackup()")
+		}
 
-			srcSQLiteConn, ok := srcConn.(*sqlite3.SQLiteConn)
-			if !ok {
-				return errors.New("cannot convert source connection to SQLiteConn")
-			}
+		bck, err := backup.NewBackup(destPath)
+		if err != nil {
+			return fmt.Errorf("failed to initialize backup: %w", err)
+		}
 
-			b, err := destSQLiteConn.Backup("main", srcSQLiteConn, "main")
-			if err != nil {
-				return fmt.Errorf("failed to initialize backup: %w", err)
-			}
-
-			done, err := b.Step(-1)
-			if !done {
-				return errors.New("backup step -1, but not done")
-			}
+		for more := true; more; {
+			more, err = bck.Step(-1)
 			if err != nil {
 				return fmt.Errorf("failed to step backup: %w", err)
 			}
+		}
 
-			err = b.Finish()
-			if err != nil {
-				return fmt.Errorf("failed to finish backup: %w", err)
-			}
+		err = bck.Finish()
+		if err != nil {
+			return fmt.Errorf("failed to finish backup: %w", err)
+		}
 
-			return err
-		})
+		return nil
 	})
 }
