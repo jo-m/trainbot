@@ -164,30 +164,6 @@ Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the
 
 ## TODOs
 
-- [x] Also create GIFs
-- [x] Test in snow/bad weather
-- [x] Clean up and document build system
-- [x] Calculate length
-- [x] Write GIFs again
-- [x] Store metadata in db
-- [x] Sync pics and db up to bucket
-- [x] Static web frontend serving train sightings
-- [x] Github button link
-- [x] Filter view (longest, fastest, ...)
-- [x] Fix stale relative timestamps
-- [x] Improve train detail view
-- [x] Store filter state in URL
-- [x] Show "showing X of Y" counter somewhere
-- [x] Auto dark mode
-- [x] Nicer dark mode colors
-- [x] Logo/Favicon
-- [x] Delete data after upload
-- [x] Clean up frontend db/blob path handling
-- [x] Add favorites feature
-- [x] Stats page
-- [x] Create some screenshots
-- [ ] Correct for changing exposure, improve stitching seams
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
-- [ ] Better deployment setup, remove hardcoded stuff, document deployment
-- [ ] Deploy to Raspberry Pi via [gokrazy](https://gokrazy.org/)
+- [ ] Better deployment setup (at least a systemd unit)
 - [ ] Add run/deploy instructions to README (including confighelper)
