@@ -1,5 +1,5 @@
 ARG DOCKER_BASE_IMAGE
-FROM ${DOCKER_BASE_IMAGE} AS builder
+FROM ${DOCKER_BASE_IMAGE} AS source
 
 # Install tools
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
@@ -65,13 +65,12 @@ RUN --mount=type=cache,target=~/.cache/go-build \
 # Copy sources
 COPY --chown=build:build . /src/
 
-# Build for host and run checks and tests
+FROM source AS build
+
+# Build for host
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make build_host
-RUN --mount=type=cache,target=~/.cache/go-build \
-    --mount=type=cache,target=~/go/pkg/mod      \
-    make check
 
 # Build for arm64
 RUN --mount=type=cache,target=~/.cache/go-build \
@@ -79,4 +78,11 @@ RUN --mount=type=cache,target=~/.cache/go-build \
     make build_arm64
 
 FROM scratch AS export
-COPY --from=builder /src/build/ /
+COPY --from=build /src/build/ /
+
+FROM source as test
+
+# Run checks and tests
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make check
