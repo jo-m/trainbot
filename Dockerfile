@@ -68,10 +68,10 @@ COPY --chown=build:build . /src/
 # Build for host and run checks and tests
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
-    make check
+    make build_host
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
-    make build_host
+    make check
 
 # Build for arm64
 RUN --mount=type=cache,target=~/.cache/go-build \
