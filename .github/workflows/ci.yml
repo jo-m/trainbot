@@ -9,20 +9,18 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
       - name: Set up Docker cache
         id: cache-docker
         uses: actions/cache@v3
         with:
-          path: docker-cache
-          key: docker-cache
+          path: /tmp/buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-            docker-cache
+            ${{ runner.os }}-buildx-
       - name: Run build
         run: |
           make \
-            DOCKER_CLI_FLAGS="--cache-to type=local,dest=docker-cache,mode=max --cache-from type=local,src=docker-cache" \
+            DOCKER_CLI_FLAGS="--cache-to type=local,dest=/tmp/buildx-cache,mode=max --cache-from type=local,src=/tmp/buildx-cache" \
             docker_build
       - name: List build artifacts
         run: ls -lah build/
