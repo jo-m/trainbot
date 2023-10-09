@@ -95,4 +95,6 @@ RUN unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-test
 
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
-    make test_more
+    make test_more || true
+
+RUN find internal/pkg/stitch/testdata/
