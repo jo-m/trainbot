@@ -9,6 +9,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
+      - name: Set up cache backend
+        run: docker buildx create --use --driver=docker-container
       - name: Run build
         run: |
           make \
