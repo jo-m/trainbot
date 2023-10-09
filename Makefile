@@ -66,18 +66,18 @@ DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
 DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
 
 docker_build:
-	docker build $(DOCKER_FLAGS)     \
+	docker buildx build $(DOCKER_FLAGS)     \
 		--target=export              \
 		--output=build               \
 		.
 
 docker_test:
-	docker build $(DOCKER_FLAGS)     \
+	docker buildx build $(DOCKER_FLAGS)     \
 		--target=test             \
 		.
 
 docker_test_more:
-	docker build $(DOCKER_FLAGS)     \
+	docker buildx build $(DOCKER_FLAGS)     \
 		--target=test_more             \
 		.
 
