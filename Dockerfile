@@ -27,7 +27,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update                                       && \
     apt-get install -yq                                     \
-        ffmpeg
+        ffmpeg                                              \
+        unzip
 
 # Add unprivileged build user
 RUN adduser --gecos '' --disabled-password build
@@ -86,3 +87,12 @@ FROM source as test
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make check
+
+FROM source as test_more
+
+RUN curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
+RUN unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
+
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make test_more

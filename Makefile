@@ -1,4 +1,4 @@
-.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_test clean run_confighelper run_camera run_videofile
+.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_test docker_test_more clean run_confighelper run_camera run_videofile
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20230919
@@ -73,6 +73,11 @@ docker_build:
 docker_test:
 	docker build $(DOCKER_FLAGS)     \
 		--target=test             \
+		.
+
+docker_test_more:
+	docker build $(DOCKER_FLAGS)     \
+		--target=test_more             \
 		.
 
 clean:
