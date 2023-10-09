@@ -1,8 +1,11 @@
 package stitch
 
 import (
+	"fmt"
 	"image"
 	"io"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jo-m/trainbot/internal/pkg/testutil"
@@ -29,19 +32,19 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 	auto := NewAutoStitcher(c)
 
 	var trains []Train
-	// defer func() {
-	// 	if len(trains) == 0 {
-	// 		f, err := os.Create(fmt.Sprintf("%s.MISSING", filepath.Base(video)))
-	// 		if err == nil {
-	// 			f.Close()
-	// 		}
-	// 	}
+	defer func() {
+		if len(trains) == 0 {
+			f, err := os.Create(fmt.Sprintf("%s.MISSING", filepath.Base(video)))
+			if err == nil {
+				f.Close()
+			}
+		}
 
-	// 	for i, tr := range trains {
-	// 		fname := fmt.Sprintf("%s-%02d.jpg", filepath.Base(video), i)
-	// 		imutil.Dump(fname, tr.Image)
-	// 	}
-	// }()
+		for i, tr := range trains {
+			fname := fmt.Sprintf("%s-%02d.jpg", filepath.Base(video), i)
+			imutil.Dump(fname, tr.Image)
+		}
+	}()
 	for {
 		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
