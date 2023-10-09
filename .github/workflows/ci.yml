@@ -18,7 +18,10 @@ jobs:
           restore-keys: |
             docker-cache
       - name: Set up cache backend
-        run: docker buildx create --use --driver=docker-container
+        run: |
+          docker buildx ls
+          docker buildx create --use --driver=docker-container
+          docker buildx ls
       - name: Run build
         run: |
           make \
