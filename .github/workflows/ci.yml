@@ -19,6 +19,24 @@ jobs:
           name: binaries
           path: |
             build/
+  go_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run build
+        run: make docker_test
+  go_test_more:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run build
+        run: make docker_test_more
   frontend_build:
     runs-on: ubuntu-latest
     steps:
