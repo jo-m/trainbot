@@ -59,7 +59,8 @@ build_arm64:
 	go build -o build/confighelper-arm64 ./cmd/confighelper
 	go build -o build/pmatch-arm64 ./examples/pmatch
 
-DOCKER_FLAGS = --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
+DOCKER_FLAGS = $(DOCKER_CLI_FLAGS)
+DOCKER_FLAGS += --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
 DOCKER_FLAGS += --build-arg GO_VERSION="$(GO_VERSION)"
 DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
 DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
