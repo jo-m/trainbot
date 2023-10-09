@@ -9,6 +9,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
       - name: Set up Docker cache
         id: cache-docker
         uses: actions/cache@v3
@@ -17,11 +19,6 @@ jobs:
           key: docker-cache
           restore-keys: |
             docker-cache
-      - name: Set up cache backend
-        run: |
-          docker buildx ls
-          docker buildx create --use --driver=docker-container
-          docker buildx ls
       - name: Run build
         run: |
           make \
