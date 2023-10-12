@@ -167,3 +167,4 @@ Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
 - [ ] Better deployment setup (at least a systemd unit)
 - [ ] Add run/deploy instructions to README (including confighelper)
+- [ ] Maybe compress URL params - favorites list is getting longer and longer...
