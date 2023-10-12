@@ -1,4 +1,4 @@
-.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_test docker_test_more clean run_confighelper run_camera run_videofile
+.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20230919
@@ -65,20 +65,32 @@ DOCKER_FLAGS += --build-arg GO_VERSION="$(GO_VERSION)"
 DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
 DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
 
+
+
 docker_build:
-	docker buildx build $(DOCKER_FLAGS)     \
-		--target=export              \
-		--output=build               \
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=export                   \
+		--output=build                    \
+		.
+
+docker_lint:
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=lint                     \
 		.
 
 docker_test:
-	docker buildx build $(DOCKER_FLAGS)     \
-		--target=test             \
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=test                     \
 		.
 
 docker_test_more:
 	docker buildx build $(DOCKER_FLAGS)     \
 		--target=test_more             \
+		.
+
+docker_bench:
+	docker buildx build $(DOCKER_FLAGS)     \
+		--target=bench             \
 		.
 
 clean:
