@@ -65,8 +65,6 @@ DOCKER_FLAGS += --build-arg GO_VERSION="$(GO_VERSION)"
 DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
 DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
 
-
-
 docker_build:
 	docker buildx build $(DOCKER_FLAGS)   \
 		--target=export                   \
