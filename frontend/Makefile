@@ -1,4 +1,4 @@
-.PHONY: run format build deploy
+.PHONY: run run_local format build deploy docker_build
 
 # https://hub.docker.com/_/node/
 DOCKER_BASE_IMAGE = node:20.7.0-alpine3.17
