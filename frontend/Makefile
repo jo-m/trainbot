@@ -31,6 +31,7 @@ build:
 deploy: build
 	test -n "$(FRONTEND_DEPLOY_TARGET_SSH_HOST_)" # missing env var
 	rm -rf dist/_data
+	chmod 755 dist/
 	rsync --verbose --archive --compress --rsh=ssh dist/ $(FRONTEND_DEPLOY_TARGET_SSH_HOST_)
 
 DOCKER_FLAGS = $(DOCKER_CLI_FLAGS)
