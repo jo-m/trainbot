@@ -1,5 +1,5 @@
 ARG DOCKER_BASE_IMAGE
-FROM ${DOCKER_BASE_IMAGE} AS builder
+FROM ${DOCKER_BASE_IMAGE} AS build
 
 WORKDIR /app
 COPY package.json yarn.lock ./
@@ -9,4 +9,4 @@ COPY . .
 RUN yarn run build
 
 FROM scratch AS export
-COPY --from=builder /app/dist /
+COPY --from=build /app/dist /

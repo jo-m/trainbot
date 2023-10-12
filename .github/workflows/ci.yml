@@ -2,15 +2,15 @@ on: [push]
 name: ci
 
 jobs:
-  build_binary_go:
+  go_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
-      - name: Run checks and build
-        run: make build_docker
+      - name: Run build
+        run: make docker_build
       - name: List build artifacts
         run: ls -lah build/
       - name: Archive build artifacts
@@ -19,7 +19,43 @@ jobs:
           name: binaries
           path: |
             build/
-  build_frontend_ts:
+  go_lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run lint
+        run: make docker_lint
+  go_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run tests
+        run: make docker_test
+  go_test_more:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run more tests
+        run: make docker_test_more
+  go_bench:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Run bench
+        run: make docker_bench
+  frontend_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,7 +65,7 @@ jobs:
       - name: Run checks and build
         run: |
           cd frontend
-          make build_docker
+          make docker_build
       - name: List build artifacts
         run: ls -lah frontend/dist/
       - name: Archive build artifacts

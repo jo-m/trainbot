@@ -1,4 +1,4 @@
-.PHONY: format lint test test_more bench check build_host build_arm64 build_docker clean run_confighelper run_camera run_videofile
+.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20230919
@@ -33,7 +33,7 @@ test_more:
 	# Instructions:
 	#	curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
 	#	unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
-	go test -v --tags=moretests -run Test_AutoStitcher_Set ./...
+	go test -v --tags=moretests -timeout=30m -run Test_AutoStitcher_Set ./...
 
 bench:
 	go test -v -run= -bench=. ./...
@@ -59,13 +59,36 @@ build_arm64:
 	go build -o build/confighelper-arm64 ./cmd/confighelper
 	go build -o build/pmatch-arm64 ./examples/pmatch
 
-build_docker:
-	docker build \
-		--build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"              \
-		--build-arg GO_VERSION="$(GO_VERSION)"                            \
-		--build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"              \
-		--build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"    \
-		--output=build --target=export                                    \
+DOCKER_FLAGS = $(DOCKER_CLI_FLAGS)
+DOCKER_FLAGS += --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
+DOCKER_FLAGS += --build-arg GO_VERSION="$(GO_VERSION)"
+DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
+DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
+
+docker_build:
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=export                   \
+		--output=build                    \
+		.
+
+docker_lint:
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=lint                     \
+		.
+
+docker_test:
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=test                     \
+		.
+
+docker_test_more:
+	docker buildx build $(DOCKER_FLAGS)     \
+		--target=test_more             \
+		.
+
+docker_bench:
+	docker buildx build $(DOCKER_FLAGS)     \
+		--target=bench             \
 		.
 
 clean:

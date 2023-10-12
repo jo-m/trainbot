@@ -1,4 +1,4 @@
-.PHONY: run format build deploy
+.PHONY: run run_local format build deploy docker_build
 
 # https://hub.docker.com/_/node/
 DOCKER_BASE_IMAGE = node:20.7.0-alpine3.17
@@ -33,8 +33,11 @@ deploy: build
 	rm -rf dist/_data
 	rsync --verbose --archive --compress --rsh=ssh dist/ $(FRONTEND_DEPLOY_TARGET_SSH_HOST_)
 
-build_docker:
-	docker build \
-		--build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"   \
-		--output=dist --target=export                          \
+DOCKER_FLAGS = $(DOCKER_CLI_FLAGS)
+DOCKER_FLAGS += --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
+
+docker_build:
+	docker build $(DOCKER_FLAGS)     \
+		--target=export              \
+		--output=dist                \
 		.

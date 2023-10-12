@@ -1,5 +1,5 @@
 ARG DOCKER_BASE_IMAGE
-FROM ${DOCKER_BASE_IMAGE} AS builder
+FROM ${DOCKER_BASE_IMAGE} AS source
 
 # Install tools
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
@@ -27,7 +27,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update                                       && \
     apt-get install -yq                                     \
-        ffmpeg
+        ffmpeg                                              \
+        unzip
 
 # Add unprivileged build user
 RUN adduser --gecos '' --disabled-password build
@@ -65,18 +66,40 @@ RUN --mount=type=cache,target=~/.cache/go-build \
 # Copy sources
 COPY --chown=build:build . /src/
 
-# Build for host and run checks and tests
-RUN --mount=type=cache,target=~/.cache/go-build \
-    --mount=type=cache,target=~/go/pkg/mod      \
-    make check
+# Build for host and arm64
+FROM source AS build
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make build_host
-
-# Build for arm64
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make build_arm64
 
 FROM scratch AS export
-COPY --from=builder /src/build/ /
+COPY --from=build /src/build/ /
+
+# Run lint
+FROM source as lint
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make lint
+
+# Run tests
+FROM source as test
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make test
+
+# Run more tests
+FROM source as test_more
+RUN curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
+RUN unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make test_more
+
+# Run bench
+FROM source as bench
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    make bench
