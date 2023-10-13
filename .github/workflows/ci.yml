@@ -7,10 +7,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Docker buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Run build
-        run: make docker_build
+      - name: Run
+        uses: ./.github/actions/cached-docker-build
+        id: cached-docker-build
+        with:
+          target: docker_build
       - name: List build artifacts
         run: ls -lah build/
       - name: Archive build artifacts
@@ -24,37 +25,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Docker buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Run lint
-        run: make docker_lint
+      - name: Run
+        uses: ./.github/actions/cached-docker-build
+        id: cached-docker-build
+        with:
+          target: docker_lint
   go_test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Docker buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Run tests
-        run: make docker_test
+      - name: Run
+        uses: ./.github/actions/cached-docker-build
+        id: cached-docker-build
+        with:
+          target: docker_test
   go_test_more:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Docker buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Run more tests
-        run: make docker_test_more
+      - name: Run
+        uses: ./.github/actions/cached-docker-build
+        id: cached-docker-build
+        with:
+          target: docker_test_more
   go_bench:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Docker buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Run bench
-        run: make docker_bench
+      - name: Run
+        uses: ./.github/actions/cached-docker-build
+        id: cached-docker-build
+        with:
+          target: docker_bench
   frontend_build:
     runs-on: ubuntu-latest
     steps:
@@ -62,10 +67,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
-      - name: Run checks and build
-        run: |
-          cd frontend
-          make docker_build
+      - name: Run
+        uses: ./.github/actions/cached-docker-build
+        id: cached-docker-build
+        with:
+          chdir: frontend
+          target: docker_build
       - name: List build artifacts
         run: ls -lah frontend/dist/
       - name: Archive build artifacts

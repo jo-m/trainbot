@@ -82,13 +82,13 @@ docker_test:
 		.
 
 docker_test_more:
-	docker buildx build $(DOCKER_FLAGS)     \
-		--target=test_more             \
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=test_more                \
 		.
 
 docker_bench:
-	docker buildx build $(DOCKER_FLAGS)     \
-		--target=bench             \
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=bench                    \
 		.
 
 clean:
