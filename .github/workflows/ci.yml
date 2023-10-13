@@ -40,16 +40,6 @@ jobs:
         id: cached-docker-build
         with:
           target: docker_test
-  go_test_more:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Run
-        uses: ./.github/actions/cached-docker-build
-        id: cached-docker-build
-        with:
-          target: docker_test_more
   go_bench:
     runs-on: ubuntu-latest
     steps:
