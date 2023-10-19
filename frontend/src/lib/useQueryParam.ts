@@ -10,7 +10,11 @@ export function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[
   try {
     return JSON.parse(val)
   } catch {
-    return default_
+    try {
+      return JSON.parse(decodeURIComponent(val))
+    } catch {
+      return default_
+    }
   }
 }
 
