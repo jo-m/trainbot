@@ -8,14 +8,14 @@ export function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[
   }
 
   try {
-    return JSON.parse(decodeURIComponent(val))
+    return JSON.parse(val)
   } catch {
     return default_
   }
 }
 
 export function encodeQueryParam(val: any): string {
-  return encodeURIComponent(JSON.stringify(val))
+  return JSON.stringify(val)
 }
 
 export default function useQueryParam<T>(name: string, default_: T): WritableComputedRef<T> {
