@@ -2,7 +2,7 @@ import { computed, type WritableComputedRef } from 'vue'
 import { useRoute, type LocationQueryValue } from 'vue-router'
 import router from '@/plugins/router'
 
-export function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[], default_: T): T {
+function parseQueryParam<T>(val: LocationQueryValue | LocationQueryValue[], default_: T): T {
   if (!val || Array.isArray(val)) {
     return default_
   }
