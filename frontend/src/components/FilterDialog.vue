@@ -45,6 +45,11 @@ function emitUpdate(newFilter: Filter, replace: boolean = false) {
         <v-divider></v-divider>
 
         <v-list-subheader inset>ORDER</v-list-subheader>
+        <v-list-item title="Oldest" @click="emitUpdate({ orderBy: 'id ASC' }, false)">
+          <template v-slot:prepend>
+            <v-icon icon="mdi-archive-clock"></v-icon>
+          </template>
+        </v-list-item>
         <v-list-item
           title="Longest"
           @click="emitUpdate({ orderBy: 'length_px / px_per_m DESC' }, false)"
