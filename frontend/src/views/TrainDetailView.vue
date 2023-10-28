@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, computed, defineProps } from 'vue'
-import { dbKey, getTrain } from '@/lib/db'
+import { dbKey, getTrain, queryOne } from '@/lib/db'
 import { getBlobURL } from '@/lib/paths'
 import type SqlJs from 'sql.js'
 import { useRouter } from 'vue-router'
@@ -23,9 +23,41 @@ const train = computed(() => {
   }
   return t
 })
+
+const nextId = computed(
+  () =>
+    queryOne(db, `SELECT id FROM trains WHERE id > ${id.value} ORDER BY id ASC LIMIT 1`) as
+      | number
+      | undefined
+)
+const prevId = computed(
+  () =>
+    queryOne(db, `SELECT id FROM trains WHERE id < ${id.value} ORDER BY id DESC LIMIT 1`) as
+      | number
+      | undefined
+)
 </script>
 
 <template>
+  <!-- App bar -->
+  <Teleport to="#app-bar-teleport">
+    <v-btn
+      :disabled="prevId === undefined"
+      variant="text"
+      icon="mdi-arrow-left"
+      :to="{ name: 'trainDetail', params: { id: prevId } }"
+      aria-label="Previous"
+    ></v-btn>
+
+    <v-btn
+      :disabled="nextId === undefined"
+      variant="text"
+      icon="mdi-arrow-right"
+      :to="{ name: 'trainDetail', params: { id: nextId } }"
+      aria-label="Next"
+    ></v-btn>
+  </Teleport>
+
   <v-card v-if="train !== undefined">
     <v-card-item>
       <v-card-title>Train #{{ train.id }} <FavoriteIcon :id="train.id" /></v-card-title>
