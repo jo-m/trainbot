@@ -37,6 +37,7 @@ const router = createRouter({
         {
           path: ':id',
           name: 'trainDetail',
+          props: true,
           component: TrainDetailView
         }
       ]

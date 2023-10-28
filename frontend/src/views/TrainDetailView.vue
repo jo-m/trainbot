@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, computed, defineProps } from 'vue'
 import { dbKey, getTrain } from '@/lib/db'
 import { getBlobURL } from '@/lib/paths'
 import type SqlJs from 'sql.js'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import RelativeTime from '@/components/RelativeTime.vue'
 import FavoriteIcon from '@/components/FavoriteIcon.vue'
 
-const router = useRouter()
-const route = useRoute()
+const props = defineProps<{
+  id: string
+}>()
+const id = computed(() => {
+  return parseInt(props.id)
+})
 
+const router = useRouter()
 const db = inject(dbKey) as SqlJs.Database
-const train = getTrain(db, route.params.id as any as number)
+const train = getTrain(db, id.value)
 
 if (train === undefined) {
   router.push({ name: 'notFound' })
