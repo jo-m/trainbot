@@ -10,17 +10,19 @@ import FavoriteIcon from '@/components/FavoriteIcon.vue'
 const props = defineProps<{
   id: string
 }>()
+const router = useRouter()
+const db = inject(dbKey) as SqlJs.Database
+
 const id = computed(() => {
   return parseInt(props.id)
 })
-
-const router = useRouter()
-const db = inject(dbKey) as SqlJs.Database
-const train = getTrain(db, id.value)
-
-if (train === undefined) {
-  router.push({ name: 'notFound' })
-}
+const train = computed(() => {
+  const t = getTrain(db, id.value)
+  if (t === undefined) {
+    router.push({ name: 'notFound' })
+  }
+  return t
+})
 </script>
 
 <template>
