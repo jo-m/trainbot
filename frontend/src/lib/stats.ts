@@ -53,12 +53,19 @@ export const histSpeedKPH = (db: SqlJs.Database, binSz: number = 10): number[][]
   GROUP BY speed_rounded
   ORDER BY speed_rounded;`)[0].values as number[][]
 
-export const tempDegCPast24hAvg = (db: SqlJs.Database): number[][] =>
-  db.exec(`
+export const tempDegCPast24hAvg = (db: SqlJs.Database): number[][] => {
+  const res = db.exec(`
   SELECT
     CAST(strftime('%H', timestamp) AS INT) AS hod,
     ROUND(AVG(temp_deg_c))
   FROM temperatures
   WHERE timestamp >= DATETIME('now','-24 hours')
   GROUP BY hod
-  ORDER BY hod ASC`)[0].values as number[][]
+  ORDER BY hod ASC`)
+
+  if (res.length == 0) {
+    return []
+  }
+
+  return res[0].values as number[][]
+}

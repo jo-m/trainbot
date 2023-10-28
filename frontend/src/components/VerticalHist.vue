@@ -29,4 +29,5 @@ const maxVal = computed(() => {
   >
     &nbsp;{{ labels ? labels[key] : key }}: {{ val }}
   </div>
+  <span v-if="data.length === 0">No data</span>
 </template>
