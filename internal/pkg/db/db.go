@@ -40,8 +40,8 @@ func buildDSN(path string, readOnly bool) string {
 	return path[:len(path)-1]
 }
 
-// Open creates a new SQLite database, opens an existing one.
-// Initializes with the schema if new.
+// Open creates a new SQLite database or opens an existing one.
+// Will run the schema/migration script.
 func Open(path string) (*sqlx.DB, error) {
 	db, err := sqlx.Open(driver, buildDSN(path, false))
 	if err != nil {

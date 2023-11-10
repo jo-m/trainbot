@@ -39,3 +39,6 @@ CREATE TABLE IF NOT EXISTS temperatures (
     timestamp DATETIME NOT NULL UNIQUE,
     temp_deg_c DOUBLE NOT NULL
 );
+
+-- Note: this SQL script will be run every time the database file is opened.
+-- Any contents thus need to be idempotent (IF NOT EXISTS etc).
