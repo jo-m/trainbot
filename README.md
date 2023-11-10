@@ -108,6 +108,21 @@ mkvmerge -o test.mkv --timecodes 0:vid-timestamps.txt vid.h264
 
 ## Deployment
 
+How to get binaries?
+There are multiple options:
+
+1. `go install github.com/jo-m/trainbot/cmd/trainbot@latest` - Let Go build the binary for your host system.
+2. Grab a binary from the latest CI run at https://github.com/jo-m/trainbot/actions
+3. Use the Docker setup in the repo. This will build for Linux `x86_64` and `arm64`:
+
+```bash
+git clone https://github.com/jo-m/trainbot
+cd trainbot
+make docker_build
+
+# Find binaries in build/ after this has completed.
+```
+
 ### Raspberry Pi
 
 ```bash
@@ -117,7 +132,7 @@ sudo usermod -a -G video pi
 ./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
 ```
 
-The current production deployment is in a Tmux session...
+The current production deployment is in a Tmux session... to be improved one day, but it has worked for 6 months now.
 
 ```bash
 source ./env
