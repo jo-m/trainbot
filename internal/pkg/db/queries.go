@@ -7,6 +7,8 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
+const tsFormat = "2006-01-02 15:04:05.999999999Z07:00"
+
 // InsertTrain inserts a new train sighting into the database.
 // Returns the db id of the new row.
 func InsertTrain(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error) {
@@ -26,8 +28,8 @@ func InsertTrain(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, e
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		t.StartTS,
-		t.EndTS,
+		t.StartTS.Format(tsFormat),
+		t.EndTS.Format(tsFormat),
 		t.NFrames,
 		t.LengthPx,
 		t.SpeedPxS,
@@ -73,7 +75,7 @@ func SetUploaded(db *sqlx.DB, id int64) error {
 	const q = `
 	UPDATE trains SET uploaded_at = ? WHERE id = ?;
 	`
-	_, err := db.Exec(q, time.Now(), id)
+	_, err := db.Exec(q, time.Now().Format(tsFormat), id)
 	return err
 }
 
@@ -129,7 +131,7 @@ func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
 	VALUES (?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		ts, tempDegC)
+		ts.Format(tsFormat), tempDegC)
 	if err != nil {
 		return 0, err
 	}
