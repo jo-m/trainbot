@@ -77,7 +77,7 @@ func (c *config) mustOpenDB() *sqlx.DB {
 
 const (
 	rectSizeMin = 100
-	rectSizeMax = 500
+	rectSizeMax = 1000
 
 	failedFramesMax = 50
 
