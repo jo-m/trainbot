@@ -40,7 +40,9 @@ func sign(x float64) float64 {
 
 func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 	t0 := time.Now()
-	defer log.Trace().Dur("dur", time.Since(t0)).Msg("stitch() duration")
+	defer func() {
+		log.Trace().Dur("dur", time.Since(t0)).Msg("stitch() duration")
+	}()
 
 	log.Info().Ints("dx", dx).Int("len(frames)", len(frames)).Msg("stitch()")
 
@@ -187,7 +189,9 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 // Might modify seq (drops leading frames with no movement).
 func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	start := time.Now()
-	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitAndStitch() duration")
+	defer func() {
+		log.Trace().Dur("dur", time.Since(start)).Msg("fitAndStitch() duration")
+	}()
 
 	log.Info().Ints("dx", seq.dx).Int("len(frames)", len(seq.frames)).Msg("fitAndStitch()")
 

@@ -23,7 +23,9 @@ func model(t float64, params []float64) float64 {
 // Also returns estimated length [px], v0 [px/s] and acceleration [px/s^2].
 func fitDx(seq sequence, maxSpeedPxS float64) ([]int, float64, float64, float64, error) {
 	start := time.Now()
-	defer log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
+	defer func() {
+		log.Trace().Dur("dur", time.Since(start)).Msg("fitDx() duration")
+	}()
 
 	// Sanity checks.
 	if len(seq.dx) < (modelNParams+1)*3 {

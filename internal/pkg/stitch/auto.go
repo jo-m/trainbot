@@ -105,7 +105,9 @@ func NewAutoStitcher(c Config) *AutoStitcher {
 
 func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, score float64) {
 	t0 := time.Now()
-	defer log.Trace().Dur("dur", time.Since(t0)).Msg("findOffset() duration")
+	defer func() {
+		log.Trace().Dur("dur", time.Since(t0)).Msg("findOffset() duration")
+	}()
 
 	if prev.Rect.Size() != curr.Rect.Size() {
 		log.Panic().Msg("inconsistent size, this should not happen")
@@ -205,7 +207,9 @@ func sum3(v [3]float64) float64 {
 // Takes ownership of the image data buffer, so be sure to make a copy before passing it.
 func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	t0 := time.Now()
-	defer log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
+	defer func() {
+		log.Trace().Dur("dur", time.Since(t0)).Msg("Frame() duration")
+	}()
 
 	log.Trace().Time("ts", ts).Uint64("frameIx", r.prevFrameIx).Msg("Frame()")
 
