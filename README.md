@@ -114,6 +114,8 @@ cd trainbot
 make docker_build
 
 # Find binaries in build/ after this has completed.
+
+make docker_test
 ```
 
 ## V4L Settings
