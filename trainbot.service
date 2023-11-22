@@ -1,0 +1,19 @@
+# This unit assumes that trainbot is run as a systemd user service, that the
+# trainbot git repo has been cloned to ~/trainbot, and that the data folder
+# should default to ~/trainbot/data.
+#
+# Correctness can be checked using: systemd-analyze verify ./trainbot.service
+
+[Unit]
+Description=onlytrains trainbot
+Documentation=https://github.com/jo-m/trainbot/
+
+[Service]
+Type=exec
+WorkingDirectory=%h/trainbot
+ExecStart=%h/trainbot/build/trainbot \
+EnvironmentFile=%h/trainbot/env
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

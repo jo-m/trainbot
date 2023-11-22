@@ -68,17 +68,11 @@ sudo usermod -a -G video pi
 
 # confighelper
 ./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
+
+set -o allexport; source ./env; set +o allexport
+./build/trainbot-arm64
 ```
 
-The current production deployment is in a Tmux session... to be improved one day, but it has worked for 6 months now.
-
-```bash
-source ./env
-
-while true; do \
-  ./trainbot-arm64; \
-done
-```
 
 Download latest data from Raspberry Pi:
 
@@ -89,6 +83,15 @@ ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST" sqlite3 data/db.sqlite3
 rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:data/" data/
 rm data/db.sqlite3-shm data/db.sqlite3-wal
 mv data/db.sqlite3.bak data/db.sqlite3
+```
+
+### systemd unit
+
+```bash
+loginctl enable-linger
+systemctl --user enable ./trainbot.service
+systemtcl --user start trainbot.service
+journactl --user -eu trainbot.service
 ```
 
 ## Development
@@ -195,6 +198,5 @@ Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the
 ## TODOs
 
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
-- [ ] Better deployment setup (at least a systemd unit)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Maybe compress URL params - favorites list is getting longer and longer...
