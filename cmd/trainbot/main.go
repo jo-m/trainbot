@@ -161,6 +161,11 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 			if err != nil {
 				log.Panic().Err(err).Msg("failed to crop frame")
 			}
+
+			// Create a new image with only the cropped pixels,
+			// so we can gc the potentially large area from the
+			// original image.
+			cropped = imutil.Copy(cropped)
 		}
 
 		if cropped.Bounds().Size() != rect.Size() {
