@@ -213,7 +213,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 
 	log.Trace().Time("ts", ts).Uint64("frameIx", r.prevFrameIx).Msg("Frame()")
 
-	// Convert to gray.
+	// Convert to RGBA.
 	frameRGBA := imutil.ToRGBA(frameColor)
 	// Make sure we always save the previous frame.
 	defer func() {
