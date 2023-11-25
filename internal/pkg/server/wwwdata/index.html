@@ -14,6 +14,10 @@
 						camOptions += `--input ${cam.DeviceFile} --camera-format-fourcc ${cam.Format} --camera-w ${cam.FrameSize.X} --camera-h ${cam.FrameSize.Y}\n`
 					}
 
+					if (cameras.length === 0) {
+						camOptions = "No v4l cameras detected."
+					}
+
 					document.querySelector("#cameraOptions").innerHTML = camOptions
 				}).
 				catch(function(error){
@@ -160,7 +164,7 @@
 		<img id="stream" src="stream.mjpeg" />
 	</div>
 	<pre id="rectOptions"></pre>
-	<button id="detectCameras">Detect cameras</button>
+	<button id="detectCameras">Detect v4l cameras</button>
 	<pre id="cameraOptions"></pre>
 </body>
 </html>
