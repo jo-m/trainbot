@@ -243,7 +243,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	// Check for minimal contrast and brightness. TODO: Maybe do directly on RGBA image.
+	// Check for minimal contrast and brightness.
 	avg, avgDev := avg.RGBA(frameRGBA)
 	if sum3(avg)/3 < minContrastAvg || sum3(avgDev)/3 < minContrastAvgDev {
 		log.Trace().Interface("avgDev", avgDev).Interface("avg", avg).Msg("contrast too low, discarding")
