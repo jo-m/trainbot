@@ -1,4 +1,4 @@
-.PHONY: run run_local format build deploy docker_build
+.PHONY: run run_local format build deploy docker_build list
 
 # https://hub.docker.com/_/node/
 DOCKER_BASE_IMAGE = node:20.9.0-alpine3.18
@@ -22,14 +22,14 @@ format:
 	yarn run format
 
 build:
-	test -n "$(VITE_FRONTEND_BASE_URL_)" # missing env var
+	test -n "$(VITE_FRONTEND_BASE_URL_)" # missing env var, please set up env file from env.example and source it
 	VITE_BASE_URL=$(VITE_FRONTEND_BASE_URL_) \
 	VITE_DB_URL=$(VITE_FRONTEND_BASE_URL_)/data/db.sqlite3 \
 	VITE_BLOBS_URL=$(VITE_FRONTEND_BASE_URL_)/data/blobs \
 		yarn run build
 
 deploy: build
-	test -n "$(FRONTEND_DEPLOY_TARGET_SSH_HOST_)" # missing env var
+	test -n "$(FRONTEND_DEPLOY_TARGET_SSH_HOST_)" # missing env var, please set up env file from env.example and source it
 	rm -rf dist/_data
 	chmod 755 dist/
 	rsync --verbose --archive --compress --rsh=ssh dist/ $(FRONTEND_DEPLOY_TARGET_SSH_HOST_)
@@ -42,3 +42,6 @@ docker_build:
 		--target=export              \
 		--output=dist                \
 		.
+
+list:
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'

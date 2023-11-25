@@ -43,9 +43,75 @@ The assumptions are (there might be more implicit ones):
 1. Trains have a constant acceleration (might be 0) and do not stop and turn around while in front of the camera.
   1. In reality, this is often not true, there happens to be a stop signal right in front of my balcony...
 
-## Build system
+## Web frontend
 
-There is a helper `Makefile` which calls the standard Go build tools and an arm64 cross build inside Docker.
+The web frontend is completely independent from the Go binary.
+It consists of only static files (after the JS build process).
+The Go binary uploads images and the SQLite database to the web server via FTP.
+Other transports are also possible, but not implemented.
+
+## Deployment
+
+There are two parts to deploy: First, the Go binary which detects trains, and second the web frontend. Only the former is explained here, for the latter check out the `frontend/` directory and its `Makefile`.
+
+How to get binaries?
+There are multiple options:
+
+1. `go install github.com/jo-m/trainbot/cmd/trainbot@latest` - Let Go build and install the binary on your system.
+2. Grab a binary from the latest CI run at https://github.com/jo-m/trainbot/actions
+3. Build via tooling in this repo - see [Development](#development)
+
+### Raspberry Pi
+
+```bash
+sudo usermod -a -G video pi
+
+# confighelper
+./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
+```
+
+The current production deployment is in a Tmux session... to be improved one day, but it has worked for 6 months now.
+
+```bash
+source ./env
+
+while true; do \
+  ./trainbot-arm64; \
+done
+```
+
+Download latest data from Raspberry Pi:
+
+```bash
+ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST" sqlite3 data/db.sqlite3
+.backup data/db.sqlite3.bak
+# Ctrl+D
+rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:data/" data/
+rm data/db.sqlite3-shm data/db.sqlite3-wal
+mv data/db.sqlite3.bak data/db.sqlite3
+```
+
+## Development
+
+This repo is set up to compile for `x86_64` and `aarch64`.
+There is support for building on your machine directly, or inside a Docker container.
+
+Also, there is an extensive test suite.
+Tests may also be executed locally, or inside Docker.
+
+The single entrypoint for everything (incl. Docker) is the `Makefile`.
+You can list available targets via `make list`.
+Same is true for the frontend - check out [frontend/Makefile](frontend/Makefile).
+
+Example:
+
+```bash
+git clone https://github.com/jo-m/trainbot
+cd trainbot
+make docker_build
+
+# Find binaries in build/ after this has completed.
+```
 
 ## V4L Settings
 
@@ -107,59 +173,6 @@ libcamera-vid \
 
 mkvmerge -o test.mkv --timecodes 0:vid-timestamps.txt vid.h264
 ```
-
-## Deployment
-
-How to get binaries?
-There are multiple options:
-
-1. `go install github.com/jo-m/trainbot/cmd/trainbot@latest` - Let Go build the binary for your host system.
-2. Grab a binary from the latest CI run at https://github.com/jo-m/trainbot/actions
-3. Use the Docker setup in the repo. This will build for Linux `x86_64` and `arm64`:
-
-```bash
-git clone https://github.com/jo-m/trainbot
-cd trainbot
-make docker_build
-
-# Find binaries in build/ after this has completed.
-```
-
-### Raspberry Pi
-
-```bash
-sudo usermod -a -G video pi
-
-# confighelper
-./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
-```
-
-The current production deployment is in a Tmux session... to be improved one day, but it has worked for 6 months now.
-
-```bash
-source ./env
-
-while true; do \
-  ./trainbot-arm64; \
-done
-```
-
-Download latest data from Raspberry Pi:
-
-```bash
-ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST" sqlite3 data/db.sqlite3
-.backup data/db.sqlite3.bak
-# Ctrl+D
-rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:data/" data/
-rm data/db.sqlite3-shm data/db.sqlite3-wal
-mv data/db.sqlite3.bak data/db.sqlite3
-```
-
-### Web frontend
-
-Images and database are uploaded to a web server via FTP.
-The frontend served as a static HTML/JS bundle from the same server.
-All database access happens in the browser via sql.js.
 
 ## Code notes
 

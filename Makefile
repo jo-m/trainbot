@@ -1,4 +1,4 @@
-.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile
+.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20231120
@@ -119,10 +119,13 @@ run_videofile:
 		-X 0 -Y 0 -W 300 -H 300
 
 deploy_trainbot: build_arm64
-	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var
+	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var, please set up env file from env.example and source it
 	scp env $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
 	scp build/trainbot-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
 
 deploy_confighelper: build_arm64
-	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var
+	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var, please set up env file from env.example and source it
 	scp build/confighelper-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
+
+list:
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
