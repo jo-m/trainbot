@@ -1,0 +1,22 @@
+# Assumes the binary to be available at ~/trainbot/trainbot-arm64,
+# data folder at ~/trainbot/data.
+#
+# Correctness can be checked using: systemd-analyze verify .config/systemd/user/trainbot.service
+
+[Unit]
+Description=Trainbot backend
+Documentation=https://github.com/jo-m/trainbot/
+
+[Service]
+Type=exec
+WorkingDirectory=%h/trainbot
+ExecStart=%h/trainbot/trainbot-arm64
+EnvironmentFile=%h/trainbot/env
+
+# Restart forever.
+Restart=always
+RestartSec=500ms
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=default.target

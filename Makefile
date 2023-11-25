@@ -8,8 +8,6 @@ GO_ARCHIVE_SHA256 = 73cac0215254d0c7d1241fa40837851f3b9a8a742d0b54714cbdfb3feaf8
 # https://github.com/dominikh/go-tools/releases
 GO_STATICCHECK_VERSION = 2023.1.6
 
-TRAINBOT_DEPLOY_TARGET_SSH_HOST_ = ${TRAINBOT_DEPLOY_TARGET_SSH_HOST}
-
 DEFAULT: format build_host build_arm64
 
 format:
@@ -118,14 +116,29 @@ run_videofile:
 		--input="internal/pkg/stitch/testdata/set0/day.mp4" \
 		-X 0 -Y 0 -W 300 -H 300
 
-deploy_trainbot: build_arm64
-	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var, please set up env file from env.example and source it
-	scp env $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
-	scp build/trainbot-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
+# Usage: make deploy_trainbot host=TRAINBOT_DEPLOY_TARGET_SSH_HOST
+# Example: make deploy_trainbot host=pi@10.20.0.12
+deploy_trainbot: docker_build
+	test -n "$(host)" # missing target host, usage: make deploy_trainbot host=TRAINBOT_DEPLOY_TARGET_SSH_HOST !
 
-deploy_confighelper: build_arm64
-	test -n "$(TRAINBOT_DEPLOY_TARGET_SSH_HOST_)" # missing env var, please set up env file from env.example and source it
-	scp build/confighelper-arm64 $(TRAINBOT_DEPLOY_TARGET_SSH_HOST_):
+	ssh $(host) mkdir -p trainbot/
+	scp env $(host):trainbot/
+	ssh $(host) systemctl --user stop trainbot.service
+	scp build/trainbot-arm64 $(host):trainbot/
+
+	ssh $(host) mkdir -p .config/systemd/user/
+	scp trainbot.service $(host):.config/systemd/user/
+
+	ssh $(host) loginctl enable-linger
+	ssh $(host) systemctl --user enable trainbot.service
+	ssh $(host) systemctl --user start trainbot.service
+
+# Usage: make deploy_confighelper host=TRAINBOT_DEPLOY_TARGET_SSH_HOST
+# Example: make deploy_confighelper host=pi@10.20.0.12
+deploy_confighelper: docker_build
+	test -n "$(host)" # missing target host, usage: make deploy_confighelper host=TRAINBOT_DEPLOY_TARGET_SSH_HOST !
+	ssh $(host) mkdir -p trainbot/
+	scp build/confighelper-arm64 $(host):trainbot/
 
 list:
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'

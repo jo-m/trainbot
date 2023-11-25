@@ -63,30 +63,39 @@ There are multiple options:
 
 ### Raspberry Pi
 
-```bash
-sudo usermod -a -G video pi
+Run the interactive tool to adjust camera and select a crop rectangle:
 
-# confighelper
+```bash
+# On the host machine
+make deploy_confighelper host=TRAINBOT_DEPLOY_TARGET_SSH_HOST
+# Example:
+make deploy_confighelper host=pi@10.20.0.12
+
+# On the raspberry pi
+sudo usermod -a -G video pi
+# The --input arg has to be adapted to your actual camera config.
 ./confighelper-arm64 --log-pretty --input=picam3 --listen-addr=0.0.0.0:8080
 ```
 
-The current production deployment is in a Tmux session... to be improved one day, but it has worked for 6 months now.
+Example "Production" deployment to a remote host (will install a systemd user unit):
+
+First, you need to create a `env` file (copy `env.example`).
+Then, from the host machine:
 
 ```bash
-source ./env
+make deploy_trainbot host=TRAINBOT_DEPLOY_TARGET_SSH_HOST
 
-while true; do \
-  ./trainbot-arm64; \
-done
+# To see logs, on the target device:
+journalctl --user -eu trainbot.service
 ```
 
 Download latest data from Raspberry Pi:
 
 ```bash
-ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST" sqlite3 data/db.sqlite3
-.backup data/db.sqlite3.bak
+ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST" sqlite3 trainbot/data/db.sqlite3
+.backup trainbot/data/db.sqlite3.bak
 # Ctrl+D
-rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:data/" data/
+rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:trainbot/data/" data/
 rm data/db.sqlite3-shm data/db.sqlite3-wal
 mv data/db.sqlite3.bak data/db.sqlite3
 ```
@@ -195,6 +204,5 @@ Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the
 ## TODOs
 
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
-- [ ] Better deployment setup (at least a systemd unit)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Maybe compress URL params - favorites list is getting longer and longer...
