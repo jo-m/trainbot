@@ -36,10 +36,12 @@ The assumptions are (there might be more implicit ones):
 1. Trains only appear in a (manually) pre-cropped region.
 1. The camera is stable and the image does not move around in any direction.
 1. There are no large fast brightness changes.
-1. Trains have a given min and max speed.
+1. Trains have a given min and max speed (configurable).
 1. We are looking at the tracks more or less perpendicularly in the chosen image crop region.
-1. Trains are coming from one direction at a time, crossings are not handled properly.
+1. Trains are coming from one direction at a time, crossings are not handled properly
+  1. In practice, they happen and lead to the result of one train being chopped up, e.g. https://trains.jo-m.ch/#/trains/19212.
 1. Trains have a constant acceleration (might be 0) and do not stop and turn around while in front of the camera.
+  1. In reality, this is often not true, there happens to be a stop signal right in front of my balcony...
 
 ## Build system
 
