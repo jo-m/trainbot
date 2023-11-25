@@ -19,8 +19,8 @@ The name Onlytrains is credited to [@timethy](https://github.com/timethy).
 
 It also contains some packages which might be useful for other purposes:
 
-* [pkg/pmatch](pkg/pmatch): Image patch matching
-* [pkg/ransac](pkg/ransac): RANSAC algorithm implementation
+* [pkg/pmatch](pkg/pmatch/pkg.go): Image patch matching
+* [pkg/ransac](pkg/ransac/ransac.go): RANSAC algorithm implementation
 
 The binaries are currently built and tested on X86_64 and a Raspberry Pi 4 B.
 
