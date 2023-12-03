@@ -15,6 +15,7 @@ EnvironmentFile=%h/trainbot/env
 
 # Restart forever.
 Restart=always
+# helps with rpicam-vid correctly releasing kernel resources (zombie processes):
 RestartSec=500ms
 StartLimitIntervalSec=0
 
