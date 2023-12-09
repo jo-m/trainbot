@@ -18,11 +18,11 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxCos float64) {
 	// search rect in img coordinates
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
+		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
 	}
 
 	m, n := searchRect.Dx(), searchRect.Dy()
-	du, dv := pat.Rect.Dx(), pat.Rect.Dy()
+	du, dv := pat.Bounds().Dx(), pat.Bounds().Dy()
 
 	is, ps := img.Stride, pat.Stride
 
@@ -77,7 +77,7 @@ func CosSimGray(im0, im1 *image.Gray) (cos float64) {
 		panic("image sizes do not match")
 	}
 
-	du, dv := im1.Rect.Dx(), im1.Rect.Dy()
+	du, dv := im1.Bounds().Dx(), im1.Bounds().Dy()
 	is, ps := im0.Stride, im1.Stride
 
 	var dot, sqSum0, sqSum1 uint64
@@ -114,7 +114,7 @@ func CosSimRGBA(im0, im1 *image.RGBA) (cos float64) {
 		panic("image sizes do not match")
 	}
 
-	du, dv := im1.Rect.Dx(), im1.Rect.Dy()
+	du, dv := im1.Bounds().Dx(), im1.Bounds().Dy()
 	is, ps := im0.Stride, im1.Stride
 
 	var dot, sqSum0, sqSum1 uint64
@@ -173,11 +173,11 @@ func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
+		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
 	}
 
 	m, n := searchRect.Dx(), searchRect.Dy()
-	du, dv := pat.Rect.Dx(), pat.Rect.Dy()
+	du, dv := pat.Bounds().Dx(), pat.Bounds().Dy()
 
 	is, ps := img.Stride, pat.Stride
 

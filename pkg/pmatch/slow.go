@@ -33,8 +33,8 @@ func ScoreGrayCosSlow(img, pat *image.Gray, offset image.Point) (cos float64) {
 
 	var dot, sqSumI, sqSumP uint64
 
-	for y := 0; y < pat.Rect.Dy(); y++ {
-		for x := 0; x < pat.Rect.Dx(); x++ {
+	for y := 0; y < pat.Bounds().Dy(); y++ {
+		for x := 0; x < pat.Bounds().Dx(); x++ {
 			pxI := img.GrayAt(img.Bounds().Min.X+x, img.Bounds().Min.Y+y)
 			pxP := pat.GrayAt(pat.Bounds().Min.X+x, pat.Bounds().Min.Y+y)
 
@@ -94,7 +94,7 @@ func SearchGraySlow(img, pat *image.Gray) (maxX, maxY int, maxCos float64) {
 	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
+		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
 	}
 
 	for y := 0; y < searchRect.Dy(); y++ {
@@ -117,7 +117,7 @@ func SearchRGBASlow(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Rect.Size()).Add(image.Pt(1, 1)),
+		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
 	}
 
 	for y := 0; y < searchRect.Dy(); y++ {
