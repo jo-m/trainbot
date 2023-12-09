@@ -3,8 +3,8 @@
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20231120
 # https://go.dev/dl/
-GO_VERSION = 1.21.4
-GO_ARCHIVE_SHA256 = 73cac0215254d0c7d1241fa40837851f3b9a8a742d0b54714cbdfb3feaf8f0af
+GO_VERSION = 1.21.5
+GO_ARCHIVE_SHA256 = e2bc0b3e4b64111ec117295c088bde5f00eeed1567999ff77bc859d7df70078e
 # https://github.com/dominikh/go-tools/releases
 GO_STATICCHECK_VERSION = 2023.1.6
 
