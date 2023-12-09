@@ -70,9 +70,11 @@ const (
 )
 
 func genLine() string {
+	// #nosec 404
 	n := rand.Intn(maxLen) + 1
 	s := strings.Builder{}
 	for i := 0; i < n; i++ {
+		// #nosec 404
 		s.WriteString(strconv.FormatInt(int64(rand.Intn(maxVal)), 10))
 		s.WriteByte(',')
 	}
@@ -82,7 +84,7 @@ func genLine() string {
 
 func writeSample(n int, s string) {
 	fname := fmt.Sprintf("sample%06d", n)
-	err := os.WriteFile(filepath.Join(dir, fname), []byte(s), 0644)
+	err := os.WriteFile(filepath.Join(dir, fname), []byte(s), 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +92,7 @@ func writeSample(n int, s string) {
 }
 
 func main() {
-	_ = os.MkdirAll(dir, 0755)
+	_ = os.MkdirAll(dir, 0700)
 
 	buf := bytes.NewBufferString(strings.TrimSpace(known))
 	scan := bufio.NewScanner(buf)
