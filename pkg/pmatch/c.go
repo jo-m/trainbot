@@ -41,7 +41,7 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 		panic("patch too large")
 	}
 
-	// search rect in img coordinates
+	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
@@ -80,7 +80,7 @@ func SearchRGBAC(img, pat *image.RGBA) (int, int, float64) {
 		panic("patch too large")
 	}
 
-	// search rect in img coordinates
+	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),

@@ -15,7 +15,7 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxCos float64) {
 		panic("patch too large")
 	}
 
-	// search rect in img coordinates
+	// Search rect in img coordinates.
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),

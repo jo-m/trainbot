@@ -19,7 +19,7 @@ func Test_SearchGrayC(t *testing.T) {
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
 
-	// also resets pat bounds origin to (0,0)
+	// Also resets pat bounds origin to (0,0).
 	patCopy := imutil.ToGray(pat.(*image.Gray))
 
 	x, y, score = SearchGrayC(img, patCopy)
@@ -35,7 +35,7 @@ func Benchmark_SearchGrayC(b *testing.B) {
 		b.Error(err)
 	}
 
-	// make sure pattern lives in a different memory region
+	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToGray(pat.(*image.Gray))
 
 	for i := 0; i < b.N; i++ {

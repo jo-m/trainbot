@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// patch window on img
+// imgPatchWindow computes the patch window on img.
 func imgPatchWindow(img, pat image.Image, offset image.Point) image.Image {
 	window := pat.Bounds().
 		Sub(pat.Bounds().Min).

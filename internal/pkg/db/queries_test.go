@@ -18,7 +18,7 @@ func Test_Train_Queries(t *testing.T) {
 	assert.NotNil(t, db)
 	defer db.Close()
 
-	// insert
+	// Insert.
 	id, err := InsertTrain(db, stitch.Train{
 		StartTS: time.Now(),
 		EndTS:   time.Now(),
@@ -26,20 +26,20 @@ func Test_Train_Queries(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Greater(t, id, int64(0))
 
-	// query upload
+	// Query upload.
 	upl, err := GetNextUpload(db)
 	assert.NoError(t, err)
 	assert.Equal(t, "testimgpath", upl.ImgPath)
 
-	// mark as uploaded
+	// Mark as uploaded.
 	err = SetUploaded(db, upl.ID)
 	assert.NoError(t, err)
 
-	// query again
+	// Query again.
 	_, err = GetNextUpload(db)
 	assert.Equal(t, sql.ErrNoRows, err)
 
-	// check cleanup queries - no results
+	// Check cleanup queries - no results.
 	_, err = GetNextCleanup(db)
 	assert.Equal(t, sql.ErrNoRows, err)
 
@@ -48,7 +48,7 @@ func Test_Train_Queries(t *testing.T) {
 	err = SetCleanedUp(db, upl.ID)
 	assert.Error(t, err)
 
-	// test blobs listing query
+	// Test blobs listing query.
 	_, err = InsertTrain(db, stitch.Train{
 		StartTS: time.Now(),
 		EndTS:   time.Now(),
@@ -85,7 +85,7 @@ func Test_Train_TimesstampDBSerialization(t *testing.T) {
 	assert.NotNil(t, db)
 	defer db.Close()
 
-	// insert
+	// Insert.
 	id, err := InsertTrain(db, stitch.Train{
 		StartTS: t0,
 		EndTS:   t1,
@@ -93,7 +93,7 @@ func Test_Train_TimesstampDBSerialization(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Greater(t, id, int64(0))
 
-	// check
+	// Check.
 	var results []struct {
 		StartTS string `db:"start_ts"`
 		EndTS   string `db:"end_ts"`
@@ -104,7 +104,7 @@ func Test_Train_TimesstampDBSerialization(t *testing.T) {
 	assert.Equal(t, "2023-06-10T16:20:58.805488032+02:00", results[0].StartTS)
 	assert.Equal(t, "2023-06-10T16:21:05.982318734+02:00", results[0].EndTS)
 
-	// another round
+	// Another round.
 	id, err = InsertTrain(db, stitch.Train{
 		StartTS: t2,
 		EndTS:   t3,
@@ -128,7 +128,7 @@ func Test_Temperature_Queries(t *testing.T) {
 	assert.NotNil(t, db)
 	defer db.Close()
 
-	// insert
+	// Insert.
 	id, err := InsertTemp(db, time.Now(), 123.456)
 	assert.NoError(t, err)
 	assert.Greater(t, id, int64(0))

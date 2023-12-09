@@ -24,12 +24,12 @@ func Test_Backup(t *testing.T) {
 	tmp := t.TempDir()
 	dbpath := filepath.Join(tmp, "test.db")
 
-	// create DB
+	// Create DB.
 	db, err := Open(dbpath)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
 
-	// insert row
+	// Insert row.
 	id, err := InsertTrain(db, stitch.Train{
 		StartTS: time.Now(),
 		EndTS:   time.Now(),
@@ -37,19 +37,19 @@ func Test_Backup(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Greater(t, id, int64(0))
 
-	// create backup
+	// Create backup.
 	backupPath := filepath.Join(tmp, "test.db.bak")
 	err = Backup(db, backupPath)
 	assert.NoError(t, err)
 
-	// reopen backup
+	// Reopen backup.
 	err = db.Close()
 	assert.NoError(t, err)
 	db, err = Open(backupPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
 
-	// compare row data
+	// Compare row data.
 	next, err := GetNextUpload(db)
 	assert.NoError(t, err)
 	assert.Equal(t, "testimgpath", next.ImgPath)

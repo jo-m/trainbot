@@ -38,7 +38,7 @@ export const histHourOfDay = (db: SqlJs.Database): number[][] =>
   GROUP BY hod
   ORDER BY hod;`)[0].values as number[][]
 
-// no magic needed to fill in missing bins, we have values for everything
+// No magic needed to fill in missing bins, we have values for everything.
 export const histSpeedKPH = (db: SqlJs.Database, binSz: number = 10): number[][] =>
   db.exec(`
   WITH speed_rounded AS (
