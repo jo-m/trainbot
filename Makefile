@@ -1,4 +1,4 @@
-.PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
+.PHONY: generate format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20240926
@@ -10,12 +10,15 @@ GO_STATICCHECK_VERSION = 2024.1.1
 
 DEFAULT: format build_host build_arm64
 
+generate:
+	go generate ./...
+
 format:
 	bash -c "shopt -s globstar; clang-format -i **/*.c **/*.h **/*.comp"
 	gofmt -w .
 	go mod tidy
 
-lint:
+lint: generate
 	bash -c "shopt -s globstar; clang-format --dry-run --Werror **/*.c **/*.h **/*.comp"
 	gofmt -l .; test -z "$$(gofmt -l .)"
 	go vet ./...
@@ -26,24 +29,24 @@ lint:
 	go run github.com/securego/gosec/v2/cmd/gosec@latest -exclude G307,G115 ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-test:
+test: generate
 	go test -v ./...
 
-test_more:
+test_more: generate
 	# This needs additional test data which is not committed to the repo.
 	# Instructions:
 	#	curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
 	#	unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
 	go test -v --tags=moretests -timeout=30m -run Test_AutoStitcher_Set ./...
 
-bench:
+bench: generate
 	go test -v -run=Nothing -bench=Benchmark_ ./...
 
 check: lint test bench
 
 build_host: export CGO_ENABLED=1
 build_host: export CC=gcc
-build_host:
+build_host: generate
 	mkdir -p build
 	go build -o build/trainbot ./cmd/trainbot
 	go build -o build/confighelper ./cmd/confighelper
@@ -55,7 +58,7 @@ build_arm64: export CC=$(TRAINBOT_AARCH_CROSS)
 build_arm64: export GOOS=linux
 build_arm64: export GOARCH=arm64
 build_arm64: export GOARM=7
-build_arm64:
+build_arm64: generate
 	mkdir -p build
 	go build -o build/trainbot-arm64 ./cmd/trainbot
 	go build -o build/confighelper-arm64 ./cmd/confighelper
@@ -97,10 +100,10 @@ clean:
 	rm -rf build/
 	rm -f prof-*.gz
 
-run_confighelper:
+run_confighelper: generate
 	go run ./cmd/confighelper/ --input /dev/video2 --live-reload
 
-run_camera:
+run_camera: generate
 	go run ./cmd/trainbot \
 		--log-pretty \
 		\
@@ -110,7 +113,7 @@ run_camera:
 		--camera-w 1920 --camera-h 1080 \
 		-X 1064 -Y 178 -W 366 -H 334
 
-run_videofile:
+run_videofile: generate
 	go build -o build/trainbot ./cmd/trainbot/
 	./build/trainbot \
 		--log-pretty \
