@@ -69,7 +69,7 @@ func Test_CosSimGray(t *testing.T) {
 	assert.Equal(t, 0.9794014202411235, score)
 
 	score = CosSimGray(im00.(*image.Gray), im01.(*image.Gray))
-	assert.Equal(t, 0.9843413588376975, score)
+	assert.Equal(t, 0.9843413588376974, score)
 
 	score = CosSimGray(im00.(*image.Gray), im11.(*image.Gray))
 	assert.Equal(t, 0.9807568924870074, score)
@@ -78,7 +78,7 @@ func Test_CosSimGray(t *testing.T) {
 	assert.Equal(t, 0.9551280220660936, score)
 
 	score = CosSimGray(im00.(*image.Gray), im44.(*image.Gray))
-	assert.Equal(t, 0.899141744592327, score)
+	assert.Equal(t, 0.8991417445923269, score)
 
 	score = CosSimGray(im00.(*image.Gray), im88.(*image.Gray))
 	assert.Equal(t, 0.7897102979887818, score)

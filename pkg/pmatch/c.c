@@ -13,7 +13,7 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
     for (int x = 0; x < m; x++) {
       const int imgPatStartIx = y * is + x;
 
-      uint64_t dot = 0, sqSumI = 0, sqSumP = 0;
+      uint64_t dot = 0, absI2 = 0, absP2 = 0;
 
       for (int v = 0; v < dv; v++) {
         int pxIi = v * is;
@@ -24,17 +24,17 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
           const int pxP = patPix[pxPi + u];
 
           dot += (uint64_t)(pxI) * (uint64_t)(pxP);
-          sqSumI += (uint64_t)(pxI) * (uint64_t)(pxI);
-          sqSumP += (uint64_t)(pxP) * (uint64_t)(pxP);
+          absI2 += (uint64_t)(pxI) * (uint64_t)(pxI);
+          absP2 += (uint64_t)(pxP) * (uint64_t)(pxP);
         }
       }
 
-      const float64 abs = (float64)(sqSumI) * (float64)(sqSumP);
+      const float64 abs2 = (float64)(absI2) * (float64)(absP2);
       float64 cos2;
-      if (abs == 0) {
+      if (abs2 == 0) {
         cos2 = 1;
       } else {
-        cos2 = (float64)(dot * dot) / abs;
+        cos2 = (float64)(dot) * (float64)(dot) / abs2;
       }
 
 #ifdef _OPENMP
@@ -64,7 +64,7 @@ void SearchGrayRGBAC(const int m, const int n, const int du, const int dv,
     for (int x = 0; x < m; x++) {
       const int imgPatStartIx = y * is + x * four;
 
-      uint64_t dot = 0, sqSumI = 0, sqSumP = 0;
+      uint64_t dot = 0, absI2 = 0, absP2 = 0;
 
       for (int v = 0; v < dv; v++) {
         int pxIi = v * is;
@@ -76,18 +76,18 @@ void SearchGrayRGBAC(const int m, const int n, const int du, const int dv,
             const int pxP = patPix[pxPi + u * four + rgb];
 
             dot += (uint64_t)(pxI) * (uint64_t)(pxP);
-            sqSumI += (uint64_t)(pxI) * (uint64_t)(pxI);
-            sqSumP += (uint64_t)(pxP) * (uint64_t)(pxP);
+            absI2 += (uint64_t)(pxI) * (uint64_t)(pxI);
+            absP2 += (uint64_t)(pxP) * (uint64_t)(pxP);
           }
         }
       }
 
-      const float64 abs = (float64)(sqSumI) * (float64)(sqSumP);
+      const float64 abs2 = (float64)(absI2) * (float64)(absP2);
       float64 cos2;
-      if (abs == 0) {
+      if (abs2 == 0) {
         cos2 = 1;
       } else {
-        cos2 = (float64)(dot * dot) / abs;
+        cos2 = (float64)dot * (float64)dot / abs2;
       }
 
 #ifdef _OPENMP

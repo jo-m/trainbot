@@ -31,7 +31,7 @@ func imgPatchWindow(img, pat image.Image, offset image.Point) image.Image {
 func ScoreGrayCosSlow(img, pat *image.Gray, offset image.Point) (cos float64) {
 	img = imgPatchWindow(img, pat, offset).(*image.Gray)
 
-	var dot, sqSumI, sqSumP uint64
+	var dot, absI2, absP2 uint64
 
 	for y := 0; y < pat.Bounds().Dy(); y++ {
 		for x := 0; x < pat.Bounds().Dx(); x++ {
@@ -39,17 +39,16 @@ func ScoreGrayCosSlow(img, pat *image.Gray, offset image.Point) (cos float64) {
 			pxP := pat.GrayAt(pat.Bounds().Min.X+x, pat.Bounds().Min.Y+y)
 
 			dot += uint64(pxI.Y) * uint64(pxP.Y)
-			sqSumI += uint64(pxI.Y) * uint64(pxI.Y)
-			sqSumP += uint64(pxP.Y) * uint64(pxP.Y)
+			absI2 += uint64(pxI.Y) * uint64(pxI.Y)
+			absP2 += uint64(pxP.Y) * uint64(pxP.Y)
 		}
 	}
 
-	absI := math.Sqrt(float64(sqSumI))
-	absP := math.Sqrt(float64(sqSumP))
-	if absI*absP == 0 {
+	abs2 := float64(absI2) * float64(absP2)
+	if abs2 == 0 {
 		return 1
 	}
-	return float64(dot) / (absI * absP)
+	return float64(dot) / math.Sqrt(abs2)
 }
 
 // ScoreRGBACosSlow is like ScoreGrayCosSlow() but for RGBA images.
@@ -57,7 +56,7 @@ func ScoreGrayCosSlow(img, pat *image.Gray, offset image.Point) (cos float64) {
 func ScoreRGBACosSlow(img, pat *image.RGBA, offset image.Point) (cos float64) {
 	img = imgPatchWindow(img, pat, offset).(*image.RGBA)
 
-	var dot, sqSumI, sqSumP uint64
+	var dot, absI2, absP2 uint64
 
 	for y := 0; y < pat.Rect.Dy(); y++ {
 		for x := 0; x < pat.Rect.Dx(); x++ {
@@ -68,22 +67,21 @@ func ScoreRGBACosSlow(img, pat *image.RGBA, offset image.Point) (cos float64) {
 			dot += uint64(pxI.G) * uint64(pxP.G)
 			dot += uint64(pxI.B) * uint64(pxP.B)
 
-			sqSumI += uint64(pxI.R) * uint64(pxI.R)
-			sqSumI += uint64(pxI.G) * uint64(pxI.G)
-			sqSumI += uint64(pxI.B) * uint64(pxI.B)
+			absI2 += uint64(pxI.R) * uint64(pxI.R)
+			absI2 += uint64(pxI.G) * uint64(pxI.G)
+			absI2 += uint64(pxI.B) * uint64(pxI.B)
 
-			sqSumP += uint64(pxP.R) * uint64(pxP.R)
-			sqSumP += uint64(pxP.G) * uint64(pxP.G)
-			sqSumP += uint64(pxP.B) * uint64(pxP.B)
+			absP2 += uint64(pxP.R) * uint64(pxP.R)
+			absP2 += uint64(pxP.G) * uint64(pxP.G)
+			absP2 += uint64(pxP.B) * uint64(pxP.B)
 		}
 	}
 
-	absI := math.Sqrt(float64(sqSumI))
-	absP := math.Sqrt(float64(sqSumP))
-	if absI*absP == 0 {
+	abs2 := float64(absI2) * float64(absP2)
+	if abs2 == 0 {
 		return 1
 	}
-	return float64(dot) / (absI * absP)
+	return float64(dot) / math.Sqrt(abs2)
 }
 
 // SearchGraySlow searches for the position of a (grayscale) patch in a (grayscale) image,
