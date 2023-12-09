@@ -1,0 +1,96 @@
+#version 450
+
+struct dimensions {
+  uint m;
+  uint n;
+  uint du;
+  uint dv;
+  uint is;
+  uint ps;
+  uint ss;
+  uint max_uint;
+  float max;
+  uint max_x;
+  uint max_y;
+};
+
+layout(std430, set = 0, binding = 0) buffer _buf0 { dimensions dims; };
+
+layout(std430, set = 0, binding = 1) buffer readonly _buf1 { uint img[]; };
+
+layout(std430, set = 0, binding = 2) buffer readonly _buf2 { uint pat[]; };
+
+layout(std430, set = 0, binding = 3) buffer _buf3 { uint search[]; };
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+uvec4 rgb_le(uint px) {
+  uvec4 ret = {
+      (px >> 0x00) & 0x000000ff,
+      (px >> 0x08) & 0x000000ff,
+      (px >> 0x10) & 0x000000ff,
+      (px >> 0x18) & 0x000000ff,
+  };
+  return ret;
+}
+
+uvec4 colscale(float val) {
+  uvec4 ret = {0, 0, 0, 255};
+
+  if (val < 0.8) {
+    ret.r = uint(val / 0.8 * 255);
+  } else if (val < 0.9) {
+    ret.b = uint((val - 0.8) / 0.1 * 255);
+  } else {
+    ret.g = uint((val - 0.9) / 0.1 * 255);
+  }
+
+  return ret;
+}
+
+uint pixel_le(uvec4 rgb) {
+  return rgb.r | (rgb.g << 0x08) | (rgb.b << 0x10) | (rgb.a << 0x18);
+}
+
+void main() {
+  uint x = gl_GlobalInvocationID.x;
+  uint y = gl_GlobalInvocationID.y;
+
+  uint imgPatStartIx = y * dims.is / 4 + x;
+  float dot = 0, absI2 = 0, absP2 = 0;
+
+  for (uint v = 0; v < dims.dv; v++) {
+    uint pxIi = v * dims.is / 4;
+    uint pxPi = v * dims.ps / 4;
+
+    for (uint u = 0; u < dims.du; u++) {
+      uvec4 pxI = rgb_le(img[imgPatStartIx + pxIi + u]);
+      uvec4 pxP = rgb_le(pat[pxPi + u]);
+
+      for (int i = 0; i < 3; i++) {
+        dot += float(pxI[i]) * float(pxP[i]);
+        absI2 += float(pxI[i]) * float(pxI[i]);
+        absP2 += float(pxP[i]) * float(pxP[i]);
+      }
+    }
+  }
+
+  float cos = 1;
+  float abs2 = absI2 * absP2;
+  if (abs2 != 0) {
+    cos = clamp(dot / sqrt(abs2), 0, 1);
+  }
+
+  uint searchIx = y * dims.ss / 4 + x;
+  search[searchIx] = pixel_le(colscale(cos));
+
+  uint ucos = uint(cos * pow(2, 32));
+  atomicMax(dims.max_uint, ucos);
+  memoryBarrierBuffer();
+  // This thread computed the max.
+  if (dims.max_uint == ucos) {
+    dims.max = cos;
+    dims.max_x = x;
+    dims.max_y = y;
+  }
+}
