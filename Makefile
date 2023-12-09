@@ -11,7 +11,7 @@ GO_STATICCHECK_VERSION = 2023.1.6
 DEFAULT: format build_host build_arm64
 
 format:
-	cd pkg/pmatch && clang-format -i -style=Google *.h *.c
+	cd pkg/pmatch && clang-format -i -style="{BasedOnStyle: Google, IndentWidth: 2, ColumnLimit: 79}" *.h *.c
 	gofmt -w .
 	go mod tidy
 
