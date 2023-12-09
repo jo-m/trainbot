@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/jo-m/trainbot/internal/pkg/prometheus"
 	"github.com/jo-m/trainbot/pkg/avg"
 	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/pmatch"
@@ -240,6 +241,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	// Sanity check.
 	if frameRGBA.Rect.Dx() < maxDx*3 {
 		log.Error().Int("dx", frameRGBA.Rect.Dx()).Int("maxDx*3", maxDx*3).Float64("framePeriodS", framePeriodS).Msg("image is not wide enough to resolve the given max speed")
+		prometheus.RecordFrameDisposition("slow_frame")
 		return nil
 	}
 
@@ -247,6 +249,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	avg, avgDev := avg.RGBAC(frameRGBA)
 	if sum3(avg)/3 < minContrastAvg || sum3(avgDev)/3 < minContrastAvgDev {
 		log.Trace().Interface("avgDev", avgDev).Interface("avg", avg).Msg("contrast too low, discarding")
+		prometheus.RecordFrameDisposition("low_contrast")
 		return nil
 	}
 
@@ -270,16 +273,19 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		}
 
 		r.record(r.prevFrameTS, frameColor, dx, ts)
+		prometheus.RecordFrameDisposition("recorded")
 		return nil
 	}
 
 	if cos >= goodCosScoreNoMove && iabs(dx) < minDx {
 		log.Debug().Msg("not moving")
+		prometheus.RecordFrameDisposition("not_moving")
 		return nil
 	}
 
 	if cos >= goodCosScoreMove && iabs(dx) >= minDx && iabs(dx) <= maxDx {
 		log.Info().Msg("start of new sequence")
+		prometheus.RecordFrameDisposition("recorded_new_sequence")
 		r.record(r.prevFrameTS, frameColor, dx, ts)
 		r.dxAbsLowPass = math.Abs(float64(dx))
 		return nil
@@ -294,5 +300,6 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		Int("minDx", minDx).
 		Int("maxDx", maxDx).
 		Msg("inconclusive frame")
+	prometheus.RecordFrameDisposition("inconclusive")
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/jo-m/trainbot/internal/pkg/prometheus"
 	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/rs/zerolog/log"
 )
@@ -83,6 +84,7 @@ func (s *SrcBuf) run() {
 			case s.queue <- frameWithTS{frame, *ts}:
 			default:
 				log.Warn().Msg("dropped frame")
+				prometheus.RecordFrameDisposition("dropped")
 			}
 		} else {
 			s.queue <- frameWithTS{frame, *ts}
