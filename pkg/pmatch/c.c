@@ -5,7 +5,7 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
                  /* pixels */
                  const uint8_t* const imgPix, const uint8_t* const patPix,
                  /* return parameters */
-                 int* maxX, int* maxY, float64* maxScore) {
+                 int* maxX, int* maxY, float64* maxCos2) {
 #ifdef _OPENMP
 #pragma omp parallel for collapse(2)
 #endif
@@ -30,18 +30,18 @@ void SearchGrayC(const int m, const int n, const int du, const int dv,
       }
 
       const float64 abs = (float64)(sqSumI) * (float64)(sqSumP);
-      float64 score;
+      float64 cos2;
       if (abs == 0) {
-        score = 1;
+        cos2 = 1;
       } else {
-        score = (float64)(dot * dot) / abs;
+        cos2 = (float64)(dot * dot) / abs;
       }
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      if (score > *maxScore) {
-        *maxScore = score;
+      if (cos2 > *maxCos2) {
+        *maxCos2 = cos2;
         *maxX = x;
         *maxY = y;
       }
@@ -56,7 +56,7 @@ void SearchGrayRGBAC(const int m, const int n, const int du, const int dv,
                      /* pixels */
                      const uint8_t* const imgPix, const uint8_t* const patPix,
                      /* return parameters */
-                     int* maxX, int* maxY, float64* maxScore) {
+                     int* maxX, int* maxY, float64* maxCos2) {
 #ifdef _OPENMP
 #pragma omp parallel for collapse(2)
 #endif
@@ -83,18 +83,18 @@ void SearchGrayRGBAC(const int m, const int n, const int du, const int dv,
       }
 
       const float64 abs = (float64)(sqSumI) * (float64)(sqSumP);
-      float64 score;
+      float64 cos2;
       if (abs == 0) {
-        score = 1;
+        cos2 = 1;
       } else {
-        score = (float64)(dot * dot) / abs;
+        cos2 = (float64)(dot * dot) / abs;
       }
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      if (score > *maxScore) {
-        *maxScore = score;
+      if (cos2 > *maxCos2) {
+        *maxCos2 = cos2;
         *maxX = x;
         *maxY = y;
       }

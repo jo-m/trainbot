@@ -36,16 +36,16 @@ func main() {
 	fn := pmatch.SearchGrayC
 
 	// Test.
-	x, y, score := fn(img, pat.(*image.Gray))
-	fmt.Printf("x=%d y=%d score=%f\n", x, y, score)
+	x, y, cos := fn(img, pat.(*image.Gray))
+	fmt.Printf("x=%d y=%d cos=%f\n", x, y, cos)
 	if x != px {
 		panic("x detected incorrectly")
 	}
 	if y != py {
 		panic("y detected incorrectly")
 	}
-	if score != 1 {
-		panic("invalid score")
+	if cos != 1 {
+		panic("invalid cos")
 	}
 
 	// Benchmark.

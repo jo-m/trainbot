@@ -53,7 +53,7 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 	is, ps := img.Stride, pat.Stride
 
 	var maxX, maxY C.int
-	var maxScore C.float64
+	var maxCos C.float64
 
 	C.SearchGrayC(
 		C.int(m), C.int(n), C.int(du), C.int(dv), C.int(is), C.int(ps),
@@ -61,13 +61,13 @@ func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
 		(*C.uint8_t)(&pat.Pix[0]),
 		(*C.int)(&maxX),
 		(*C.int)(&maxY),
-		(*C.float64)(&maxScore),
+		(*C.float64)(&maxCos),
 	)
 
-	// this was left out above
-	score := math.Sqrt(float64(maxScore))
+	// This was left out above.
+	cos := math.Sqrt(float64(maxCos))
 
-	return int(maxX), int(maxY), score
+	return int(maxX), int(maxY), cos
 }
 
 // SearchRGBAC is like SearchGrayC, but for RGBA images.
@@ -92,7 +92,7 @@ func SearchRGBAC(img, pat *image.RGBA) (int, int, float64) {
 	is, ps := img.Stride, pat.Stride
 
 	var maxX, maxY C.int
-	var maxScore C.float64
+	var maxCos2 C.float64
 
 	C.SearchGrayRGBAC(
 		C.int(m), C.int(n), C.int(du), C.int(dv), C.int(is), C.int(ps),
@@ -100,11 +100,11 @@ func SearchRGBAC(img, pat *image.RGBA) (int, int, float64) {
 		(*C.uint8_t)(&pat.Pix[0]),
 		(*C.int)(&maxX),
 		(*C.int)(&maxY),
-		(*C.float64)(&maxScore),
+		(*C.float64)(&maxCos2),
 	)
 
-	// this was left out above
-	score := math.Sqrt(float64(maxScore))
+	// This was left out above.
+	cos := math.Sqrt(float64(maxCos2))
 
-	return int(maxX), int(maxY), score
+	return int(maxX), int(maxY), cos
 }

@@ -9,7 +9,7 @@ import (
 // using cosine similarity.
 // Slightly optimized implementation.
 // Panics (due to out of bounds errors) if the patch is larger than the image in any dimension.
-func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
+func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxCos float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {
 		panic("patch too large")
@@ -26,6 +26,7 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 
 	is, ps := img.Stride, pat.Stride
 
+	var maxCos2 float64
 	for y := 0; y < n; y++ {
 		for x := 0; x < m; x++ {
 
@@ -48,22 +49,22 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 			}
 
 			abs := float64(sqSumI) * float64(sqSumP)
-			var score float64
+			var cos2 float64
 			if abs == 0 {
-				score = 1
+				cos2 = 1
 			} else {
-				score = float64(dot*dot) / abs
+				cos2 = float64(dot*dot) / abs
 			}
 
-			if score > maxScore {
-				maxScore = score
+			if cos2 > maxCos2 {
+				maxCos2 = cos2
 				maxX, maxY = x, y
 			}
 		}
 	}
 
-	// this was left out above
-	maxScore = math.Sqrt(maxScore)
+	// This was left out above.
+	maxCos = math.Sqrt(maxCos2)
 
 	return
 }
@@ -71,7 +72,7 @@ func SearchGray(img, pat *image.Gray) (maxX, maxY int, maxScore float64) {
 // CosSimGray returns the cosine similarity score for two (grayscale) images of the same size.
 // Slightly optimized implementation.
 // Panics (due to out of bounds errors) if the sizes don't match.
-func CosSimGray(im0, im1 *image.Gray) (score float64) {
+func CosSimGray(im0, im1 *image.Gray) (cos float64) {
 	if im0.Bounds().Size() != im1.Bounds().Size() {
 		panic("image sizes do not match")
 	}
@@ -108,7 +109,7 @@ func CosSimGray(im0, im1 *image.Gray) (score float64) {
 
 // CosSimRGBA is like CosSimGray() but for RGBA images.
 // Note that the alpha channel is ignored.
-func CosSimRGBA(im0, im1 *image.RGBA) (score float64) {
+func CosSimRGBA(im0, im1 *image.RGBA) (cos float64) {
 	if im0.Bounds().Size() != im1.Bounds().Size() {
 		panic("image sizes do not match")
 	}
@@ -163,7 +164,7 @@ const four = 4
 // Note that the alpha channel is ignored.
 // Slightly optimized implementation.
 // Panics (due to out of bounds errors) if the patch is larger than the image in any dimension.
-func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
+func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {
 		panic("patch too large")
@@ -180,6 +181,7 @@ func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
 
 	is, ps := img.Stride, pat.Stride
 
+	var maxCos2 float64
 	for y := 0; y < n; y++ {
 		for x := 0; x < m; x++ {
 
@@ -205,22 +207,22 @@ func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxScore float64) {
 			}
 
 			abs := float64(sqSumI) * float64(sqSumP)
-			var score float64
+			var cos2 float64
 			if abs == 0 {
-				score = 1
+				cos2 = 1
 			} else {
-				score = float64(dot*dot) / abs
+				cos2 = float64(dot*dot) / abs
 			}
 
-			if score > maxScore {
-				maxScore = score
+			if cos2 > maxCos2 {
+				maxCos2 = cos2
 				maxX, maxY = x, y
 			}
 		}
 	}
 
-	// this was left out above
-	maxScore = math.Sqrt(maxScore)
+	// This was left out above.
+	maxCos = math.Sqrt(maxCos2)
 
 	return
 }

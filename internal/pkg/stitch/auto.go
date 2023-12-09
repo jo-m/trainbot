@@ -12,13 +12,13 @@ import (
 )
 
 const (
-	goodScoreNoMove   = 0.99
-	goodScoreMove     = 0.925
-	maxSeqLen         = 1500
-	minFramePeriodS   = 0.01
-	dxLowPassFactor   = 0.95
-	minContrastAvg    = 0.005
-	minContrastAvgDev = 0.01
+	goodCosScoreNoMove = 0.99
+	goodCosScoreMove   = 0.925
+	maxSeqLen          = 1500
+	minFramePeriodS    = 0.01
+	dxLowPassFactor    = 0.95
+	minContrastAvg     = 0.005
+	minContrastAvgDev  = 0.01
 )
 
 // Config is the configuration for a AutoStitcher.
@@ -103,7 +103,7 @@ func NewAutoStitcher(c Config) *AutoStitcher {
 	}
 }
 
-func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, score float64) {
+func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, cos float64) {
 	t0 := time.Now()
 	defer func() {
 		log.Trace().Dur("dur", time.Since(t0)).Msg("findOffset() duration")
@@ -152,8 +152,8 @@ func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, score float64) {
 	// We expect this x value to be found by the search if the frame has not moved.
 	xZero := sliceRect.Min.Sub(subRect.Min).X
 
-	x, _, score := pmatch.SearchRGBAC(sub.(*image.RGBA), slice.(*image.RGBA))
-	return x - xZero, score
+	x, _, cos := pmatch.SearchRGBAC(sub.(*image.RGBA), slice.(*image.RGBA))
+	return x - xZero, cos
 }
 
 func (r *AutoStitcher) reset() {
@@ -250,8 +250,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	dx, score := findOffset(r.prevFrameRGBA, frameRGBA, maxDx)
-	log.Debug().Uint64("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("score", score).Msg("received frame")
+	dx, cos := findOffset(r.prevFrameRGBA, frameRGBA, maxDx)
+	log.Debug().Uint64("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("cos", cos).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0
 	if isActive {
@@ -273,12 +273,12 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	if score >= goodScoreNoMove && iabs(dx) < minDx {
+	if cos >= goodCosScoreNoMove && iabs(dx) < minDx {
 		log.Debug().Msg("not moving")
 		return nil
 	}
 
-	if score >= goodScoreMove && iabs(dx) >= minDx && iabs(dx) <= maxDx {
+	if cos >= goodCosScoreMove && iabs(dx) >= minDx && iabs(dx) <= maxDx {
 		log.Info().Msg("start of new sequence")
 		r.record(r.prevFrameTS, frameColor, dx, ts)
 		r.dxAbsLowPass = math.Abs(float64(dx))
@@ -286,8 +286,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	}
 
 	log.Debug().
-		Float64("score", score).
-		Float64("goodScoreMove", goodScoreMove).
+		Float64("cos", cos).
+		Float64("goodCosScoreMove", goodCosScoreMove).
 		Interface("avgDev", avgDev).
 		Interface("avg", avg).
 		Int("dx", dx).
