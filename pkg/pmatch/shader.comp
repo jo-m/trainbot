@@ -2,22 +2,22 @@
 
 // (Specialization) constants.
 layout(local_size_x_id = 0, local_size_y_id = 1, local_size_z_id = 2) in;
+layout(constant_id = 3) const int M = 0;
+layout(constant_id = 4) const int N = 0;
+layout(constant_id = 5) const int DU = 0;
+layout(constant_id = 6) const int DV = 0;
+layout(constant_id = 7) const int IS = 0;
+layout(constant_id = 8) const int PS = 0;
+layout(constant_id = 9) const int SS = 0;
 
-struct dimensions {
-  uint m;
-  uint n;
-  uint du;
-  uint dv;
-  uint is;
-  uint ps;
-  uint ss;
+struct results {
   uint max_uint;
   float max;
   uint max_x;
   uint max_y;
 };
 
-layout(std430, set = 0, binding = 0) buffer _buf0 { dimensions dims; };
+layout(std430, set = 0, binding = 0) buffer _buf0 { results res; };
 
 layout(std430, set = 0, binding = 1) buffer readonly _buf1 { uint img[]; };
 
@@ -57,18 +57,18 @@ void main() {
   uint x = gl_GlobalInvocationID.x;
   uint y = gl_GlobalInvocationID.y;
 
-  if (x > dims.m || y > dims.n) {
+  if (x > M || y > N) {
     return;
   }
 
-  uint imgPatStartIx = y * dims.is / 4 + x;
+  uint imgPatStartIx = y * IS / 4 + x;
   float dot = 0, absI2 = 0, absP2 = 0;
 
-  for (uint v = 0; v < dims.dv; v++) {
-    uint pxIi = v * dims.is / 4;
-    uint pxPi = v * dims.ps / 4;
+  for (uint v = 0; v < DV; v++) {
+    uint pxIi = v * IS / 4;
+    uint pxPi = v * PS / 4;
 
-    for (uint u = 0; u < dims.du; u++) {
+    for (uint u = 0; u < DU; u++) {
       uvec4 pxI = rgb_le(img[imgPatStartIx + pxIi + u]);
       uvec4 pxP = rgb_le(pat[pxPi + u]);
 
@@ -86,17 +86,17 @@ void main() {
     cos = clamp(dot / sqrt(abs2), 0, 1);
   }
 
-  uint searchIx = y * dims.ss / 4 + x;
+  uint searchIx = y * SS / 4 + x;
   search[searchIx] = pixel_le(colscale(cos));
 
   uint ucos = uint(cos * pow(2, 32));
-  atomicMax(dims.max_uint, ucos);
+  atomicMax(res.max_uint, ucos);
   memoryBarrierBuffer();
   // TODO: compute max per local group first via shared variable
   // This thread computed the max.
-  if (dims.max_uint == ucos) {
-    dims.max = cos;
-    dims.max_x = x;
-    dims.max_y = y;
+  if (res.max_uint == ucos) {
+    res.max = cos;
+    res.max_x = x;
+    res.max_y = y;
   }
 }
