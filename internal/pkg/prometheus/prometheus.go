@@ -20,6 +20,11 @@ func RecordFrameDisposition(disposition string) {
 	frameDispositions.WithLabelValues(disposition).Inc()
 }
 
+// RecordSequenceLength sets the number of frames stored in memory for the current train.
+func RecordSequenceLength(length int) {
+	sequenceLength.Set(float64(length))
+}
+
 var (
 	frameDispositions = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -27,5 +32,11 @@ var (
 			Help: "How frames were used",
 		},
 		[]string{"disposition"},
+	)
+	sequenceLength = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "trainbot_sequence_length",
+			Help: "Current number of frames stored.",
+		},
 	)
 )

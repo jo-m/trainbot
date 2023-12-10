@@ -9,6 +9,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/jo-m/trainbot/internal/pkg/prometheus"
 	"github.com/mccutchen/palettor"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
@@ -212,6 +213,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		seq.ts = seq.ts[:len(seq.ts)-1]
 		seq.frames = seq.frames[:len(seq.frames)-1]
 	}
+	prometheus.RecordSequenceLength(len(seq.frames))
 
 	dxFit, ds, v0, a, err := fitDx(seq, float64(c.maxPxPerFrame(1)))
 	if err != nil {
