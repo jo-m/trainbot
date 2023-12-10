@@ -1,5 +1,8 @@
 #version 450
 
+// (Specialization) constants.
+layout(local_size_x_id = 0, local_size_y_id = 1, local_size_z_id = 2) in;
+
 struct dimensions {
   uint m;
   uint n;
@@ -21,8 +24,6 @@ layout(std430, set = 0, binding = 1) buffer readonly _buf1 { uint img[]; };
 layout(std430, set = 0, binding = 2) buffer readonly _buf2 { uint pat[]; };
 
 layout(std430, set = 0, binding = 3) buffer _buf3 { uint search[]; };
-
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 uvec4 rgb_le(uint px) {
   uvec4 ret = {
@@ -56,6 +57,10 @@ void main() {
   uint x = gl_GlobalInvocationID.x;
   uint y = gl_GlobalInvocationID.y;
 
+  if (x > dims.m || y > dims.n) {
+    return;
+  }
+
   uint imgPatStartIx = y * dims.is / 4 + x;
   float dot = 0, absI2 = 0, absP2 = 0;
 
@@ -87,6 +92,7 @@ void main() {
   uint ucos = uint(cos * pow(2, 32));
   atomicMax(dims.max_uint, ucos);
   memoryBarrierBuffer();
+  // TODO: compute max per local group first via shared variable
   // This thread computed the max.
   if (dims.max_uint == ucos) {
     dims.max = cos;
