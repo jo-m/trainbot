@@ -1,26 +1,18 @@
 package pmatch
 
-// #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
-// #cgo CFLAGS: -O2
-//
-// #cgo LDFLAGS: -lvulkan
-//
-// #include "vk.h"
-import "C"
 import (
+	"bytes"
 	_ "embed"
-	"fmt"
+	"encoding/binary"
 	"image"
-	"os"
-	"path/filepath"
 	"unsafe"
 
-	"github.com/jo-m/trainbot/pkg/imutil"
+	"github.com/jo-m/trainbot/pkg/vk"
 )
 
-//go:generate glslangValidator -V -o shader.spv shader.comp
+//go:generate glslangValidator -V -o vk.spv vk.comp
 
-//go:embed shader.spv
+//go:embed vk.spv
 var shaderCode []byte
 
 const (
@@ -31,6 +23,13 @@ const (
 
 func bufsz(img *image.RGBA) int {
 	return img.Bounds().Dy() * img.Stride
+}
+
+type results struct {
+	MaxUInt uint32
+	Max     float32
+	MaxX    uint32
+	MaxY    uint32
 }
 
 func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
@@ -44,59 +43,89 @@ func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 		Min: img.Bounds().Min,
 		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
 	}
-
 	search := image.NewRGBA(searchRect)
 
-	specConstants := []C.int32_t{
-		// Local size.
-		C.int32_t(localSizeX),
-		C.int32_t(localSizeY),
-		C.int32_t(localSizeZ),
-		// Dimensions constants.
-		C.int32_t(searchRect.Dx()),
-		C.int32_t(searchRect.Dy()),
-		C.int32_t(pat.Bounds().Dx()),
-		C.int32_t(pat.Bounds().Dy()),
-		C.int32_t(img.Stride),
-		C.int32_t(pat.Stride),
-		C.int32_t(search.Stride),
+	// Prepare buffers.
+	h, err := vk.NewHandle(true)
+	if err != nil {
+		panic(err)
 	}
+	defer h.Destroy()
 
-	C.prepare(
-		C.size_t(bufsz(img)),
-		C.size_t(bufsz(pat)),
-		C.size_t(bufsz(search)),
-		(*C.uint8_t)(unsafe.Pointer(&shaderCode[0])),
-		C.size_t(uint64(len(shaderCode))),
-		(*C.int32_t)(unsafe.Pointer(&specConstants[0])),
-		C.uint32_t(len(specConstants)),
-	)
+	res := results{}
+	resMem := bytes.Buffer{}
+	err = binary.Write(&resMem, binary.LittleEndian, res)
+	if err != nil {
+		panic(err)
+	}
+	resultsBuf, err := h.NewBuffer(resMem.Len())
+	if err != nil {
+		panic(err)
+	}
+	defer resultsBuf.Destroy(h)
 
-	res := C.results{}
-
-	C.run(
-		(*C.results)(unsafe.Pointer(&res)),
-		(*C.uint8_t)(unsafe.Pointer(&img.Pix[0])),
-		(*C.uint8_t)(unsafe.Pointer(&pat.Pix[0])),
-		(*C.uint8_t)(unsafe.Pointer(&search.Pix[0])),
-		// Workgroup size.
-		C.dim3{
-			C.uint32_t(searchRect.Dx()/localSizeX + 1),
-			C.uint32_t(searchRect.Dy()/localSizeY + 1),
-			C.uint32_t(1),
-		})
-
-	C.cleanup()
-
-	home, err := os.UserHomeDir()
+	imgBuf, err := h.NewBuffer(bufsz(img))
+	if err != nil {
+		panic(err)
+	}
+	defer imgBuf.Destroy(h)
+	err = imgBuf.Write(h, unsafe.Pointer(&img.Pix[0]), bufsz(img))
 	if err != nil {
 		panic(err)
 	}
 
-	imutil.Dump(filepath.Join(home, "Desktop/img.png"), img)
-	imutil.Dump(filepath.Join(home, "Desktop/pat.png"), pat)
-	imutil.Dump(filepath.Join(home, "Desktop/search.png"), search)
+	patBuf, err := h.NewBuffer(bufsz(pat))
+	if err != nil {
+		panic(err)
+	}
+	defer patBuf.Destroy(h)
+	err = patBuf.Write(h, unsafe.Pointer(&pat.Pix[0]), bufsz(pat))
+	if err != nil {
+		panic(err)
+	}
 
-	fmt.Printf("%+v\n", res)
-	return int(res.max_x), int(res.max_y), float64(res.max)
+	searchBuf, err := h.NewBuffer(bufsz(search))
+	if err != nil {
+		panic(err)
+	}
+	defer searchBuf.Destroy(h)
+
+	// Create pipe.
+	specInfo := []int{
+		// Local size.
+		localSizeX,
+		localSizeY,
+		1,
+		// Dimensions constants.
+		searchRect.Dx(),
+		searchRect.Dy(),
+		pat.Bounds().Dx(),
+		pat.Bounds().Dy(),
+		img.Stride,
+		pat.Stride,
+		search.Stride,
+	}
+	p, err := h.NewPipe(shaderCode, []*vk.Buffer{resultsBuf, imgBuf, patBuf, searchBuf}, specInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer p.Destroy(h)
+
+	// Run.
+	err = p.Run(h, [3]uint{
+		uint(searchRect.Dx()/localSizeX + 1),
+		uint(searchRect.Dy()/localSizeY + 1),
+		1,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// Read results.
+	err = resultsBuf.Read(h, unsafe.Pointer(&resMem.Bytes()[0]), resMem.Len())
+	if err != nil {
+		panic(err)
+	}
+	binary.Read(&resMem, binary.LittleEndian, &res)
+	return int(res.MaxX), int(res.MaxY), float64(res.Max)
 }
