@@ -23,6 +23,7 @@ It also contains some packages which might be useful for other purposes:
 
 * [pkg/pmatch](pkg/pmatch/pkg.go): Image patch matching
 * [pkg/ransac](pkg/ransac/ransac.go): RANSAC algorithm implementation
+* [pkg/vk](pkg/vk/pkg.go): Vulkan compute framework
 
 The binaries are currently built and tested on X86_64 and a Raspberry Pi 4 B.
 
