@@ -589,36 +589,6 @@ static void vk_pipe_destroy(vk_handle* handle, vk_pipe* pipe) {
 
 void assert_big_endian() { assert(ntohl(0x01020304) == 0x04030201); }
 
-// TODO: remove
-void DumpHex(const void* data, size_t size) {
-  char ascii[17];
-  size_t i, j;
-  ascii[16] = '\0';
-  for (i = 0; i < size; ++i) {
-    printf("%02X ", ((unsigned char*)data)[i]);
-    if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
-      ascii[i % 16] = ((unsigned char*)data)[i];
-    } else {
-      ascii[i % 16] = '.';
-    }
-    if ((i + 1) % 8 == 0 || i + 1 == size) {
-      printf(" ");
-      if ((i + 1) % 16 == 0) {
-        printf("|  %s \n", ascii);
-      } else if (i + 1 == size) {
-        ascii[(i + 1) % 16] = '\0';
-        if ((i + 1) % 16 <= 8) {
-          printf(" ");
-        }
-        for (j = (i + 1) % 16; j < 16; ++j) {
-          printf("   ");
-        }
-        printf("|  %s \n", ascii);
-      }
-    }
-  }
-}
-
 typedef struct vk_spec_info {
   VkSpecializationInfo info;
   VkSpecializationMapEntry map[];
@@ -679,12 +649,12 @@ void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
   free(spec_info);
 }
 
-void run(results* dims, const uint8_t* img, const uint8_t* pat,
-         uint8_t* search, const dim3 wg_sz) {
+void run(results* res, const uint8_t* img, const uint8_t* pat, uint8_t* search,
+         const dim3 wg_sz) {
   assert_big_endian();
 
   // Write to input buffers.
-  vk_buffer_write(&handle, &bufs[0], dims, sizeof(results));
+  vk_buffer_write(&handle, &bufs[0], res, sizeof(results));
   vk_buffer_write(&handle, &bufs[1], img, bufs[1].sz);
   vk_buffer_write(&handle, &bufs[2], pat, bufs[2].sz);
 
@@ -692,11 +662,8 @@ void run(results* dims, const uint8_t* img, const uint8_t* pat,
   vk_pipe_run(&handle, &pipe, wg_sz);
 
   // Read from search output buffer.
-  vk_buffer_read(&handle, &bufs[0], dims, bufs[0].sz);
+  vk_buffer_read(&handle, &bufs[0], res, bufs[0].sz);
   vk_buffer_read(&handle, &bufs[3], search, bufs[3].sz);
-  // printf("sz=%lu\n", bufs[3].sz);
-  // DumpHex(search, bufs[3].sz);
-  // printf("\n");
 }
 
 void cleanup() {

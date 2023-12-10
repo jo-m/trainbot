@@ -30,15 +30,15 @@ import (
 //go:embed shader.spv
 var shaderCode []byte
 
-func bufsz(img *image.RGBA) int {
-	return img.Bounds().Dy() * img.Stride
-}
-
 const (
 	localSizeX = 4
 	localSizeY = 4
 	localSizeZ = 1
 )
+
+func bufsz(img *image.RGBA) int {
+	return img.Bounds().Dy() * img.Stride
+}
 
 func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
