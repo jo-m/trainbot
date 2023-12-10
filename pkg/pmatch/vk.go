@@ -1,12 +1,5 @@
 package pmatch
 
-/*
-
-intel-gpu-tools
-
-go generate ./...; go test -run Test_Run ./pkg/pmatch
-*/
-
 // #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
 //
