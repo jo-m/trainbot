@@ -7,7 +7,7 @@ intel-gpu-tools
 go generate ./...; go test -run Test_Run ./pkg/pmatch
 */
 
-// #cgo CFLAGS: -std=c99
+// #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
 //
 // #cgo LDFLAGS: -lvulkan
