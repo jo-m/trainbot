@@ -161,6 +161,7 @@ func (r *AutoStitcher) reset() {
 	log.Trace().Msg("resetting sequence")
 
 	r.seq = sequence{}
+	prometheus.RecordSequenceLength(0)
 	r.dxAbsLowPass = 0
 }
 
@@ -173,6 +174,7 @@ func (r *AutoStitcher) record(prevTS time.Time, frame image.Image, dx int, ts ti
 	r.seq.frames = append(r.seq.frames, frame)
 	r.seq.dx = append(r.seq.dx, dx)
 	r.seq.ts = append(r.seq.ts, ts)
+	prometheus.RecordSequenceLength(len(r.seq.frames))
 }
 
 func iabs(i int) int {
