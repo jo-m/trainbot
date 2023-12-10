@@ -4,10 +4,7 @@
 #include <stdint.h>
 
 // TODO: split generic vk functionality into separate files.
-// TODO: support specialization constants (VkSpecializationInfo)
-// TODO: support push constants
 // TODO: proper error handling, get rid of asserts
-// TODO: local size, workgroup size
 
 // Buffers: uint8_t *
 // Sizes: size_t
@@ -38,7 +35,7 @@ typedef struct dim3 {
 } dim3;
 
 void prepare(size_t img_sz, size_t pat_sz, size_t search_sz,
-             const uint8_t *shader, size_t shader_sz);
+             const uint8_t *shader, size_t shader_sz, const dim3 local_sz);
 void run(dimensions *dims, const uint8_t *img, const uint8_t *pat,
-         uint8_t *search);
+         uint8_t *search, const dim3 wg_sz);
 void cleanup();
