@@ -619,14 +619,14 @@ static vk_result vk_pipe_run(vk_handle* handle, vk_pipe* pipe,
 
   // Create fence.
   VkFence fence;
-  VkFenceCreateInfo fence_create_info = {};
+  VkFenceCreateInfo fence_create_info = {0};
   fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   fence_create_info.pNext = NULL;
   fence_create_info.flags = 0;
   RET_ON_ERR(vkCreateFence(handle->device, &fence_create_info, NULL, &fence));
 
   // Submit to queue and wait.
-  VkSubmitInfo submit_info = {};
+  VkSubmitInfo submit_info = {0};
   submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submit_info.pNext = NULL;
   submit_info.waitSemaphoreCount = 0;
@@ -675,7 +675,7 @@ VkSpecializationInfo* alloc_int32_spec_info(int32_t* data, uint32_t count) {
   vk_spec_info* ret =
       malloc(sizeof(vk_spec_info) + count * sizeof(VkSpecializationMapEntry));
 
-  for (int i = 0; i < count; i++) {
+  for (uint32_t i = 0; i < count; i++) {
     ret->map[i].constantID = i;
     ret->map[i].offset = ((uint8_t*)&data[i]) - ((uint8_t*)&data[0]);
     ret->map[i].size = sizeof(*data);
