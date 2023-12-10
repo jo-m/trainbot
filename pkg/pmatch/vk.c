@@ -651,7 +651,7 @@ static vk_pipe pipe;
 
 void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
              const uint8_t* shader, const size_t shader_sz,
-             const dim3 local_sz) {
+             int32_t* spec_consts, uint32_t spec_consts_count) {
   // Setup.
   handle = create_vk_handle(true);
 
@@ -659,7 +659,7 @@ void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
   vk_handle_get_device_string(&handle, device_str, sizeof(device_str));
   printf("Selected device: %s\n", device_str);
 
-  bufs[0] = create_vk_buffer(&handle, sizeof(dimensions));
+  bufs[0] = create_vk_buffer(&handle, sizeof(results));
   bufs[1] = create_vk_buffer(&handle, img_sz);
   bufs[2] = create_vk_buffer(&handle, pat_sz);
   bufs[3] = create_vk_buffer(&handle, search_sz);
@@ -669,9 +669,8 @@ void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
   assert(sizeof(bufs) / sizeof(bufs[0]) ==
          sizeof(descriptor_types) / sizeof(descriptor_types[0]));
 
-  int32_t spec_constants[] = {local_sz.x, local_sz.y, local_sz.z};
-  VkSpecializationInfo* spec_info = alloc_int32_spec_info(
-      &spec_constants[0], sizeof(spec_constants) / sizeof(spec_constants[0]));
+  VkSpecializationInfo* spec_info =
+      alloc_int32_spec_info(spec_consts, spec_consts_count);
 
   pipe = create_vk_pipe(&handle, shader, shader_sz, bufs, descriptor_types,
                         sizeof(descriptor_types) / sizeof(descriptor_types[0]),
@@ -680,12 +679,12 @@ void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
   free(spec_info);
 }
 
-void run(dimensions* dims, const uint8_t* img, const uint8_t* pat,
+void run(results* dims, const uint8_t* img, const uint8_t* pat,
          uint8_t* search, const dim3 wg_sz) {
   assert_big_endian();
 
   // Write to input buffers.
-  vk_buffer_write(&handle, &bufs[0], dims, sizeof(dimensions));
+  vk_buffer_write(&handle, &bufs[0], dims, sizeof(results));
   vk_buffer_write(&handle, &bufs[1], img, bufs[1].sz);
   vk_buffer_write(&handle, &bufs[2], pat, bufs[2].sz);
 

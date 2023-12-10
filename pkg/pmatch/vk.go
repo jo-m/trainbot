@@ -54,38 +54,44 @@ func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 
 	search := image.NewRGBA(searchRect)
 
+	specConstants := []C.int32_t{
+		// Local size.
+		C.int32_t(localSizeX),
+		C.int32_t(localSizeY),
+		C.int32_t(localSizeZ),
+		// Dimensions constants.
+		C.int32_t(searchRect.Dx()),
+		C.int32_t(searchRect.Dy()),
+		C.int32_t(pat.Bounds().Dx()),
+		C.int32_t(pat.Bounds().Dy()),
+		C.int32_t(img.Stride),
+		C.int32_t(pat.Stride),
+		C.int32_t(search.Stride),
+	}
+
 	C.prepare(
 		C.size_t(bufsz(img)),
 		C.size_t(bufsz(pat)),
 		C.size_t(bufsz(search)),
 		(*C.uint8_t)(unsafe.Pointer(&shaderCode[0])),
 		C.size_t(uint64(len(shaderCode))),
+		(*C.int32_t)(unsafe.Pointer(&specConstants[0])),
+		C.uint32_t(len(specConstants)),
+	)
+
+	res := C.results{}
+
+	C.run(
+		(*C.results)(unsafe.Pointer(&res)),
+		(*C.uint8_t)(unsafe.Pointer(&img.Pix[0])),
+		(*C.uint8_t)(unsafe.Pointer(&pat.Pix[0])),
+		(*C.uint8_t)(unsafe.Pointer(&search.Pix[0])),
+		// Workgroup size.
 		C.dim3{
 			C.uint32_t(searchRect.Dx()/localSizeX + 1),
 			C.uint32_t(searchRect.Dy()/localSizeY + 1),
 			C.uint32_t(1),
 		})
-
-	dims := C.dimensions{
-		m:        C.uint32_t(searchRect.Dx()),
-		n:        C.uint32_t(searchRect.Dy()),
-		du:       C.uint32_t(pat.Bounds().Dx()),
-		dv:       C.uint32_t(pat.Bounds().Dy()),
-		is:       C.uint32_t(img.Stride),
-		ps:       C.uint32_t(pat.Stride),
-		ss:       C.uint32_t(search.Stride),
-		max_uint: C.uint32_t(0),
-		max:      C.float(0),
-		max_x:    C.uint32_t(0),
-		max_y:    C.uint32_t(0),
-	}
-
-	C.run(
-		(*C.dimensions)(unsafe.Pointer(&dims)),
-		(*C.uint8_t)(unsafe.Pointer(&img.Pix[0])),
-		(*C.uint8_t)(unsafe.Pointer(&pat.Pix[0])),
-		(*C.uint8_t)(unsafe.Pointer(&search.Pix[0])),
-		C.dim3{C.uint32_t(localSizeX), C.uint32_t(localSizeY), C.uint32_t(localSizeZ)})
 
 	C.cleanup()
 
@@ -98,7 +104,6 @@ func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	imutil.Dump(filepath.Join(home, "Desktop/pat.png"), pat)
 	imutil.Dump(filepath.Join(home, "Desktop/search.png"), search)
 
-	fmt.Printf("%+v\n", dims)
-
-	return int(dims.max_x), int(dims.max_y), float64(dims.max)
+	fmt.Printf("%+v\n", res)
+	return int(res.max_x), int(res.max_y), float64(res.max)
 }
