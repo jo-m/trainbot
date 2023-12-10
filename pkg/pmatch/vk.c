@@ -405,7 +405,7 @@ static _vk_descriptors _create_vk_descriptors(
 }
 
 static void _vk_descriptors_bind(vk_handle* handle, _vk_descriptors* desc,
-                                 vk_buffer* buffers,
+                                 const vk_buffer* buffers,
                                  const VkDescriptorType* descriptor_types,
                                  const uint32_t count) {
   assert(count == desc->count);
@@ -442,13 +442,17 @@ typedef struct vk_pipe {
 } vk_pipe;
 
 static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
-                              const size_t shader_code_sz, vk_buffer* buffers,
+                              const size_t shader_code_sz,
+                              const vk_buffer* buffers,
                               const VkDescriptorType* descriptor_types,
-                              const uint32_t count) {
+                              const uint32_t descriptor_types_count,
+                              const VkSpecializationInfo spec_info) {
   vk_pipe pipe = {0};
 
-  pipe.desc = _create_vk_descriptors(handle, descriptor_types, count);
-  _vk_descriptors_bind(handle, &pipe.desc, buffers, descriptor_types, count);
+  pipe.desc =
+      _create_vk_descriptors(handle, descriptor_types, descriptor_types_count);
+  _vk_descriptors_bind(handle, &pipe.desc, buffers, descriptor_types,
+                       descriptor_types_count);
 
   // Create shader.
   VkShaderModule shader;
@@ -485,7 +489,7 @@ static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
   shader_stage_create_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
   shader_stage_create_info.module = shader;
   shader_stage_create_info.pName = "main";
-  shader_stage_create_info.pSpecializationInfo = NULL;
+  shader_stage_create_info.pSpecializationInfo = &spec_info;
 
   VkComputePipelineCreateInfo pipeline_create_info = {0};
   pipeline_create_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
@@ -541,7 +545,6 @@ static void vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
                           pipe->layout, 0, 1, &pipe->desc.set, 0, NULL);
 
   // Dispatch.
-  // TODO: local size
   vkCmdDispatch(pipe->command_buffer, wg_sz.x, wg_sz.y, wg_sz.z);
   EXIT_ON_VULKAN_FAILURE(vkEndCommandBuffer(pipe->command_buffer));
 
@@ -616,13 +619,39 @@ void DumpHex(const void* data, size_t size) {
   }
 }
 
+typedef struct vk_spec_info {
+  VkSpecializationInfo info;
+  VkSpecializationMapEntry map[];
+} vk_spec_info;
+
+// Caller must free retval after use.
+// Retval will point to *data.
+VkSpecializationInfo* alloc_int32_spec_info(int32_t* data, uint32_t count) {
+  vk_spec_info* ret =
+      malloc(sizeof(vk_spec_info) + count * sizeof(VkSpecializationMapEntry));
+
+  for (int i = 0; i < count; i++) {
+    ret->map[i].constantID = i;
+    ret->map[i].offset = ((uint8_t*)&data[i]) - ((uint8_t*)&data[0]);
+    ret->map[i].size = sizeof(*data);
+  }
+
+  ret->info.mapEntryCount = count;
+  ret->info.pMapEntries = &ret->map[0];
+  ret->info.dataSize = sizeof(*data) * count;
+  ret->info.pData = data;
+
+  return (VkSpecializationInfo*)ret;
+}
+
 // TODO: no global state
 static vk_handle handle;
 static vk_buffer bufs[4];
 static vk_pipe pipe;
 
 void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
-             const uint8_t* shader, const size_t shader_sz) {
+             const uint8_t* shader, const size_t shader_sz,
+             const dim3 local_sz) {
   // Setup.
   handle = create_vk_handle(true);
 
@@ -637,14 +666,22 @@ void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
   VkDescriptorType descriptor_types[4] = {
       VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
+  assert(sizeof(bufs) / sizeof(bufs[0]) ==
+         sizeof(descriptor_types) / sizeof(descriptor_types[0]));
 
-  pipe =
-      create_vk_pipe(&handle, shader, shader_sz, bufs, descriptor_types,
-                     sizeof(descriptor_types) / sizeof(descriptor_types[0]));
+  int32_t spec_constants[] = {local_sz.x, local_sz.y, local_sz.z};
+  VkSpecializationInfo* spec_info = alloc_int32_spec_info(
+      &spec_constants[0], sizeof(spec_constants) / sizeof(spec_constants[0]));
+
+  pipe = create_vk_pipe(&handle, shader, shader_sz, bufs, descriptor_types,
+                        sizeof(descriptor_types) / sizeof(descriptor_types[0]),
+                        *spec_info);
+
+  free(spec_info);
 }
 
 void run(dimensions* dims, const uint8_t* img, const uint8_t* pat,
-         uint8_t* search) {
+         uint8_t* search, const dim3 wg_sz) {
   assert_big_endian();
 
   // Write to input buffers.
@@ -653,7 +690,6 @@ void run(dimensions* dims, const uint8_t* img, const uint8_t* pat,
   vk_buffer_write(&handle, &bufs[2], pat, bufs[2].sz);
 
   // Do some actual work.
-  const dim3 wg_sz = {dims->m, dims->n, 1};
   vk_pipe_run(&handle, &pipe, wg_sz);
 
   // Read from search output buffer.
