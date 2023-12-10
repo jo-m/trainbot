@@ -43,62 +43,6 @@ func testScore[T any](t *testing.T, img, pat T, perfectScore float64, scoreFn sc
 	assert.Less(t, score4, score3)
 }
 
-func Test_ScoreGrayCosSlow(t *testing.T) {
-	img := imutil.ToGray(LoadTestImg())
-	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
-	require.NoError(t, err)
-
-	ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(0, 0))
-
-	testScore(t, img, pat.(*image.Gray), 1, ScoreGrayCosSlow)
-
-	// Also resets pat bounds origin to (0,0).
-	patCopy := imutil.ToGray(pat.(*image.Gray))
-
-	testScore(t, img, patCopy, 1, ScoreGrayCosSlow)
-}
-
-func Test_ScoreGrayCosSlow_Panics(t *testing.T) {
-	img := imutil.ToGray(LoadTestImg())
-	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
-	require.NoError(t, err)
-
-	assert.Panics(t, func() {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(0, -1))
-	})
-	assert.Panics(t, func() {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(-1, 0))
-	})
-	assert.Panics(t, func() {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(-1, -1))
-	})
-
-	assert.Panics(t, func() {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(0, 200))
-	})
-	assert.Panics(t, func() {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(200, 0))
-	})
-	assert.Panics(t, func() {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(200, 200))
-	})
-}
-
-func Benchmark_ScoreGrayCosSlow(b *testing.B) {
-	img := imutil.ToGray(LoadTestImg())
-	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
-	if err != nil {
-		b.Error(err)
-	}
-
-	// Make sure pattern lives in a different memory region.
-	pat = imutil.ToGray(pat.(*image.Gray))
-
-	for i := 0; i < b.N; i++ {
-		ScoreGrayCosSlow(img, pat.(*image.Gray), image.Pt(x0, y0))
-	}
-}
-
 func Test_ScoreRGBCosSlow(t *testing.T) {
 	img := imutil.ToRGBA(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
@@ -152,40 +96,6 @@ func Benchmark_ScoreRGBACosSlow(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		ScoreRGBACosSlow(img, pat.(*image.RGBA), image.Pt(x0, y0))
-	}
-}
-
-func Test_SearchGraySlow(t *testing.T) {
-	img := imutil.ToGray(LoadTestImg())
-	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
-	require.NoError(t, err)
-
-	x, y, score := SearchGraySlow(img, pat.(*image.Gray))
-	assert.Equal(t, 1., score)
-	assert.Equal(t, x0, x)
-	assert.Equal(t, y0, y)
-
-	// Also resets pat bounds origin to (0,0).
-	patCopy := imutil.ToGray(pat.(*image.Gray))
-
-	x, y, score = SearchGraySlow(img, patCopy)
-	assert.Equal(t, 1., score)
-	assert.Equal(t, x0, x)
-	assert.Equal(t, y0, y)
-}
-
-func Benchmark_SearchGraySlow(b *testing.B) {
-	img := imutil.ToGray(LoadTestImg())
-	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
-	if err != nil {
-		b.Error(err)
-	}
-
-	// Make sure pattern lives in a different memory region.
-	pat = imutil.ToGray(pat.(*image.Gray))
-
-	for i := 0; i < b.N; i++ {
-		SearchGraySlow(img, pat.(*image.Gray))
 	}
 }
 

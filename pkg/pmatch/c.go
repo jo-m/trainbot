@@ -31,49 +31,11 @@ import (
 	"math"
 )
 
-// SearchGrayC searches for the position of a (grayscale) patch in a (grayscale) image,
+// SearchRGBAC searches for the position of a (RGBA) patch in a (RGBA) image,
 // using cosine similarity.
 // Implemented in Cgo.
 // Panics if the patch is larger than the image in any dimension.
-func SearchGrayC(img, pat *image.Gray) (int, int, float64) {
-	if pat.Bounds().Size().X > img.Bounds().Size().X ||
-		pat.Bounds().Size().Y > img.Bounds().Size().Y {
-		panic("patch too large")
-	}
-
-	// Search rect in img coordinates.
-	searchRect := image.Rectangle{
-		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
-	}
-
-	m, n := searchRect.Dx(), searchRect.Dy()
-	du, dv := pat.Bounds().Dx(), pat.Bounds().Dy()
-
-	is, ps := img.Stride, pat.Stride
-
-	var maxX, maxY C.int
-	var maxCos2 C.float64
-
-	C.SearchGrayC(
-		C.int(m), C.int(n), C.int(du), C.int(dv), C.int(is), C.int(ps),
-		(*C.uint8_t)(&img.Pix[0]),
-		(*C.uint8_t)(&pat.Pix[0]),
-		(*C.int)(&maxX),
-		(*C.int)(&maxY),
-		(*C.float64)(&maxCos2),
-	)
-
-	// This was left out above.
-	cos := math.Sqrt(float64(maxCos2))
-
-	return int(maxX), int(maxY), cos
-}
-
-// SearchRGBAC is like SearchGrayC, but for RGBA images.
 // Note that the alpha channel is ignored.
-// Implemented in Cgo.
-// Panics if the patch is larger than the image in any dimension.
 func SearchRGBAC(img, pat *image.RGBA) (int, int, float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {
@@ -94,7 +56,7 @@ func SearchRGBAC(img, pat *image.RGBA) (int, int, float64) {
 	var maxX, maxY C.int
 	var maxCos2 C.float64
 
-	C.SearchGrayRGBAC(
+	C.SearchRGBAC(
 		C.int(m), C.int(n), C.int(du), C.int(dv), C.int(is), C.int(ps),
 		(*C.uint8_t)(&img.Pix[0]),
 		(*C.uint8_t)(&pat.Pix[0]),

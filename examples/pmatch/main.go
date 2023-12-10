@@ -26,17 +26,17 @@ func bench(fn func(), count int) {
 }
 
 func main() {
-	img := imutil.ToGray(pmatch.LoadTestImg())
+	img := imutil.ToRGBA(pmatch.LoadTestImg())
 	rect := image.Rect(px, py, patchSz+px, patchSz+py)
 	pat, err := imutil.Sub(img, rect)
 	if err != nil {
 		panic(err)
 	}
 
-	fn := pmatch.SearchGrayC
+	fn := pmatch.SearchRGBA
 
 	// Test.
-	x, y, cos := fn(img, pat.(*image.Gray))
+	x, y, cos := fn(img, pat.(*image.RGBA))
 	fmt.Printf("x=%d y=%d cos=%f\n", x, y, cos)
 	if x != px {
 		panic("x detected incorrectly")
@@ -50,6 +50,6 @@ func main() {
 
 	// Benchmark.
 	bench(func() {
-		fn(img, pat.(*image.Gray))
+		fn(img, pat.(*image.RGBA))
 	}, 100)
 }
