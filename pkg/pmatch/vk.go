@@ -34,6 +34,12 @@ func bufsz(img *image.RGBA) int {
 	return img.Bounds().Dy() * img.Stride
 }
 
+const (
+	localSizeX = 4
+	localSizeY = 4
+	localSizeZ = 1
+)
+
 func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {
@@ -53,7 +59,12 @@ func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 		C.size_t(bufsz(pat)),
 		C.size_t(bufsz(search)),
 		(*C.uint8_t)(unsafe.Pointer(&shaderCode[0])),
-		C.size_t(uint64(len(shaderCode))))
+		C.size_t(uint64(len(shaderCode))),
+		C.dim3{
+			C.uint32_t(searchRect.Dx()/localSizeX + 1),
+			C.uint32_t(searchRect.Dy()/localSizeY + 1),
+			C.uint32_t(1),
+		})
 
 	dims := C.dimensions{
 		m:        C.uint32_t(searchRect.Dx()),
@@ -73,7 +84,8 @@ func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 		(*C.dimensions)(unsafe.Pointer(&dims)),
 		(*C.uint8_t)(unsafe.Pointer(&img.Pix[0])),
 		(*C.uint8_t)(unsafe.Pointer(&pat.Pix[0])),
-		(*C.uint8_t)(unsafe.Pointer(&search.Pix[0])))
+		(*C.uint8_t)(unsafe.Pointer(&search.Pix[0])),
+		C.dim3{C.uint32_t(localSizeX), C.uint32_t(localSizeY), C.uint32_t(localSizeZ)})
 
 	C.cleanup()
 
