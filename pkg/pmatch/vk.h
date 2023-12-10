@@ -3,13 +3,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// TODO: compiler flags
-// TODO: split generic vk functionality into separate files.
-
-// Buffers: uint8_t *
-// Sizes: size_t
-// Dimensions, counts: uint32_t
-
 typedef struct results {
   uint32_t max_uint;
   float max;
