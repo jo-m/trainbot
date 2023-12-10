@@ -1,7 +1,7 @@
 .PHONY: generate format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
-DOCKER_BASE_IMAGE = debian:bullseye-20231120
+DOCKER_BASE_IMAGE = debian:bookworm-20231120
 # https://go.dev/dl/
 GO_VERSION = 1.21.5
 GO_ARCHIVE_SHA256 = e2bc0b3e4b64111ec117295c088bde5f00eeed1567999ff77bc859d7df70078e
@@ -66,6 +66,13 @@ DOCKER_FLAGS += --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
 DOCKER_FLAGS += --build-arg GO_VERSION="$(GO_VERSION)"
 DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
 DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
+
+docker_image:
+	docker buildx build $(DOCKER_FLAGS)   \
+		--target=source                   \
+		--load                            \
+		--tag trainbot-source:latest      \
+		.
 
 docker_build:
 	docker buildx build $(DOCKER_FLAGS)   \

@@ -1,7 +1,7 @@
 ARG DOCKER_BASE_IMAGE
 FROM ${DOCKER_BASE_IMAGE} AS source
 
-# Install tools
+# Install general build tools
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean               && \
@@ -14,13 +14,27 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
         locales                                             \
         make
 
+# Install vulkan tools and libs
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean               && \
+    apt-get update                                       && \
+    apt-get upgrade -yq                                  && \
+    apt-get install -yq                                     \
+        glslang-tools                                       \
+        libvulkan-dev                                       \
+        vulkan-tools                                        \
+        vulkan-validationlayers
+
 # Install cross-compilation tools and dependencies
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    dpkg --add-architecture arm64                        && \
     apt-get update                                       && \
     apt-get install -yq                                     \
         gcc-aarch64-linux-gnu                               \
-        libc6-dev-arm64-cross
+        libc6-dev-arm64-cross                               \
+        libvulkan-dev:arm64
 
 # Install test runtime dependencies
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
