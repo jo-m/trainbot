@@ -12,10 +12,21 @@
 #error Need at least Vulkan SDK 1.3
 #endif
 
-#define EXIT_ON_VULKAN_FAILURE(result)                         \
-  if (VK_SUCCESS != (result)) {                                \
-    fprintf(stderr, "Failure at %u %s\n", __LINE__, __FILE__); \
-    exit(-1);                                                  \
+#define RET_ON_ERR(expr)             \
+  {                                  \
+    const VkResult _retval = (expr); \
+    if (_retval != VK_SUCCESS) {     \
+      return _retval;                \
+    }                                \
+  }
+
+#define RET_ON_ERR_CLEANUP(expr, cleanup) \
+  {                                       \
+    const VkResult _retval = (expr);      \
+    if (_retval != VK_SUCCESS) {          \
+      cleanup;                            \
+      return _retval;                     \
+    }                                     \
   }
 
 typedef struct vk_handle {
@@ -27,7 +38,10 @@ typedef struct vk_handle {
 } vk_handle;
 
 static int32_t select_device(const VkPhysicalDevice* devices, uint32_t count) {
-  assert(count > 0);
+  if (count == 0) {
+    return -1;
+  }
+
   for (uint32_t i = 0; i < count; i++) {
     VkPhysicalDeviceProperties props = {0};
     vkGetPhysicalDeviceProperties(devices[i], &props);
@@ -67,7 +81,7 @@ static uint32_t get_compute_queue_family_index(
       break;
     }
   }
-
+  // No queue family supporting compute? This should not happen.
   assert(i < queue_family_count);
 
   free(queue_families);
@@ -75,7 +89,9 @@ static uint32_t get_compute_queue_family_index(
   return i;
 }
 
-static void create_device(vk_handle* handle) {
+static vk_result create_device(vk_handle* handle)
+    __attribute((warn_unused_result));
+static vk_result create_device(vk_handle* handle) {
   // Specify queue(s).
   VkDeviceQueueCreateInfo queue_create_info = {0};
   queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -97,22 +113,28 @@ static void create_device(vk_handle* handle) {
   // No specific features required.
   VkPhysicalDeviceFeatures device_features = {0};
   device_create_info.pEnabledFeatures = &device_features;
-  EXIT_ON_VULKAN_FAILURE(vkCreateDevice(
-      handle->physical_device, &device_create_info, NULL, &handle->device));
+  RET_ON_ERR(vkCreateDevice(handle->physical_device, &device_create_info, NULL,
+                            &handle->device));
 
   // Get handle to the queue.
   vkGetDeviceQueue(handle->device, handle->queue_family_index, 0,
                    &handle->queue);
+
+  return vk_success;
 }
 
 const char* validation_layer = "VK_LAYER_KHRONOS_validation";
 
-static void check_have_validation_layer() {
+static vk_result check_have_validation_layer()
+    __attribute((warn_unused_result));
+static vk_result check_have_validation_layer() {
   uint32_t layer_count;
-  vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+  RET_ON_ERR(vkEnumerateInstanceLayerProperties(&layer_count, NULL));
   VkLayerProperties* layer_properties =
       (VkLayerProperties*)malloc(sizeof(VkLayerProperties) * layer_count);
-  vkEnumerateInstanceLayerProperties(&layer_count, layer_properties);
+  RET_ON_ERR_CLEANUP(
+      vkEnumerateInstanceLayerProperties(&layer_count, layer_properties),
+      free(layer_properties));
 
   bool validation_layer_found = false;
   for (uint32_t i = 0; i < layer_count; i++) {
@@ -124,16 +146,24 @@ static void check_have_validation_layer() {
   }
 
   free(layer_properties);
-  assert(validation_layer_found);
+
+  if (validation_layer_found) {
+    return vk_success;
+  }
+  return VK_ERROR_UNKNOWN;
 }
 
-static void check_extensions(const char** names, const uint32_t count) {
+static vk_result check_extensions(const char** names, const uint32_t count)
+    __attribute((warn_unused_result));
+static vk_result check_extensions(const char** names, const uint32_t count) {
   uint32_t extension_count;
-  vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
+  RET_ON_ERR(
+      vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL));
   VkExtensionProperties* extension_properties = (VkExtensionProperties*)malloc(
       sizeof(VkExtensionProperties) * extension_count);
-  vkEnumerateInstanceExtensionProperties(NULL, &extension_count,
-                                         extension_properties);
+  RET_ON_ERR_CLEANUP(vkEnumerateInstanceExtensionProperties(
+                         NULL, &extension_count, extension_properties),
+                     free(extension_properties));
 
   // Quadratic... whatever.
   uint32_t found = 0;
@@ -146,10 +176,16 @@ static void check_extensions(const char** names, const uint32_t count) {
   }
 
   free(extension_properties);
-  assert(count == found);
+  if (count == found) {
+    return vk_success;
+  }
+  return VK_ERROR_UNKNOWN;
 }
 
-static vk_handle create_vk_handle(const bool enable_validation) {
+static vk_result create_vk_handle(vk_handle* out, const bool enable_validation)
+    __attribute((warn_unused_result));
+static vk_result create_vk_handle(vk_handle* out,
+                                  const bool enable_validation) {
   VkApplicationInfo info = {0};
   info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   info.pNext = NULL;
@@ -169,7 +205,7 @@ static vk_handle create_vk_handle(const bool enable_validation) {
   create_info.enabledLayerCount = 0;
   create_info.ppEnabledLayerNames = NULL;
   if (enable_validation) {
-    check_have_validation_layer();
+    RET_ON_ERR(check_have_validation_layer());
     create_info.enabledLayerCount = 1;
     create_info.ppEnabledLayerNames = &validation_layer;
   }
@@ -181,36 +217,40 @@ static vk_handle create_vk_handle(const bool enable_validation) {
   create_info.enabledExtensionCount = 0;
   create_info.ppEnabledExtensionNames = extensions;
   if (enable_validation) {
-    check_extensions(&extensions[0], 1);
+    RET_ON_ERR(check_extensions(&extensions[0], 1));
     create_info.enabledExtensionCount += 1;
   }
 
   // Create instance.
-  vk_handle handle = {0};
-  EXIT_ON_VULKAN_FAILURE(
-      vkCreateInstance(&create_info, NULL, &handle.instance));
+  RET_ON_ERR(vkCreateInstance(&create_info, NULL, &out->instance));
 
   // Query physical devices.
   uint32_t physical_device_count = 0;
-  vkEnumeratePhysicalDevices(handle.instance, &physical_device_count, NULL);
+  vkEnumeratePhysicalDevices(out->instance, &physical_device_count, NULL);
   VkPhysicalDevice* const physical_devices = (VkPhysicalDevice*)malloc(
       sizeof(VkPhysicalDevice) * physical_device_count);
   memset(physical_devices, 0,
          sizeof(VkPhysicalDevice) * physical_device_count);
-  EXIT_ON_VULKAN_FAILURE(vkEnumeratePhysicalDevices(
-      handle.instance, &physical_device_count, physical_devices));
+  RET_ON_ERR_CLEANUP(
+      vkEnumeratePhysicalDevices(out->instance, &physical_device_count,
+                                 physical_devices),
+      free(physical_devices));
 
   // Select one.
-  const uint32_t device_ix =
+  const int32_t device_ix =
       select_device(physical_devices, physical_device_count);
-  assert(device_ix >= 0);
-  handle.physical_device = physical_devices[device_ix];
+  // No device found?
+  if (device_ix < 0) {
+    free(physical_devices);
+    return VK_ERROR_UNKNOWN;
+  }
+  out->physical_device = physical_devices[device_ix];
 
   // Create and cleanup.
-  create_device(&handle);
+  RET_ON_ERR_CLEANUP(create_device(out), free(physical_devices));
   free(physical_devices);
 
-  return handle;
+  return vk_success;
 }
 
 static int vk_handle_get_device_string(vk_handle* vk, char* str,
@@ -255,23 +295,26 @@ typedef struct vk_buffer {
 
 // Creates a vk_buffer.
 // Usage is hardcoded to VK_BUFFER_USAGE_STORAGE_BUFFER_BIT.
-static vk_buffer create_vk_buffer(vk_handle* handle, const size_t sz) {
-  vk_buffer buf = {0};
-  buf.sz = sz;
+static vk_result create_vk_buffer(vk_handle* handle, vk_buffer* out,
+                                  const size_t sz)
+    __attribute((warn_unused_result));
+static vk_result create_vk_buffer(vk_handle* handle, vk_buffer* out,
+                                  const size_t sz) {
+  out->sz = sz;
 
   // Create buffer.
   VkBufferCreateInfo buffer_create_info = {0};
   buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  buffer_create_info.size = buf.sz;
+  buffer_create_info.size = out->sz;
   buffer_create_info.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
   buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-  EXIT_ON_VULKAN_FAILURE(
-      vkCreateBuffer(handle->device, &buffer_create_info, NULL, &buf.buffer));
+  RET_ON_ERR(
+      vkCreateBuffer(handle->device, &buffer_create_info, NULL, &out->buffer));
 
   // Gather memory requirements from device.
   VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(handle->device, buf.buffer,
+  vkGetBufferMemoryRequirements(handle->device, out->buffer,
                                 &memory_requirements);
 
   VkMemoryAllocateInfo allocate_info = {0};
@@ -284,36 +327,46 @@ static vk_buffer create_vk_buffer(vk_handle* handle, const size_t sz) {
           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
   // Allocate.
-  EXIT_ON_VULKAN_FAILURE(vkAllocateMemory(handle->device, &allocate_info, NULL,
-                                          &buf.buffer_memory));
+  RET_ON_ERR(vkAllocateMemory(handle->device, &allocate_info, NULL,
+                              &out->buffer_memory));
 
   // Bind to buffer.
-  EXIT_ON_VULKAN_FAILURE(
-      vkBindBufferMemory(handle->device, buf.buffer, buf.buffer_memory, 0));
-
-  return buf;
+  return vkBindBufferMemory(handle->device, out->buffer, out->buffer_memory,
+                            0);
 }
 
-static void vk_buffer_read(vk_handle* handle, const vk_buffer* src, void* dst,
-                           const size_t sz) {
-  assert(sz == src->sz);
-  void* mapped = NULL;
-  vkMapMemory(handle->device, src->buffer_memory, 0, sz, 0, &mapped);
+static vk_result vk_buffer_read(vk_handle* handle, const vk_buffer* src,
+                                void* dst, const size_t sz)
+    __attribute((warn_unused_result));
+static vk_result vk_buffer_read(vk_handle* handle, const vk_buffer* src,
+                                void* dst, const size_t sz) {
+  if (sz != src->sz) {
+    return VK_ERROR_UNKNOWN;
+  }
 
+  void* mapped = NULL;
+  RET_ON_ERR(
+      vkMapMemory(handle->device, src->buffer_memory, 0, sz, 0, &mapped));
   memcpy(dst, mapped, sz);
-
   vkUnmapMemory(handle->device, src->buffer_memory);
+  return vk_success;
 }
 
-static void vk_buffer_write(vk_handle* handle, vk_buffer* dst, const void* src,
-                            const size_t sz) {
-  assert(sz == dst->sz);
+static vk_result vk_buffer_write(vk_handle* handle, vk_buffer* dst,
+                                 const void* src, const size_t sz)
+    __attribute((warn_unused_result));
+static vk_result vk_buffer_write(vk_handle* handle, vk_buffer* dst,
+                                 const void* src, const size_t sz) {
+  if (sz != dst->sz) {
+    return VK_ERROR_UNKNOWN;
+  }
+
   void* mapped = NULL;
-  vkMapMemory(handle->device, dst->buffer_memory, 0, sz, 0, &mapped);
-
+  RET_ON_ERR(
+      vkMapMemory(handle->device, dst->buffer_memory, 0, sz, 0, &mapped));
   memcpy(mapped, src, sz);
-
   vkUnmapMemory(handle->device, dst->buffer_memory);
+  return vk_success;
 }
 
 static void vk_buffer_destroy(vk_handle* handle, vk_buffer* buf) {
@@ -337,15 +390,17 @@ static void _vk_descriptors_destroy(vk_handle* handle, _vk_descriptors* desc) {
   desc->count = 0;
 }
 
-static _vk_descriptors _create_vk_descriptors(
-    vk_handle* handle, const VkDescriptorType* descriptor_types,
-    const uint32_t count) {
-  _vk_descriptors desc = {0};
-  desc.count = count;
+static vk_result _create_vk_descriptors(
+    _vk_descriptors* out, vk_handle* handle,
+    const VkDescriptorType* descriptor_types, const uint32_t count)
+    __attribute((warn_unused_result));
+static vk_result _create_vk_descriptors(
+    _vk_descriptors* out, vk_handle* handle,
+    const VkDescriptorType* descriptor_types, const uint32_t count) {
+  out->count = count;
 
-  // For now, we simply assume all buffers are bound the same way.
-  // TODO: merge counts from descriptor_types into different pool sizes.
   for (uint32_t i = 0; i < count; i++) {
+    // Currently, only VK_DESCRIPTOR_TYPE_STORAGE_BUFFER is supported.
     assert(descriptor_types[i] == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
   }
   VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count};
@@ -360,16 +415,16 @@ static _vk_descriptors _create_vk_descriptors(
   descriptor_pool_create_info.poolSizeCount = 1;
   descriptor_pool_create_info.pPoolSizes = &pool_size;
 
-  EXIT_ON_VULKAN_FAILURE(vkCreateDescriptorPool(
-      handle->device, &descriptor_pool_create_info, NULL, &desc.pool));
+  RET_ON_ERR(vkCreateDescriptorPool(
+      handle->device, &descriptor_pool_create_info, NULL, &out->pool));
 
   // Create descriptor set layout bindings.
-  desc.bindings = (VkDescriptorSetLayoutBinding*)malloc(
+  out->bindings = (VkDescriptorSetLayoutBinding*)malloc(
       sizeof(VkDescriptorSetLayoutBinding) * count);
-  memset(desc.bindings, 0, sizeof(VkDescriptorSetLayoutBinding) * count);
+  memset(out->bindings, 0, sizeof(VkDescriptorSetLayoutBinding) * count);
 
   for (uint32_t i = 0; i < count; i++) {
-    VkDescriptorSetLayoutBinding* b = &desc.bindings[i];
+    VkDescriptorSetLayoutBinding* b = &out->bindings[i];
     b->binding = i;
     b->descriptorType = descriptor_types[i];
     b->descriptorCount = 1;
@@ -384,24 +439,28 @@ static _vk_descriptors _create_vk_descriptors(
   descriptor_set_layout_create_info.pNext = NULL;
   descriptor_set_layout_create_info.flags = 0;
   descriptor_set_layout_create_info.bindingCount = count;
-  descriptor_set_layout_create_info.pBindings = desc.bindings;
+  descriptor_set_layout_create_info.pBindings = out->bindings;
 
-  EXIT_ON_VULKAN_FAILURE(vkCreateDescriptorSetLayout(
-      handle->device, &descriptor_set_layout_create_info, 0, &desc.layout));
+  RET_ON_ERR_CLEANUP(
+      vkCreateDescriptorSetLayout(
+          handle->device, &descriptor_set_layout_create_info, 0, &out->layout),
+      free(out->bindings));
 
   // Allocate descriptor sets.
   VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {0};
   descriptor_set_allocate_info.sType =
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   descriptor_set_allocate_info.pNext = NULL;
-  descriptor_set_allocate_info.descriptorPool = desc.pool;
+  descriptor_set_allocate_info.descriptorPool = out->pool;
   descriptor_set_allocate_info.descriptorSetCount = 1;
-  descriptor_set_allocate_info.pSetLayouts = &desc.layout;
+  descriptor_set_allocate_info.pSetLayouts = &out->layout;
 
-  EXIT_ON_VULKAN_FAILURE(vkAllocateDescriptorSets(
-      handle->device, &descriptor_set_allocate_info, &desc.set));
+  RET_ON_ERR_CLEANUP(
+      vkAllocateDescriptorSets(handle->device, &descriptor_set_allocate_info,
+                               &out->set),
+      free(out->bindings));
 
-  return desc;
+  return vk_success;
 }
 
 static void _vk_descriptors_bind(vk_handle* handle, _vk_descriptors* desc,
@@ -441,22 +500,31 @@ typedef struct vk_pipe {
   VkCommandBuffer command_buffer;
 } vk_pipe;
 
-static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
-                              const size_t shader_code_sz,
-                              const vk_buffer* buffers,
-                              const VkDescriptorType* descriptor_types,
-                              const uint32_t descriptor_types_count,
-                              const VkSpecializationInfo spec_info) {
-  vk_pipe pipe = {0};
-
-  pipe.desc =
-      _create_vk_descriptors(handle, descriptor_types, descriptor_types_count);
-  _vk_descriptors_bind(handle, &pipe.desc, buffers, descriptor_types,
+static vk_result create_vk_pipe(vk_handle* handle, vk_pipe* out,
+                                const uint8_t* shader_code,
+                                const size_t shader_code_sz,
+                                const vk_buffer* buffers,
+                                const VkDescriptorType* descriptor_types,
+                                const uint32_t descriptor_types_count,
+                                const VkSpecializationInfo spec_info)
+    __attribute((warn_unused_result));
+static vk_result create_vk_pipe(vk_handle* handle, vk_pipe* out,
+                                const uint8_t* shader_code,
+                                const size_t shader_code_sz,
+                                const vk_buffer* buffers,
+                                const VkDescriptorType* descriptor_types,
+                                const uint32_t descriptor_types_count,
+                                const VkSpecializationInfo spec_info) {
+  RET_ON_ERR(_create_vk_descriptors(&out->desc, handle, descriptor_types,
+                                    descriptor_types_count));
+  _vk_descriptors_bind(handle, &out->desc, buffers, descriptor_types,
                        descriptor_types_count);
 
   // Create shader.
   VkShaderModule shader;
-  assert(shader_code_sz % 4 == 0);
+  if (shader_code_sz % 4 != 0) {
+    return vk_success;
+  }
   VkShaderModuleCreateInfo create_info = {0};
   create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   create_info.pNext = NULL;
@@ -464,7 +532,7 @@ static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
   create_info.pCode = (uint32_t*)shader_code;
   create_info.codeSize = shader_code_sz;
 
-  EXIT_ON_VULKAN_FAILURE(
+  RET_ON_ERR(
       vkCreateShaderModule(handle->device, &create_info, NULL, &shader));
 
   // Create layout.
@@ -474,11 +542,11 @@ static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
   pipeline_layout_create_info.pNext = NULL;
   pipeline_layout_create_info.flags = 0;
   pipeline_layout_create_info.setLayoutCount = 1;
-  pipeline_layout_create_info.pSetLayouts = &pipe.desc.layout;
+  pipeline_layout_create_info.pSetLayouts = &out->desc.layout;
   pipeline_layout_create_info.pushConstantRangeCount = 0;
   pipeline_layout_create_info.pPushConstantRanges = NULL;
-  EXIT_ON_VULKAN_FAILURE(vkCreatePipelineLayout(
-      handle->device, &pipeline_layout_create_info, NULL, &pipe.layout));
+  RET_ON_ERR(vkCreatePipelineLayout(
+      handle->device, &pipeline_layout_create_info, NULL, &out->layout));
 
   // Create pipeline.
   VkPipelineShaderStageCreateInfo shader_stage_create_info = {0};
@@ -496,11 +564,11 @@ static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
   pipeline_create_info.pNext = NULL;
   pipeline_create_info.flags = 0;
   pipeline_create_info.stage = shader_stage_create_info;
-  pipeline_create_info.layout = pipe.layout;
+  pipeline_create_info.layout = out->layout;
 
-  EXIT_ON_VULKAN_FAILURE(
-      vkCreateComputePipelines(handle->device, VK_NULL_HANDLE, 1,
-                               &pipeline_create_info, NULL, &pipe.pipeline));
+  RET_ON_ERR(vkCreateComputePipelines(handle->device, VK_NULL_HANDLE, 1,
+                                      &pipeline_create_info, NULL,
+                                      &out->pipeline));
 
   vkDestroyShaderModule(handle->device, shader, NULL);
 
@@ -511,32 +579,33 @@ static vk_pipe create_vk_pipe(vk_handle* handle, const uint8_t* shader_code,
   command_pool_create_info.flags =
       VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   command_pool_create_info.queueFamilyIndex = handle->queue_family_index;
-  EXIT_ON_VULKAN_FAILURE(vkCreateCommandPool(
-      handle->device, &command_pool_create_info, NULL, &pipe.command_pool));
+  RET_ON_ERR(vkCreateCommandPool(handle->device, &command_pool_create_info,
+                                 NULL, &out->command_pool));
 
   // Allocate command buffer.
   VkCommandBufferAllocateInfo command_buffer_allocate_info = {0};
   command_buffer_allocate_info.sType =
       VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   command_buffer_allocate_info.pNext = NULL;
-  command_buffer_allocate_info.commandPool = pipe.command_pool;
+  command_buffer_allocate_info.commandPool = out->command_pool;
   command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   command_buffer_allocate_info.commandBufferCount = 1;
-  EXIT_ON_VULKAN_FAILURE(vkAllocateCommandBuffers(
-      handle->device, &command_buffer_allocate_info, &pipe.command_buffer));
-
-  return pipe;
+  return vkAllocateCommandBuffers(
+      handle->device, &command_buffer_allocate_info, &out->command_buffer);
 }
 
-static void vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
+static vk_result vk_pipe_run(vk_handle* handle, vk_pipe* pipe,
+                             const dim3 wg_sz)
+    __attribute((warn_unused_result));
+static vk_result vk_pipe_run(vk_handle* handle, vk_pipe* pipe,
+                             const dim3 wg_sz) {
   // Begin command buffer.
   VkCommandBufferBeginInfo begin_info = {0};
   begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   begin_info.pNext = NULL;
   begin_info.pInheritanceInfo = NULL;
   begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-  EXIT_ON_VULKAN_FAILURE(
-      vkBeginCommandBuffer(pipe->command_buffer, &begin_info));
+  RET_ON_ERR(vkBeginCommandBuffer(pipe->command_buffer, &begin_info));
 
   // Bind pipeline and descriptor set.
   vkCmdBindPipeline(pipe->command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -546,7 +615,7 @@ static void vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
 
   // Dispatch.
   vkCmdDispatch(pipe->command_buffer, wg_sz.x, wg_sz.y, wg_sz.z);
-  EXIT_ON_VULKAN_FAILURE(vkEndCommandBuffer(pipe->command_buffer));
+  RET_ON_ERR(vkEndCommandBuffer(pipe->command_buffer));
 
   // Create fence.
   VkFence fence;
@@ -554,8 +623,7 @@ static void vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
   fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   fence_create_info.pNext = NULL;
   fence_create_info.flags = 0;
-  EXIT_ON_VULKAN_FAILURE(
-      vkCreateFence(handle->device, &fence_create_info, NULL, &fence));
+  RET_ON_ERR(vkCreateFence(handle->device, &fence_create_info, NULL, &fence));
 
   // Submit to queue and wait.
   VkSubmitInfo submit_info = {};
@@ -569,12 +637,13 @@ static void vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
   submit_info.signalSemaphoreCount = 0;
   submit_info.pSignalSemaphores = NULL;
 
-  EXIT_ON_VULKAN_FAILURE(vkQueueSubmit(handle->queue, 1, &submit_info, fence));
-  EXIT_ON_VULKAN_FAILURE(
+  RET_ON_ERR(vkQueueSubmit(handle->queue, 1, &submit_info, fence));
+  RET_ON_ERR(
       vkWaitForFences(handle->device, 1, &fence, VK_TRUE, 100000000000));
 
   // Cleanup.
   vkDestroyFence(handle->device, fence, NULL);
+  return vk_success;
 }
 
 static void vk_pipe_destroy(vk_handle* handle, vk_pipe* pipe) {
@@ -587,7 +656,13 @@ static void vk_pipe_destroy(vk_handle* handle, vk_pipe* pipe) {
   _vk_descriptors_destroy(handle, &pipe->desc);
 }
 
-void assert_big_endian() { assert(ntohl(0x01020304) == 0x04030201); }
+vk_result check_big_endian() __attribute((warn_unused_result));
+vk_result check_big_endian() {
+  if (ntohl(0x01020304) == 0x04030201) {
+    return VK_SUCCESS;
+  }
+  return VK_ERROR_UNKNOWN;
+}
 
 typedef struct vk_spec_info {
   VkSpecializationInfo info;
@@ -619,20 +694,23 @@ static vk_handle handle;
 static vk_buffer bufs[4];
 static vk_pipe pipe;
 
-void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
-             const uint8_t* shader, const size_t shader_sz,
-             int32_t* spec_consts, uint32_t spec_consts_count) {
+vk_result prepare(const size_t img_sz, const size_t pat_sz,
+                  const size_t search_sz, const uint8_t* shader,
+                  const size_t shader_sz, int32_t* spec_consts,
+                  uint32_t spec_consts_count) {
+  RET_ON_ERR(check_big_endian());
+
   // Setup.
-  handle = create_vk_handle(true);
+  RET_ON_ERR(create_vk_handle(&handle, true));
 
   char device_str[512] = {0};
   vk_handle_get_device_string(&handle, device_str, sizeof(device_str));
   printf("Selected device: %s\n", device_str);
 
-  bufs[0] = create_vk_buffer(&handle, sizeof(results));
-  bufs[1] = create_vk_buffer(&handle, img_sz);
-  bufs[2] = create_vk_buffer(&handle, pat_sz);
-  bufs[3] = create_vk_buffer(&handle, search_sz);
+  RET_ON_ERR(create_vk_buffer(&handle, &bufs[0], sizeof(results)));
+  RET_ON_ERR(create_vk_buffer(&handle, &bufs[1], img_sz));
+  RET_ON_ERR(create_vk_buffer(&handle, &bufs[2], pat_sz));
+  RET_ON_ERR(create_vk_buffer(&handle, &bufs[3], search_sz));
   VkDescriptorType descriptor_types[4] = {
       VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
@@ -642,28 +720,32 @@ void prepare(const size_t img_sz, const size_t pat_sz, const size_t search_sz,
   VkSpecializationInfo* spec_info =
       alloc_int32_spec_info(spec_consts, spec_consts_count);
 
-  pipe = create_vk_pipe(&handle, shader, shader_sz, bufs, descriptor_types,
-                        sizeof(descriptor_types) / sizeof(descriptor_types[0]),
-                        *spec_info);
+  RET_ON_ERR_CLEANUP(
+      create_vk_pipe(&handle, &pipe, shader, shader_sz, bufs, descriptor_types,
+                     sizeof(descriptor_types) / sizeof(descriptor_types[0]),
+                     *spec_info),
+      free(spec_info));
 
   free(spec_info);
+
+  return vk_success;
 }
 
-void run(results* res, const uint8_t* img, const uint8_t* pat, uint8_t* search,
-         const dim3 wg_sz) {
-  assert_big_endian();
-
+vk_result run(results* res, const uint8_t* img, const uint8_t* pat,
+              uint8_t* search, const dim3 wg_sz) {
   // Write to input buffers.
-  vk_buffer_write(&handle, &bufs[0], res, sizeof(results));
-  vk_buffer_write(&handle, &bufs[1], img, bufs[1].sz);
-  vk_buffer_write(&handle, &bufs[2], pat, bufs[2].sz);
+  RET_ON_ERR(vk_buffer_write(&handle, &bufs[0], res, sizeof(results)));
+  RET_ON_ERR(vk_buffer_write(&handle, &bufs[1], img, bufs[1].sz));
+  RET_ON_ERR(vk_buffer_write(&handle, &bufs[2], pat, bufs[2].sz));
 
   // Do some actual work.
-  vk_pipe_run(&handle, &pipe, wg_sz);
+  RET_ON_ERR(vk_pipe_run(&handle, &pipe, wg_sz));
 
   // Read from search output buffer.
-  vk_buffer_read(&handle, &bufs[0], res, bufs[0].sz);
-  vk_buffer_read(&handle, &bufs[3], search, bufs[3].sz);
+  RET_ON_ERR(vk_buffer_read(&handle, &bufs[0], res, bufs[0].sz));
+  RET_ON_ERR(vk_buffer_read(&handle, &bufs[3], search, bufs[3].sz));
+
+  return vk_success;
 }
 
 void cleanup() {
