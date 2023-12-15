@@ -50,7 +50,6 @@ type SearchVk struct {
 	resultsBuf *vk.Buffer
 	imgBuf     *vk.Buffer
 	patBuf     *vk.Buffer
-	searchBuf  *vk.Buffer
 	pipe       *vk.Pipe
 }
 
@@ -58,10 +57,6 @@ func (s *SearchVk) Destroy() {
 	if s.pipe != nil {
 		s.pipe.Destroy(s.h)
 		s.pipe = nil
-	}
-	if s.searchBuf != nil {
-		s.searchBuf.Destroy(s.h)
-		s.searchBuf = nil
 	}
 	if s.patBuf != nil {
 		s.patBuf.Destroy(s.h)
@@ -123,12 +118,6 @@ func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int)
 		return nil, err
 	}
 
-	s.searchBuf, err = s.h.NewBuffer(bufsz(s.search))
-	if err != nil {
-		s.Destroy()
-		return nil, err
-	}
-
 	// Create pipe.
 	specInfo := []int{
 		// Local size.
@@ -144,7 +133,7 @@ func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int)
 		patStride,
 		s.search.Stride,
 	}
-	s.pipe, err = s.h.NewPipe(shaderCode, []*vk.Buffer{s.resultsBuf, s.imgBuf, s.patBuf, s.searchBuf}, specInfo)
+	s.pipe, err = s.h.NewPipe(shaderCode, []*vk.Buffer{s.resultsBuf, s.imgBuf, s.patBuf}, specInfo)
 	if err != nil {
 		if err != nil {
 			s.Destroy()
