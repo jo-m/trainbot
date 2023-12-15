@@ -23,8 +23,6 @@ layout(std430, set = 0, binding = 1) buffer readonly _buf1 { uint img[]; };
 
 layout(std430, set = 0, binding = 2) buffer readonly _buf2 { uint pat[]; };
 
-layout(std430, set = 0, binding = 3) buffer _buf3 { uint search[]; };
-
 uvec4 rgb_le(uint px) {
   uvec4 ret = {
       (px >> 0x00) & 0x000000ff,
@@ -85,9 +83,6 @@ void main() {
   if (abs2 != 0) {
     cos = clamp(dot / sqrt(abs2), 0, 1);
   }
-
-  uint searchIx = y * SS / 4 + x;
-  search[searchIx] = pixel_le(colscale(cos));
 
   uint ucos = uint(cos * pow(2, 32));
   atomicMax(res.max_uint, ucos);
