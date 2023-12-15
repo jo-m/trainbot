@@ -39,7 +39,13 @@ func Benchmark_SearchRGBAVk(b *testing.B) {
 	// Make sure pattern lives in a different memory region.
 	pat = imutil.ToRGBA(pat.(*image.RGBA))
 
+	search, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.(*image.RGBA).Stride)
+	if err != nil {
+		b.Error(err)
+	}
+	defer search.Destroy()
+
 	for i := 0; i < b.N; i++ {
-		SearchRGBAVk(img, pat.(*image.RGBA))
+		search.Run(img, pat.(*image.RGBA))
 	}
 }
