@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/binary"
+	"errors"
 	"image"
 	"unsafe"
 
@@ -32,63 +33,101 @@ type results struct {
 	MaxY    uint32
 }
 
-func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
-	if pat.Bounds().Size().X > img.Bounds().Size().X ||
-		pat.Bounds().Size().Y > img.Bounds().Size().Y {
+func (r results) size() int {
+	buf := bytes.Buffer{}
+	err := binary.Write(&buf, binary.LittleEndian, results{})
+	if err != nil {
+		panic(err)
+	}
+	return buf.Len()
+}
+
+type SearchVk struct {
+	searchRect image.Rectangle
+	h          *vk.Handle
+	search     *image.RGBA
+	resSize    int
+	resultsBuf *vk.Buffer
+	imgBuf     *vk.Buffer
+	patBuf     *vk.Buffer
+	searchBuf  *vk.Buffer
+	pipe       *vk.Pipe
+}
+
+func (s *SearchVk) Destroy() {
+	if s.pipe != nil {
+		s.pipe.Destroy(s.h)
+		s.pipe = nil
+	}
+	if s.searchBuf != nil {
+		s.searchBuf.Destroy(s.h)
+		s.searchBuf = nil
+	}
+	if s.patBuf != nil {
+		s.patBuf.Destroy(s.h)
+		s.patBuf = nil
+	}
+	if s.imgBuf != nil {
+		s.imgBuf.Destroy(s.h)
+		s.imgBuf = nil
+	}
+	if s.resultsBuf != nil {
+		s.resultsBuf.Destroy(s.h)
+		s.resultsBuf = nil
+	}
+	if s.h != nil {
+		s.h.Destroy()
+		s.h = nil
+	}
+}
+
+func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int) (*SearchVk, error) {
+	if patBounds.Size().X > imgBounds.Size().X ||
+		patBounds.Size().Y > imgBounds.Size().Y {
 		panic("patch too large")
 	}
 
+	s := SearchVk{}
+
 	// Search rect in img coordinates.
-	searchRect := image.Rectangle{
-		Min: img.Bounds().Min,
-		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
+	s.searchRect = image.Rectangle{
+		Min: imgBounds.Min,
+		Max: imgBounds.Max.Sub(patBounds.Size()).Add(image.Pt(1, 1)),
 	}
-	search := image.NewRGBA(searchRect)
+	s.search = image.NewRGBA(s.searchRect)
+
+	// Create instance.
+	var err error
+	s.h, err = vk.NewHandle(true)
+	if err != nil {
+		return nil, err
+	}
 
 	// Prepare buffers.
-	h, err := vk.NewHandle(true)
+	s.resSize = results{}.size()
+	s.resultsBuf, err = s.h.NewBuffer(s.resSize)
 	if err != nil {
-		panic(err)
-	}
-	defer h.Destroy()
-
-	res := results{}
-	resMem := bytes.Buffer{}
-	err = binary.Write(&resMem, binary.LittleEndian, res)
-	if err != nil {
-		panic(err)
-	}
-	resultsBuf, err := h.NewBuffer(resMem.Len())
-	if err != nil {
-		panic(err)
-	}
-	defer resultsBuf.Destroy(h)
-
-	imgBuf, err := h.NewBuffer(bufsz(img))
-	if err != nil {
-		panic(err)
-	}
-	defer imgBuf.Destroy(h)
-	err = imgBuf.Write(h, unsafe.Pointer(&img.Pix[0]), bufsz(img))
-	if err != nil {
-		panic(err)
+		s.Destroy()
+		return nil, err
 	}
 
-	patBuf, err := h.NewBuffer(bufsz(pat))
+	s.imgBuf, err = s.h.NewBuffer(imgBounds.Dy() * imgStride)
 	if err != nil {
-		panic(err)
-	}
-	defer patBuf.Destroy(h)
-	err = patBuf.Write(h, unsafe.Pointer(&pat.Pix[0]), bufsz(pat))
-	if err != nil {
-		panic(err)
+		s.Destroy()
+		return nil, err
 	}
 
-	searchBuf, err := h.NewBuffer(bufsz(search))
+	s.patBuf, err = s.h.NewBuffer(patBounds.Dy() * patStride)
 	if err != nil {
-		panic(err)
+		s.Destroy()
+		return nil, err
 	}
-	defer searchBuf.Destroy(h)
+
+	s.searchBuf, err = s.h.NewBuffer(bufsz(s.search))
+	if err != nil {
+		s.Destroy()
+		return nil, err
+	}
 
 	// Create pipe.
 	specInfo := []int{
@@ -97,35 +136,77 @@ func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 		localSizeY,
 		1,
 		// Dimensions constants.
-		searchRect.Dx(),
-		searchRect.Dy(),
-		pat.Bounds().Dx(),
-		pat.Bounds().Dy(),
-		img.Stride,
-		pat.Stride,
-		search.Stride,
+		s.searchRect.Dx(),
+		s.searchRect.Dy(),
+		patBounds.Dx(),
+		patBounds.Dy(),
+		imgStride,
+		patStride,
+		s.search.Stride,
 	}
-	p, err := h.NewPipe(shaderCode, []*vk.Buffer{resultsBuf, imgBuf, patBuf, searchBuf}, specInfo)
+	s.pipe, err = s.h.NewPipe(shaderCode, []*vk.Buffer{s.resultsBuf, s.imgBuf, s.patBuf, s.searchBuf}, specInfo)
 	if err != nil {
-		panic(err)
+		if err != nil {
+			s.Destroy()
+			return nil, err
+		}
 	}
-	defer p.Destroy(h)
+
+	return &s, nil
+}
+
+func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, err error) {
+	searchRect := image.Rectangle{
+		Min: img.Bounds().Min,
+		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
+	}
+	if searchRect != s.searchRect {
+		err = errors.New("img/pat size does not match state")
+		return
+	}
+
+	// Write to buffers.
+	err = s.imgBuf.Write(s.h, unsafe.Pointer(&img.Pix[0]), bufsz(img))
+	if err != nil {
+		return
+	}
+
+	err = s.patBuf.Write(s.h, unsafe.Pointer(&pat.Pix[0]), bufsz(pat))
+	if err != nil {
+		return
+	}
 
 	// Run.
-	err = p.Run(h, [3]uint{
-		uint(searchRect.Dx()/localSizeX + 1),
-		uint(searchRect.Dy()/localSizeY + 1),
+	err = s.pipe.Run(s.h, [3]uint{
+		uint(s.searchRect.Dx()/localSizeX + 1),
+		uint(s.searchRect.Dy()/localSizeY + 1),
 		1,
 	})
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	// Read results.
-	err = resultsBuf.Read(h, unsafe.Pointer(&resMem.Bytes()[0]), resMem.Len())
+	res := results{}
+	resMem := make([]byte, res.size())
+	err = s.resultsBuf.Read(s.h, unsafe.Pointer(&resMem[0]), s.resSize)
+	if err != nil {
+		return
+	}
+	binary.Read(bytes.NewReader(resMem), binary.LittleEndian, &res)
+	return int(res.MaxX), int(res.MaxY), float64(res.Max), nil
+}
+
+func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
+	h, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.Stride)
 	if err != nil {
 		panic(err)
 	}
-	binary.Read(&resMem, binary.LittleEndian, &res)
-	return int(res.MaxX), int(res.MaxY), float64(res.Max)
+	defer h.Destroy()
+
+	maxX, maxY, maxCos, err = h.Run(img, pat)
+	if err != nil {
+		panic(err)
+	}
+	return
 }
