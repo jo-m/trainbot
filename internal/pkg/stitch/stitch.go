@@ -217,10 +217,12 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 
 	dxFit, ds, v0, a, err := fitDx(seq, float64(c.maxPxPerFrame(1)))
 	if err != nil {
+		prometheus.RecordFitAndStitchResult("unable_to_fit")
 		return nil, fmt.Errorf("was not able to fit the sequence: %w", err)
 	}
 
 	if math.Abs(ds) < c.minLengthPx() {
+		prometheus.RecordFitAndStitchResult("too_short")
 		return nil, fmt.Errorf("discarded because too short, %f < %f", ds, c.minLengthPx())
 	}
 
@@ -230,11 +232,13 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	speed := v0 + a*tMid.Sub(t0).Seconds()
 
 	if math.Abs(speed) < c.minSpeedPxPS() {
+		prometheus.RecordFitAndStitchResult("too_slow")
 		return nil, fmt.Errorf("discarded because too slow, %f < %f", speed, c.minSpeedPxPS())
 	}
 
 	img, err := stitch(seq.frames, dxFit)
 	if err != nil {
+		prometheus.RecordFitAndStitchResult("unable_to_assemble_image")
 		return nil, fmt.Errorf("unable to assemble image: %w", err)
 	}
 
@@ -243,6 +247,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		panic(err)
 	}
 
+	prometheus.RecordFitAndStitchResult("success")
 	return &Train{
 		t0,
 		seq.ts[len(seq.ts)-1],

@@ -12,6 +12,12 @@
   "__elements": {},
   "__requires": [
     {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
@@ -186,6 +192,102 @@
         "type": "prometheus",
         "uid": "${DS_VICTORIAMETRICS}"
       },
+      "description": "results per hour",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "linearThreshold": 10,
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 15,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 6,
+      "interval": "30m",
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": true,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "vertical",
+        "showValue": "auto",
+        "stacking": "normal",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_VICTORIAMETRICS}"
+          },
+          "editorMode": "code",
+          "expr": "round(\n    rate(\n        trainbot_fit_and_stitch_results_total{instance=~\"$Host:.*\"}[$__rate_interval]\n    )\n    * $__rate_interval\n)",
+          "instant": false,
+          "legendFormat": "{{result}}",
+          "range": true,
+          "refId": "Dispositions"
+        }
+      ],
+      "title": "fitAndStitch() results",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_VICTORIAMETRICS}"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -242,7 +344,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 21
       },
       "id": 3,
       "options": {
@@ -335,7 +437,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 27
       },
       "id": 2,
       "options": {
@@ -429,7 +531,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 33
       },
       "id": 4,
       "options": {
@@ -539,7 +641,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "id": 5,
       "options": {
@@ -614,13 +716,13 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Onlytrains",
   "uid": "c6b7d17d-2874-4a46-a52d-44a5f93e6fc6",
-  "version": 21,
+  "version": 30,
   "weekStart": ""
 }
