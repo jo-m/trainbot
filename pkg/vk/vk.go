@@ -207,8 +207,9 @@ func (p *Pipe) ptr() *C.vk_pipe {
 // Must call Destroy() on the instance after usage.
 // The shader code must be valid SPIR-V bytecode, and its size a multiple of 4.
 // Buffers bufs will be bound to the shader program as VK_DESCRIPTOR_TYPE_STORAGE_BUFFERs in slice order.
-// Only ints are supported for specialization constants for simplicity.
-func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int) (*Pipe, error) {
+// Specialization constants can be only int for simplicity.
+// A single push constants buffer can be optionally specified (pushConstantRangeSz > 0).
+func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int, pushConstantRangeSz int) (*Pipe, error) {
 	if !h.valid {
 		panic("invalid instance")
 	}
@@ -240,6 +241,13 @@ func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int) (*P
 		specInfo = &C.VkSpecializationInfo{}
 	}
 
+	// Push constants.
+	pushConstants := C.VkPushConstantRange{
+		stageFlags: C.VK_SHADER_STAGE_COMPUTE_BIT,
+		offset:     0,
+		size:       C.uint32_t(pushConstantRangeSz),
+	}
+
 	// Create pipeline.
 	ret := Pipe{valid: true}
 	result := C.create_vk_pipe(
@@ -251,6 +259,7 @@ func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int) (*P
 		(*C.VkDescriptorType)(unsafe.Pointer(&descTypes[0])),
 		C.uint32_t(len(descTypes)),
 		*specInfo,
+		pushConstants,
 	)
 
 	if result != C.VK_SUCCESS {
@@ -274,7 +283,7 @@ func (p *Pipe) Destroy(h *Handle) {
 }
 
 // Run runs a compute pipeline with the given workgroup size.
-func (p *Pipe) Run(h *Handle, workgroupSize [3]uint) error {
+func (p *Pipe) Run(h *Handle, workgroupSize [3]uint, pushConstantBuf []byte) error {
 	if !p.valid {
 		panic("invalid instance")
 	}
@@ -288,7 +297,17 @@ func (p *Pipe) Run(h *Handle, workgroupSize [3]uint) error {
 		C.uint32_t(workgroupSize[2]),
 	}
 
-	result := C.vk_pipe_run(h.ptr(), p.ptr(), dims)
+	var pushConstantPtr *byte = nil
+	if len(pushConstantBuf) > 0 {
+		pushConstantPtr = &pushConstantBuf[0]
+	}
+
+	result := C.vk_pipe_run(
+		h.ptr(),
+		p.ptr(),
+		dims,
+		(*C.uint8_t)(pushConstantPtr),
+		C.size_t(len(pushConstantBuf)))
 
 	if result != C.VK_SUCCESS {
 		return &Result{result}

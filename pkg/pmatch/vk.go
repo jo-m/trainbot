@@ -133,7 +133,7 @@ func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int)
 		patStride,
 		s.search.Stride,
 	}
-	s.pipe, err = s.h.NewPipe(shaderCode, []*vk.Buffer{s.resultsBuf, s.imgBuf, s.patBuf}, specInfo)
+	s.pipe, err = s.h.NewPipe(shaderCode, []*vk.Buffer{s.resultsBuf, s.imgBuf, s.patBuf}, specInfo, 0)
 	if err != nil {
 		if err != nil {
 			s.Destroy()
@@ -170,7 +170,7 @@ func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, er
 		uint(s.searchRect.Dx()/localSizeX + 1),
 		uint(s.searchRect.Dy()/localSizeY + 1),
 		1,
-	})
+	}, nil)
 	if err != nil {
 		return
 	}
