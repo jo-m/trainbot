@@ -1,7 +1,9 @@
 package vk
 
 import (
+	"bytes"
 	_ "embed"
+	"encoding/binary"
 	"strings"
 	"testing"
 	"unsafe"
@@ -11,9 +13,13 @@ import (
 )
 
 //go:generate glslangValidator -V -o testfiles/minimal.spv testfiles/minimal.comp
+//go:generate glslangValidator -V -o testfiles/pushconstant.spv testfiles/pushconstant.comp
 
 //go:embed testfiles/minimal.spv
 var shaderMinimal []byte
+
+//go:embed testfiles/pushconstant.spv
+var shaderPushconstant []byte
 
 func Test_CreateDestroyHandle(t *testing.T) {
 	h, err := NewHandle(true)
@@ -60,7 +66,7 @@ func Test_CreateDestroyPipe(t *testing.T) {
 
 	specInfo := []int{1, 2}
 
-	p, err := h.NewPipe(shaderMinimal, bufs, specInfo)
+	p, err := h.NewPipe(shaderMinimal, bufs, specInfo, 0)
 	assert.NoError(t, err)
 	p.Destroy(h)
 }
@@ -81,7 +87,7 @@ func Test_CreateDestroyPipe_NoSpecInfo(t *testing.T) {
 
 	specInfo := []int{}
 
-	p, err := h.NewPipe(shaderMinimal, bufs, specInfo)
+	p, err := h.NewPipe(shaderMinimal, bufs, specInfo, 0)
 	assert.NoError(t, err)
 	p.Destroy(h)
 }
@@ -93,7 +99,7 @@ func Test_CreateDestroyPipe_NoBuffers(t *testing.T) {
 
 	specInfo := []int{1, 2}
 
-	p, err := h.NewPipe(shaderMinimal, []*Buffer{}, specInfo)
+	p, err := h.NewPipe(shaderMinimal, []*Buffer{}, specInfo, 0)
 	assert.Nil(t, p)
 	assert.Error(t, err, ErrNeedAtLeastOneBuffer)
 }
@@ -164,11 +170,12 @@ func Test_RunPipe(t *testing.T) {
 	defer h.Destroy()
 
 	const (
-		sizeX       = 200
-		sizeY       = 534
-		bufVal      = 100
-		constVal    = 10
-		localSizeXY = 16
+		sizeX        = 200
+		sizeY        = 534
+		bufVal       = 100
+		constVal     = 10
+		constValPush = 15
+		localSizeXY  = 16
 	)
 
 	// Prepare buffers.
@@ -199,6 +206,11 @@ func Test_RunPipe(t *testing.T) {
 	err = BufWrite(h, buf2, buf2Data)
 	require.NoError(t, err)
 
+	// Prepare push constant buffer.
+	pushConstant := bytes.Buffer{}
+	err = binary.Write(&pushConstant, binary.LittleEndian, int32(constValPush))
+	require.NoError(t, err)
+
 	// Create pipe.
 	specInfo := []int{
 		localSizeXY,
@@ -208,12 +220,12 @@ func Test_RunPipe(t *testing.T) {
 		sizeY,
 		constVal,
 	}
-	p, err := h.NewPipe(shaderMinimal, []*Buffer{buf0, buf1, buf2}, specInfo)
+	p, err := h.NewPipe(shaderPushconstant, []*Buffer{buf0, buf1, buf2}, specInfo, pushConstant.Len())
 	assert.NoError(t, err)
 	defer p.Destroy(h)
 
 	// Run.
-	err = p.Run(h, [3]uint{sizeX/localSizeXY + 1, sizeY/localSizeXY + 1, 1})
+	err = p.Run(h, [3]uint{sizeX/localSizeXY + 1, sizeY/localSizeXY + 1, 1}, pushConstant.Bytes())
 	assert.NoError(t, err)
 
 	err = BufRead(h, buf2Data, buf2)
@@ -221,6 +233,6 @@ func Test_RunPipe(t *testing.T) {
 
 	// Check.
 	for i := range buf2Data {
-		assert.Equal(t, buf0Data[i]+buf1Data[i]+constVal, buf2Data[i])
+		assert.Equal(t, buf0Data[i]+buf1Data[i]+constVal+constValPush, buf2Data[i])
 	}
 }

@@ -461,7 +461,8 @@ VkResult create_vk_pipe(vk_handle* handle, vk_pipe* out,
                         const size_t shader_code_sz, const vk_buffer* buffers,
                         const VkDescriptorType* descriptor_types,
                         const uint32_t descriptor_types_count,
-                        const VkSpecializationInfo spec_info) {
+                        const VkSpecializationInfo spec_info,
+                        const VkPushConstantRange push_constants) {
   RET_ON_ERR(create_vk_descriptors(&out->desc, handle, descriptor_types,
                                    descriptor_types_count));
   vk_descriptors_bind(handle, &out->desc, buffers, descriptor_types,
@@ -490,10 +491,12 @@ VkResult create_vk_pipe(vk_handle* handle, vk_pipe* out,
   pipeline_layout_create_info.flags = 0;
   pipeline_layout_create_info.setLayoutCount = 1;
   pipeline_layout_create_info.pSetLayouts = &out->desc.layout;
-  pipeline_layout_create_info.pushConstantRangeCount = 0;
-  pipeline_layout_create_info.pPushConstantRanges = NULL;
+  pipeline_layout_create_info.pushConstantRangeCount =
+      push_constants.size > 0 ? 1 : 0;
+  pipeline_layout_create_info.pPushConstantRanges = &push_constants;
   RET_ON_ERR(vkCreatePipelineLayout(
       handle->device, &pipeline_layout_create_info, NULL, &out->layout));
+  out->push_constants = push_constants;
 
   // Create pipeline.
   VkPipelineShaderStageCreateInfo shader_stage_create_info = {0};
@@ -541,7 +544,9 @@ VkResult create_vk_pipe(vk_handle* handle, vk_pipe* out,
       handle->device, &command_buffer_allocate_info, &out->command_buffer);
 }
 
-VkResult vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
+VkResult vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz,
+                     const uint8_t* push_constants,
+                     const size_t push_constants_sz) {
   // Begin command buffer.
   VkCommandBufferBeginInfo begin_info = {0};
   begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -549,6 +554,14 @@ VkResult vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz) {
   begin_info.pInheritanceInfo = NULL;
   begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
   RET_ON_ERR(vkBeginCommandBuffer(pipe->command_buffer, &begin_info));
+
+  // Push constants.
+  if (push_constants != NULL && push_constants_sz > 0) {
+    assert(push_constants_sz <= pipe->push_constants.size);
+    vkCmdPushConstants(pipe->command_buffer, pipe->layout,
+                       VK_SHADER_STAGE_COMPUTE_BIT, 0, push_constants_sz,
+                       push_constants);
+  }
 
   // Bind pipeline and descriptor set.
   vkCmdBindPipeline(pipe->command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
