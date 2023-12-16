@@ -65,6 +65,8 @@ typedef struct vk_pipe {
   VkPipelineLayout layout;
   VkPipeline pipeline;
 
+  VkPushConstantRange push_constants;
+
   VkCommandPool command_pool;
   VkCommandBuffer command_buffer;
 } vk_pipe;
@@ -76,8 +78,11 @@ VkResult create_vk_pipe(vk_handle* handle, vk_pipe* out,
                         const size_t shader_code_sz, const vk_buffer* buffers,
                         const VkDescriptorType* descriptor_types,
                         const uint32_t descriptor_types_count,
-                        const VkSpecializationInfo spec_info);
+                        const VkSpecializationInfo spec_info,
+                        const VkPushConstantRange push_constants);
 
-VkResult vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz);
+VkResult vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz,
+                     const uint8_t* push_constants,
+                     const size_t push_constants_sz);
 
 void vk_pipe_destroy(vk_handle* handle, vk_pipe* pipe);
