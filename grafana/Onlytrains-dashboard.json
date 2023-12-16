@@ -192,6 +192,136 @@
         "type": "prometheus",
         "uid": "${DS_VICTORIAMETRICS}"
       },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "log": 2,
+              "type": "log"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Sequence Length"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_VICTORIAMETRICS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, trainbot_brightness_avg_bucket{instance=~\"$Host:.*\"}[$__rate_interval])",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "avg",
+          "range": true,
+          "refId": "Dispositions"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_VICTORIAMETRICS}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, trainbot_brightness_avgdev_bucket{instance=~\"$Host:.*\"}[$__rate_interval])",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "avgdev",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Brightness / Contrast (best frames)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_VICTORIAMETRICS}"
+      },
       "description": "results per hour",
       "fieldConfig": {
         "defaults": {
@@ -241,7 +371,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 23
       },
       "id": 6,
       "interval": "30m",
@@ -344,7 +474,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 31
       },
       "id": 3,
       "options": {
@@ -437,7 +567,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 37
       },
       "id": 2,
       "options": {
@@ -531,7 +661,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 43
       },
       "id": 4,
       "options": {
@@ -641,7 +771,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 49
       },
       "id": 5,
       "options": {
@@ -716,13 +846,13 @@
     ]
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Onlytrains",
   "uid": "c6b7d17d-2874-4a46-a52d-44a5f93e6fc6",
-  "version": 30,
+  "version": 35,
   "weekStart": ""
 }
