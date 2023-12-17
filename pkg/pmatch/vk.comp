@@ -6,9 +6,12 @@ layout(constant_id = 3) const int M = 0;
 layout(constant_id = 4) const int N = 0;
 layout(constant_id = 5) const int DU = 0;
 layout(constant_id = 6) const int DV = 0;
-layout(constant_id = 7) const int IS = 0;
-layout(constant_id = 8) const int PS = 0;
-layout(constant_id = 9) const int SS = 0;
+
+layout(std430, push_constant) uniform _constants {
+  uint IS;
+  uint PS;
+}
+push_constants;
 
 struct results {
   uint max_uint;
@@ -59,12 +62,12 @@ void main() {
     return;
   }
 
-  uint imgPatStartIx = y * IS / 4 + x;
+  uint imgPatStartIx = y * push_constants.IS / 4 + x;
   float dot = 0, absI2 = 0, absP2 = 0;
 
   for (uint v = 0; v < DV; v++) {
-    uint pxIi = v * IS / 4;
-    uint pxPi = v * PS / 4;
+    uint pxIi = v * push_constants.IS / 4;
+    uint pxPi = v * push_constants.PS / 4;
 
     for (uint u = 0; u < DU; u++) {
       uvec4 pxI = rgb_le(img[imgPatStartIx + pxIi + u]);
@@ -87,7 +90,6 @@ void main() {
   uint ucos = uint(cos * pow(2, 32));
   atomicMax(res.max_uint, ucos);
   memoryBarrierBuffer();
-  // TODO: compute max per local group first via shared variable
   // This thread computed the max.
   if (res.max_uint == ucos) {
     res.max = cos;
