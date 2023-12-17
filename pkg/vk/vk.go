@@ -1,9 +1,14 @@
 package vk
 
+// See pkg/pmatch/c.go for docs on CC flags.
+
 // #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
-//
 // #cgo LDFLAGS: -lvulkan
+//
+// #cgo amd64 CFLAGS: -march=native
+//
+// #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
 //
 // #include "vk.h"
 import "C"
