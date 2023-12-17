@@ -1,6 +1,6 @@
 #include "c.h"
 
-const int four = 4;
+static const int four = 4;
 
 void SearchRGBAC(const int m, const int n, const int du, const int dv,
                  const int is, const int ps,
