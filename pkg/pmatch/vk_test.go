@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_SearchRGBAVk(t *testing.T) {
+func Test_SearchRGBAVk_Simple(t *testing.T) {
 	img := imutil.ToRGBA(LoadTestImg())
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
@@ -24,6 +24,32 @@ func Test_SearchRGBAVk(t *testing.T) {
 	patCopy := imutil.ToRGBA(pat.(*image.RGBA))
 
 	x, y, score = SearchRGBAVk(img, patCopy)
+	assert.InDelta(t, 1., score, delta)
+	assert.Equal(t, x0, x)
+	assert.Equal(t, y0, y)
+}
+
+func Test_SearchRGBAVk_Instance(t *testing.T) {
+	img := imutil.ToRGBA(LoadTestImg())
+	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
+	require.NoError(t, err)
+
+	search, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.(*image.RGBA).Stride)
+	assert.NoError(t, err)
+	defer search.Destroy()
+
+	search.Run(img, pat.(*image.RGBA))
+	x, y, score, err := search.Run(img, pat.(*image.RGBA))
+	assert.NoError(t, err)
+	assert.InDelta(t, 1., score, delta)
+	assert.Equal(t, x0, x)
+	assert.Equal(t, y0, y)
+
+	// Also resets pat bounds origin to (0,0).
+	patCopy := imutil.ToRGBA(pat.(*image.RGBA))
+
+	x, y, score, err = search.Run(img, patCopy)
+	assert.NoError(t, err)
 	assert.InDelta(t, 1., score, delta)
 	assert.Equal(t, x0, x)
 	assert.Equal(t, y0, y)
