@@ -45,7 +45,7 @@ func (h *Handle) ptr() *C.vk_handle {
 		panic("invalid instance")
 	}
 
-	return (*C.vk_handle)(unsafe.Pointer(&h.h))
+	return (*C.vk_handle)(&h.h)
 }
 
 // NewHandle creates a new handle.
@@ -85,9 +85,9 @@ func (h *Handle) GetDeviceString() string {
 	}
 
 	str := make([]C.char, 512)
-	l := C.vk_handle_get_device_string(h.ptr(), (*C.char)(unsafe.Pointer(&str[0])), C.size_t(len(str)))
+	l := C.vk_handle_get_device_string(h.ptr(), (*C.char)(&str[0]), C.size_t(len(str)))
 
-	return C.GoStringN((*C.char)(unsafe.Pointer(&str[0])), l)
+	return C.GoStringN((*C.char)(&str[0]), l)
 }
 
 // Buffer is a VkBuffer with associated memory.
@@ -102,7 +102,7 @@ func (b *Buffer) ptr() *C.vk_buffer {
 		panic("invalid instance")
 	}
 
-	return (*C.vk_buffer)(unsafe.Pointer(&b.b))
+	return (*C.vk_buffer)(&b.b)
 }
 
 // NewBuffer creates a new buffer and allocates size bytes of memory for it.
@@ -200,7 +200,7 @@ func (p *Pipe) ptr() *C.vk_pipe {
 		panic("invalid instance")
 	}
 
-	return (*C.vk_pipe)(unsafe.Pointer(&p.p))
+	return (*C.vk_pipe)(&p.p)
 }
 
 // NewPipe creates a new pipe.
@@ -235,7 +235,7 @@ func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int, pus
 			specData[i] = C.int32_t(val)
 		}
 
-		specInfo = C.alloc_int32_spec_info((*C.int32_t)(unsafe.Pointer(&specData[0])), C.uint32_t(len(specData)))
+		specInfo = C.alloc_int32_spec_info((*C.int32_t)(&specData[0]), C.uint32_t(len(specData)))
 		defer C.free(unsafe.Pointer(specInfo))
 	} else {
 		specInfo = &C.VkSpecializationInfo{}
@@ -253,10 +253,10 @@ func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int, pus
 	result := C.create_vk_pipe(
 		h.ptr(),
 		ret.ptr(),
-		(*C.uint8_t)(unsafe.Pointer(&shader[0])),
+		(*C.uint8_t)(&shader[0]),
 		(C.size_t)(len(shader)),
-		(*C.vk_buffer)(unsafe.Pointer(&cBuffers[0])),
-		(*C.VkDescriptorType)(unsafe.Pointer(&descTypes[0])),
+		(*C.vk_buffer)(&cBuffers[0]),
+		(*C.VkDescriptorType)(&descTypes[0]),
 		C.uint32_t(len(descTypes)),
 		*specInfo,
 		pushConstants,
