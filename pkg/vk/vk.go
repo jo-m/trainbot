@@ -62,7 +62,7 @@ func NewHandle(enableValidation bool) (*Handle, error) {
 	)
 
 	if result != C.VK_SUCCESS {
-		return nil, &Result{result}
+		return nil, fmt.Errorf("creating instance failed: %w", &Result{result})
 	}
 
 	return &ret, nil
@@ -120,7 +120,7 @@ func (h *Handle) NewBuffer(size int) (*Buffer, error) {
 	)
 
 	if result != C.VK_SUCCESS {
-		return nil, &Result{result}
+		return nil, fmt.Errorf("creating buffer failed: %w", &Result{result})
 	}
 
 	return &ret, nil
@@ -151,7 +151,7 @@ func (b *Buffer) Write(h *Handle, src unsafe.Pointer, size int) error {
 	result := C.vk_buffer_write(h.ptr(), b.ptr(), src, C.size_t(size))
 
 	if result != C.VK_SUCCESS {
-		return &Result{result}
+		return fmt.Errorf("writing to buffer failed: %w", &Result{result})
 	}
 	return nil
 }
@@ -168,7 +168,7 @@ func (b *Buffer) Read(h *Handle, dst unsafe.Pointer, size int) error {
 	result := C.vk_buffer_read(h.ptr(), dst, b.ptr(), C.size_t(size))
 
 	if result != C.VK_SUCCESS {
-		return &Result{result}
+		return fmt.Errorf("reading from buffer failed: %w", &Result{result})
 	}
 	return nil
 }
@@ -263,7 +263,7 @@ func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int, pus
 	)
 
 	if result != C.VK_SUCCESS {
-		return nil, &Result{result}
+		return nil, fmt.Errorf("creating pipeline failed: %w", &Result{result})
 	}
 
 	return &ret, nil
@@ -310,7 +310,7 @@ func (p *Pipe) Run(h *Handle, workgroupSize [3]uint, pushConstantBuf []byte) err
 		C.size_t(len(pushConstantBuf)))
 
 	if result != C.VK_SUCCESS {
-		return &Result{result}
+		return fmt.Errorf("running pipeline failed: %w", &Result{result})
 	}
 	return nil
 }
