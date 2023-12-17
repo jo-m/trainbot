@@ -317,7 +317,7 @@ VkResult create_vk_buffer(vk_handle* handle, vk_buffer* out, const size_t sz) {
 
 VkResult vk_buffer_read(vk_handle* handle, void* dst, const vk_buffer* src,
                         const size_t sz) {
-  if (sz != src->sz) {  // TODO: maybe relax
+  if (sz > src->sz) {
     return VK_ERROR_UNKNOWN;
   }
 
@@ -331,7 +331,7 @@ VkResult vk_buffer_read(vk_handle* handle, void* dst, const vk_buffer* src,
 
 VkResult vk_buffer_write(vk_handle* handle, vk_buffer* dst, const void* src,
                          const size_t sz) {
-  if (sz != dst->sz) {  // TODO: maybe relax
+  if (sz > dst->sz) {
     return VK_ERROR_UNKNOWN;
   }
 
@@ -367,7 +367,9 @@ static VkResult create_vk_descriptors(vk_descriptors* out, vk_handle* handle,
 
   for (uint32_t i = 0; i < count; i++) {
     // Currently, only VK_DESCRIPTOR_TYPE_STORAGE_BUFFER is supported.
-    assert(descriptor_types[i] == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+    if (descriptor_types[i] != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
+      return VK_ERROR_UNKNOWN;
+    }
   }
   VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count};
 
@@ -429,11 +431,18 @@ static VkResult create_vk_descriptors(vk_descriptors* out, vk_handle* handle,
   return VK_SUCCESS;
 }
 
-static void vk_descriptors_bind(vk_handle* handle, vk_descriptors* desc,
-                                const vk_buffer* buffers,
-                                const VkDescriptorType* descriptor_types,
-                                const uint32_t count) {
-  assert(count == desc->count);
+static VkResult vk_descriptors_bind(vk_handle* handle, vk_descriptors* desc,
+                                    const vk_buffer* buffers,
+                                    const VkDescriptorType* descriptor_types,
+                                    const uint32_t count)
+    __attribute((warn_unused_result));
+static VkResult vk_descriptors_bind(vk_handle* handle, vk_descriptors* desc,
+                                    const vk_buffer* buffers,
+                                    const VkDescriptorType* descriptor_types,
+                                    const uint32_t count) {
+  if (count != desc->count) {
+    return VK_ERROR_UNKNOWN;
+  }
 
   for (uint32_t i = 0; i < count; i++) {
     VkDescriptorBufferInfo descriptor_buffer_info = {0};
@@ -454,6 +463,8 @@ static void vk_descriptors_bind(vk_handle* handle, vk_descriptors* desc,
 
     vkUpdateDescriptorSets(handle->device, 1, &write_descriptor_set, 0, NULL);
   }
+
+  return VK_SUCCESS;
 }
 
 VkResult create_vk_pipe(vk_handle* handle, vk_pipe* out,
@@ -465,8 +476,8 @@ VkResult create_vk_pipe(vk_handle* handle, vk_pipe* out,
                         const VkPushConstantRange push_constants) {
   RET_ON_ERR(create_vk_descriptors(&out->desc, handle, descriptor_types,
                                    descriptor_types_count));
-  vk_descriptors_bind(handle, &out->desc, buffers, descriptor_types,
-                      descriptor_types_count);
+  RET_ON_ERR(vk_descriptors_bind(handle, &out->desc, buffers, descriptor_types,
+                                 descriptor_types_count));
 
   // Create shader.
   VkShaderModule shader;
@@ -556,8 +567,11 @@ VkResult vk_pipe_run(vk_handle* handle, vk_pipe* pipe, const dim3 wg_sz,
   RET_ON_ERR(vkBeginCommandBuffer(pipe->command_buffer, &begin_info));
 
   // Push constants.
-  if (push_constants != NULL && push_constants_sz > 0) {
-    assert(push_constants_sz <= pipe->push_constants.size);
+  if (pipe->push_constants.size > 0) {
+    if (push_constants == NULL || push_constants_sz == 0 ||
+        push_constants_sz > pipe->push_constants.size) {
+      return VK_ERROR_UNKNOWN;
+    }
     vkCmdPushConstants(pipe->command_buffer, pipe->layout,
                        VK_SHADER_STAGE_COMPUTE_BIT, 0, push_constants_sz,
                        push_constants);
