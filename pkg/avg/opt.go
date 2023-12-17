@@ -4,41 +4,6 @@ import (
 	"image"
 )
 
-// Gray computes the pixel average, and pixel mean deviation from average,
-// on a (grayscale) image.
-// Scaled to [0, 1].
-// Slightly optimized implementation.
-func Gray(img *image.Gray) (avg, avgDev float64) {
-	var sum int64
-
-	m, n := img.Bounds().Dx(), img.Bounds().Dy()
-	s := img.Stride
-
-	for y := 0; y < n; y++ {
-		ys := y * s
-		for x := 0; x < m; x++ {
-			ix := ys + x
-			px := img.Pix[ix]
-			sum += int64(px)
-		}
-	}
-
-	cnt := int64(m * n)
-	avgPx := sum / cnt
-
-	sum = 0
-	for y := 0; y < n; y++ {
-		ys := y * s
-		for x := 0; x < m; x++ {
-			ix := ys + x
-			px := img.Pix[ix]
-			sum += iabs(int64(px) - avgPx)
-		}
-	}
-
-	return float64(avgPx) / 255, float64(sum) / float64(cnt) / 255
-}
-
 const four = 4
 
 // RGBA computes the pixel average, and pixel mean deviation from average,
