@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -20,24 +21,24 @@ var sqlSchema string
 const driver = "sqlite"
 
 func buildDSN(path string, readOnly bool) string {
-	pragmas := map[string]string{
-		"mode":          "rwc",
-		"_journal_mode": "WAL",
-		"_locking_mode": "NORMAL",
-		"_txlock":       "deferred",
-		"_foreign_keys": "true",
-	}
-
+	query := url.Values{}
+	query.Add("_txlock", "deferred")
 	if readOnly {
-		pragmas["mode"] = "ro"
+		query.Add("mode", "ro")
+	} else {
+		query.Add("mode", "rwc")
 	}
 
-	path = path + "?"
+	pragmas := map[string]string{
+		"journal_mode": "WAL",
+		"locking_mode": "NORMAL",
+		"foreign_keys": "true",
+	}
 	for k, v := range pragmas {
-		path += k + "=" + v + "&"
+		query.Add("_pragma", k+"="+v)
 	}
 
-	return path[:len(path)-1]
+	return fmt.Sprintf("file:%s?%s", path, query.Encode())
 }
 
 // Open creates a new SQLite database or opens an existing one.
