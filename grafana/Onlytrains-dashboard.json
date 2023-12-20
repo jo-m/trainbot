@@ -54,7 +54,7 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [],
   "liveNow": false,
@@ -244,28 +244,7 @@
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "Sequence Length"
-            },
-            "properties": [
-              {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 2
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 10,
@@ -293,12 +272,12 @@
             "uid": "${DS_VICTORIAMETRICS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, trainbot_brightness_avg_bucket{instance=~\"$Host:.*\"}[$__rate_interval])",
+          "expr": "histogram_quantile(0.99, rate(trainbot_brightness_avg_bucket{instance=~\"$Host:.*\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "avg",
           "range": true,
-          "refId": "Dispositions"
+          "refId": "avg"
         },
         {
           "datasource": {
@@ -306,7 +285,7 @@
             "uid": "${DS_VICTORIAMETRICS}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, trainbot_brightness_avgdev_bucket{instance=~\"$Host:.*\"}[$__rate_interval])",
+          "expr": "histogram_quantile(0.99, rate(trainbot_brightness_avgdev_bucket{instance=~\"$Host:.*\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "avgdev",
@@ -322,7 +301,7 @@
         "type": "prometheus",
         "uid": "${DS_VICTORIAMETRICS}"
       },
-      "description": "results per hour",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -363,7 +342,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
@@ -394,7 +374,7 @@
           "sort": "none"
         },
         "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
+        "xTickLabelSpacing": 100
       },
       "targets": [
         {
@@ -418,6 +398,7 @@
         "type": "prometheus",
         "uid": "${DS_VICTORIAMETRICS}"
       },
+      "description": "requires [node-exporter](https://github.com/prometheus/node_exporter)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -510,6 +491,98 @@
         "type": "prometheus",
         "uid": "${DS_VICTORIAMETRICS}"
       },
+      "description": "requires [process-exporter](https://github.com/ncabatoff/process-exporter), collected process names must be configured on the exporter",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_VICTORIAMETRICS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(namedprocess_namegroup_cpu_seconds_total{instance=~\"$Host:.*\"}[$__rate_interval])",
+          "instant": false,
+          "legendFormat": "{{groupname}} ({{mode}})",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Processes CPU seconds",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_VICTORIAMETRICS}"
+      },
+      "description": "requires [node-exporter](https://github.com/prometheus/node_exporter)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -567,7 +640,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 43
       },
       "id": 2,
       "options": {
@@ -603,6 +676,7 @@
         "type": "prometheus",
         "uid": "${DS_VICTORIAMETRICS}"
       },
+      "description": "requires [node-exporter](https://github.com/prometheus/node_exporter)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -661,7 +735,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 49
       },
       "id": 4,
       "options": {
@@ -771,7 +845,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 55
       },
       "id": 5,
       "options": {
@@ -795,6 +869,7 @@
           "editorMode": "code",
           "expr": "go_memstats_alloc_bytes{instance=~\"$Host:18963\"}",
           "instant": false,
+          "legendFormat": "go_memstats_alloc_bytes",
           "range": true,
           "refId": "A"
         },
@@ -807,6 +882,7 @@
           "expr": "go_memstats_heap_objects{instance=~\"$Host:18963\"}",
           "hide": false,
           "instant": false,
+          "legendFormat": "go_memstats_heap_objects",
           "range": true,
           "refId": "objects"
         }
@@ -853,6 +929,6 @@
   "timezone": "",
   "title": "Onlytrains",
   "uid": "c6b7d17d-2874-4a46-a52d-44a5f93e6fc6",
-  "version": 35,
+  "version": 44,
   "weekStart": ""
 }
