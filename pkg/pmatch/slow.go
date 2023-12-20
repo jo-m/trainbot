@@ -4,10 +4,6 @@ import (
 	"image"
 	"image/color"
 	"math"
-	"os"
-	"path/filepath"
-
-	"github.com/jo-m/trainbot/pkg/imutil"
 )
 
 // imgPatchWindow computes the patch window on img.
@@ -91,13 +87,9 @@ func SearchRGBASlow(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 		Max: img.Bounds().Max.Sub(pat.Bounds().Size()).Add(image.Pt(1, 1)),
 	}
 
-	out := image.NewRGBA(searchRect)
-
 	for y := 0; y < searchRect.Dy(); y++ {
 		for x := 0; x < searchRect.Dx(); x++ {
 			cos := ScoreRGBACosSlow(img, pat, image.Pt(x, y))
-
-			out.Set(x, y, colscale(cos))
 
 			if cos > maxCos {
 				maxCos = cos
@@ -105,12 +97,6 @@ func SearchRGBASlow(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 			}
 		}
 	}
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	imutil.Dump(filepath.Join(home, "Desktop/img-slow.png"), img)
 
 	return
 }
