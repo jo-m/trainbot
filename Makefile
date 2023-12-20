@@ -11,12 +11,12 @@ GO_STATICCHECK_VERSION = 2024.1.1
 DEFAULT: format build_host build_arm64
 
 format:
-	bash -c "shopt -s globstar; clang-format -i **/*.c **/*.h"
+	bash -c "shopt -s globstar; clang-format -i **/*.c **/*.h **/*.comp"
 	gofmt -w .
 	go mod tidy
 
 lint:
-	bash -c "shopt -s globstar; clang-format --dry-run --Werror **/*.c **/*.h"
+	bash -c "shopt -s globstar; clang-format --dry-run --Werror **/*.c **/*.h **/*.comp"
 	gofmt -l .; test -z "$$(gofmt -l .)"
 	go vet ./...
 	go run honnef.co/go/tools/cmd/staticcheck@$(GO_STATICCHECK_VERSION) -checks=all ./...
