@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef VK_VERSION_1_3
-#error Need at least Vulkan SDK 1.3
+#ifndef VK_VERSION_1_2
+#error Need at least Vulkan SDK 1.
 #endif
 
 #define RET_ON_ERR(expr)             \
@@ -187,7 +187,7 @@ VkResult create_vk_handle(vk_handle* out, const bool enable_validation) {
   info.applicationVersion = 0;
   info.pEngineName = "";
   info.engineVersion = 0;
-  info.apiVersion = VK_API_VERSION_1_0;
+  info.apiVersion = VK_API_VERSION_1_2;
 
   VkInstanceCreateInfo create_info = {0};
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -253,11 +253,10 @@ int vk_handle_get_device_string(vk_handle* vk, char* str, size_t str_sz) {
   const uint32_t v = props.apiVersion;
   return snprintf(str, str_sz,
                   "name='%s' vendor_id=%u device_id=%u driver_version=%u "
-                  "variant=%u api_version=%u.%u.%u type=%u",
+                  "api_version=%u.%u.%u type=%u",
                   props.deviceName, props.vendorID, props.deviceID,
-                  props.driverVersion, VK_API_VERSION_VARIANT(v),
-                  VK_API_VERSION_MAJOR(v), VK_API_VERSION_MINOR(v),
-                  VK_API_VERSION_PATCH(v), props.deviceType);
+                  props.driverVersion, VK_VERSION_MAJOR(v),
+                  VK_VERSION_MINOR(v), VK_VERSION_PATCH(v), props.deviceType);
 }
 
 void vk_handle_destroy(vk_handle* vk) {
