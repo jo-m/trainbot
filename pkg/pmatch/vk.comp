@@ -36,24 +36,6 @@ uvec4 rgb_le(uint px) {
   return ret;
 }
 
-uvec4 colscale(float val) {
-  uvec4 ret = {0, 0, 0, 255};
-
-  if (val < 0.8) {
-    ret.r = uint(val / 0.8 * 255);
-  } else if (val < 0.9) {
-    ret.b = uint((val - 0.8) / 0.1 * 255);
-  } else {
-    ret.g = uint((val - 0.9) / 0.1 * 255);
-  }
-
-  return ret;
-}
-
-uint pixel_le(uvec4 rgb) {
-  return rgb.r | (rgb.g << 0x08) | (rgb.b << 0x10) | (rgb.a << 0x18);
-}
-
 void main() {
   uint x = gl_GlobalInvocationID.x;
   uint y = gl_GlobalInvocationID.y;
