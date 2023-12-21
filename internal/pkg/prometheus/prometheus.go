@@ -3,6 +3,7 @@ package prometheus
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -12,7 +13,17 @@ import (
 // Init starts an HTTP server for the prometheus endpoint in the background.
 func Init(prometheusListen string) {
 	http.Handle("/metrics", promhttp.Handler())
-	go http.ListenAndServe(prometheusListen, nil)
+	server := &http.Server{
+		Addr:              prometheusListen,
+		ReadHeaderTimeout: 3 * time.Second,
+	}
+
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			panic(err)
+		}
+	}()
 }
 
 // RecordFrameDisposition counts in which way a frame was used, or discarded.
