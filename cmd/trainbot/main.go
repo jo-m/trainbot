@@ -219,35 +219,32 @@ func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch
 			Str("direction", train.DirectionS()).
 			Msg("found train")
 
-		tsString := train.StartTS.Format("20060102_150405.999_Z07:00")
-
 		// Dump stitched image.
-		imgFileName := fmt.Sprintf("train_%s.jpg", tsString)
-		err := imutil.Dump(store.GetBlobPath(imgFileName), train.Image)
+		dbTrain := db.DBTrain{StartTS: train.StartTS}
+		err := imutil.Dump(store.GetBlobPath(dbTrain.ImgFileName()), train.Image)
 		if err != nil {
 			log.Err(err).Send()
 			continue
 		}
-		log.Debug().Str("imgFileName", imgFileName).Msg("wrote JPEG")
+		log.Debug().Str("imgFileName", dbTrain.ImgFileName()).Msg("wrote JPEG")
 
 		// Dump thumbnail.
 		thumb := resize.Thumbnail(math.MaxUint, 64, train.Image, resize.Bilinear)
-		err = imutil.DumpJPEG(store.GetBlobThumbPath(imgFileName), thumb, 75)
+		err = imutil.DumpJPEG(store.GetBlobThumbPath(dbTrain.ImgFileName()), thumb, 75)
 		if err != nil {
 			log.Err(err).Send()
 			continue
 		}
 
 		// Dump GIF.
-		gifFileName := fmt.Sprintf("train_%s.gif", tsString)
-		err = imutil.DumpGIF(store.GetBlobPath(gifFileName), train.GIF)
+		err = imutil.DumpGIF(store.GetBlobPath(dbTrain.GIFFileName()), train.GIF)
 		if err != nil {
 			log.Err(err).Send()
 			continue
 		}
-		log.Debug().Str("gifFileName", gifFileName).Msg("wrote GIF")
+		log.Debug().Str("gifFileName", dbTrain.GIFFileName()).Msg("wrote GIF")
 
-		id, err := db.InsertTrain(dbx, *train, imgFileName, gifFileName)
+		id, err := db.InsertTrain(dbx, *train)
 		if err != nil {
 			log.Err(err).Send()
 		}
@@ -324,30 +321,30 @@ func deleteOldLocalBlobsOnce(store upload.DataStore, dbx *sqlx.DB) error {
 			return err
 		}
 
-		err = os.Remove(store.GetBlobPath(toCleanup.ImgPath))
+		err = os.Remove(store.GetBlobPath(toCleanup.ImgFileName()))
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
-				log.Debug().Str("path", toCleanup.ImgPath).Msg("tried removing but file does not exist")
+				log.Debug().Str("path", toCleanup.ImgFileName()).Msg("tried removing but file does not exist")
 			} else {
 				log.Err(err).Send()
 				return err
 			}
 		}
 
-		err = os.Remove(store.GetBlobThumbPath(toCleanup.ImgPath))
+		err = os.Remove(store.GetBlobThumbPath(toCleanup.ImgFileName()))
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
-				log.Debug().Str("path", toCleanup.ImgPath).Msg("tried removing but file does not exist")
+				log.Debug().Str("path", toCleanup.ImgFileName()).Msg("tried removing but file does not exist")
 			} else {
 				log.Err(err).Send()
 				return err
 			}
 		}
 
-		err = os.Remove(store.GetBlobPath(toCleanup.GIFPath))
+		err = os.Remove(store.GetBlobPath(toCleanup.GIFFileName()))
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
-				log.Debug().Str("path", toCleanup.GIFPath).Msg("tried removing but file does not exist")
+				log.Debug().Str("path", toCleanup.GIFFileName()).Msg("tried removing but file does not exist")
 			} else {
 				log.Err(err).Send()
 				return err

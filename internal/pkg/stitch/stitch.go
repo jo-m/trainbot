@@ -101,7 +101,6 @@ func stitch(frames []image.Image, dx []int) (*image.RGBA, error) {
 // Train represents a detected train.
 type Train struct {
 	StartTS time.Time
-	EndTS   time.Time
 
 	// Always positive.
 	NFrames int
@@ -250,7 +249,6 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	prometheus.RecordFitAndStitchResult("success")
 	return &Train{
 		t0,
-		seq.ts[len(seq.ts)-1],
 		len(seq.frames),
 		ds,
 		-speed, // Negate because when things move to the left we get positive dx values.
