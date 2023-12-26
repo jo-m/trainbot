@@ -1,42 +1,38 @@
 package db
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
-const tsFormat = "2006-01-02 15:04:05.999999999Z07:00"
+const dbTsFormat = "2006-01-02 15:04:05.999999999Z07:00"
 
 // InsertTrain inserts a new train sighting into the database.
 // Returns the db id of the new row.
-func InsertTrain(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, error) {
+func InsertTrain(db *sqlx.DB, t stitch.Train) (int64, error) {
 	var id int64
 	const q = `
-	INSERT INTO trains (
+	INSERT INTO trains_v2 (
 		start_ts,
-		end_ts,
 		n_frames,
 		length_px,
 		speed_px_s,
 		accel_px_s_2,
-		px_per_m,
-		image_file_path,
-		gif_file_path
+		px_per_m
 	)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	VALUES (?, ?, ?, ?, ?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		t.StartTS.Format(tsFormat),
-		t.EndTS.Format(tsFormat),
+		t.StartTS.Format(dbTsFormat),
 		t.NFrames,
 		t.LengthPx,
 		t.SpeedPxS,
 		t.AccelPxS2,
-		t.Conf.PixelsPerM,
-		imgPath,
-		gifPath)
+		t.Conf.PixelsPerM)
 	if err != nil {
 		return 0, err
 	}
@@ -44,25 +40,35 @@ func InsertTrain(db *sqlx.DB, t stitch.Train, imgPath, gifPath string) (int64, e
 	return id, nil
 }
 
-// Upload represents a set of blobs for a train sighting.
-type Upload struct {
-	ID      int64  `db:"id"`
-	ImgPath string `db:"image_file_path"`
-	GIFPath string `db:"gif_file_path"`
+const fileTSFormat = "20060102_150405.999_Z07:00"
+
+type DBTrain struct {
+	ID      int64     `db:"id"`
+	StartTS time.Time `db:"start_ts"`
+}
+
+func (t *DBTrain) GIFFileName() string {
+	tsString := t.StartTS.Format(fileTSFormat)
+	return fmt.Sprintf("train_%s.gif", tsString)
+}
+
+func (t *DBTrain) ImgFileName() string {
+	tsString := t.StartTS.Format(fileTSFormat)
+	return fmt.Sprintf("train_%s.jpg", tsString)
 }
 
 // GetNextUpload returns the next train sighting to upload from the database.
-func GetNextUpload(db *sqlx.DB) (*Upload, error) {
+func GetNextUpload(db *sqlx.DB) (*DBTrain, error) {
 	const q = `
 	SELECT
-		id, image_file_path, gif_file_path
-	FROM trains
-	WHERE uploaded_at IS NULL
+		id, start_ts
+	FROM trains_v2
+	WHERE NOT uploaded
 	ORDER BY id ASC
 	LIMIT 1;
 	`
 
-	ret := Upload{}
+	ret := DBTrain{}
 	err := db.Get(&ret, q)
 	if err != nil {
 		return nil, err
@@ -70,36 +76,51 @@ func GetNextUpload(db *sqlx.DB) (*Upload, error) {
 	return &ret, nil
 }
 
+var ErrNoRowAffected = errors.New("no rows affected")
+
 // SetUploaded marks a train sighting as uploaded in the database.
 func SetUploaded(db *sqlx.DB, id int64) error {
 	const q = `
-	UPDATE trains SET uploaded_at = ? WHERE id = ?;
+	UPDATE trains_v2
+	SET uploaded = TRUE
+	WHERE id = ? AND NOT uploaded;
 	`
-	_, err := db.Exec(q, time.Now().Format(tsFormat), id)
+	res, err := db.Exec(q, id)
+	if err != nil {
+		return err
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return ErrNoRowAffected
+	}
+
 	return err
 }
 
 // GetNextCleanup returns the next train sighting for which we can delete the blobs locally.
-func GetNextCleanup(db *sqlx.DB) (*Upload, error) {
+func GetNextCleanup(db *sqlx.DB) (*DBTrain, error) {
 	const keepLastN = 100
 
 	const q = `
 	SELECT
-		id, image_file_path, gif_file_path
-	FROM trains
-	LEFT JOIN trains_blob_cleanups
-		ON trains_blob_cleanups.train_id = trains.id
+		id, start_ts
+	FROM trains_v2
 	WHERE
-		uploaded_at IS NOT NULL
-		AND trains_blob_cleanups.cleaned_up_at IS NULL
+		uploaded
+		AND NOT cleaned_up
 	ORDER BY id DESC
 	LIMIT 1
 	-- Always keep n last blobs.
 	OFFSET ?;
 	`
 
-	ret := Upload{}
-	err := db.Get(&ret, q, keepLastN)
+	ret := DBTrain{}
+	err := db.Get(&ret, q, keepLastN-1)
 	if err != nil {
 		return nil, err
 	}
@@ -109,13 +130,24 @@ func GetNextCleanup(db *sqlx.DB) (*Upload, error) {
 // SetCleanedUp marks a train sighting as uploaded in the database.
 func SetCleanedUp(db *sqlx.DB, id int64) error {
 	const q = `
-	INSERT INTO trains_blob_cleanups (
-		train_id,
-		cleaned_up_at
-	)
-	VALUES(?, ?);
+	UPDATE trains_v2
+	SET cleaned_up = TRUE
+	WHERE id = ? AND NOT cleaned_up;
 	`
-	_, err := db.Exec(q, id, time.Now())
+	res, err := db.Exec(q, id)
+	if err != nil {
+		return err
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return ErrNoRowAffected
+	}
+
 	return err
 }
 
@@ -131,7 +163,7 @@ func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
 	VALUES (?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		ts.Format(tsFormat), tempDegC)
+		ts.Format(dbTsFormat), tempDegC)
 	if err != nil {
 		return 0, err
 	}
@@ -144,32 +176,24 @@ func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
 func GetAllBlobs(db *sqlx.DB) (map[string]struct{}, error) {
 	const q = `
 	SELECT
-		id, image_file_path
-	FROM trains
-	WHERE image_file_path IS NOT NULL
-	
-	UNION ALL
-	SELECT
-		id, gif_file_path
-	FROM trains
-		WHERE gif_file_path IS NOT NULL
-	ORDER BY id ASC;`
+		id, start_ts
+	FROM trains_v2;`
 
-	rows, err := db.Query(q)
+	rows, err := db.Queryx(q)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	ret := make(map[string]struct{})
-	var id int64
-	var imgPath string
+	var train DBTrain
 	for rows.Next() {
-		err := rows.Scan(&id, &imgPath)
+		err := rows.StructScan(&train)
 		if err != nil {
 			return nil, err
 		}
-		ret[imgPath] = struct{}{}
+		ret[train.ImgFileName()] = struct{}{}
+		ret[train.GIFFileName()] = struct{}{}
 	}
 
 	return ret, nil

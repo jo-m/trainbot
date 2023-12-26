@@ -3,10 +3,10 @@ package db
 import (
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Open_Schema(t *testing.T) {
@@ -14,13 +14,15 @@ func Test_Open_Schema(t *testing.T) {
 	dbpath := filepath.Join(tmp, "test.db")
 	db, err := Open(dbpath)
 	assert.NoError(t, err)
-	assert.NotNil(t, db)
+	require.NotNil(t, db)
 
 	err = db.Close()
 	assert.NoError(t, err)
 }
 
 func Test_Backup(t *testing.T) {
+	t0 = mustParseTime("2023-06-10T16:20:58.805488032+02:00")
+
 	tmp := t.TempDir()
 	dbpath := filepath.Join(tmp, "test.db")
 
@@ -31,9 +33,7 @@ func Test_Backup(t *testing.T) {
 
 	// Insert row.
 	id, err := InsertTrain(db, stitch.Train{
-		StartTS: time.Now(),
-		EndTS:   time.Now(),
-	}, "testimgpath", "gif")
+		StartTS: t0})
 	assert.NoError(t, err)
 	assert.Greater(t, id, int64(0))
 
@@ -52,5 +52,6 @@ func Test_Backup(t *testing.T) {
 	// Compare row data.
 	next, err := GetNextUpload(db)
 	assert.NoError(t, err)
-	assert.Equal(t, "testimgpath", next.ImgPath)
+	assert.Equal(t, id, next.ID)
+	assert.Equal(t, t0, next.StartTS)
 }
