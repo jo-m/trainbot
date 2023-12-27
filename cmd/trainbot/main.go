@@ -63,6 +63,15 @@ func (c *config) getRect() image.Rectangle {
 	return image.Rect(0, 0, int(c.RectW), int(c.RectH)).Add(image.Pt(int(c.RectX), int(c.RectY)))
 }
 
+func (c *config) mustOpenDB() *sqlx.DB {
+	dbx, err := db.Open(c.GetDBPath())
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create/open database")
+	}
+
+	return dbx
+}
+
 const (
 	rectSizeMin = 100
 	rectSizeMax = 500
@@ -397,20 +406,17 @@ func main() {
 		log.Panic().Err(err).Msg("could not create data and blobs directory")
 	}
 
-	dbx, err := db.Open(c.GetDBPath())
-	if err != nil {
-		log.Panic().Err(err).Msg("could not create/open database")
-	}
+	dbx := c.mustOpenDB()
 	defer dbx.Close()
 
 	trains := make(chan *stitch.Train)
 	done := sync.WaitGroup{}
 	done.Add(1)
-	go processTrains(c.DataStore, dbx, trains, &done)
+	go processTrains(c.DataStore, c.mustOpenDB(), trains, &done)
 	if c.EnableUpload {
-		go uploadForever(c.DataStore, dbx, c.FTPConfig)
-		go deleteOldLocalBlobsForever(c.DataStore, dbx)
-		go cleanupOrphanedRemoteBlobsForever(dbx, c.FTPConfig)
+		go uploadForever(c.DataStore, c.mustOpenDB(), c.FTPConfig)
+		go deleteOldLocalBlobsForever(c.DataStore, c.mustOpenDB())
+		go cleanupOrphanedRemoteBlobsForever(c.mustOpenDB(), c.FTPConfig)
 	}
 
 	detectTrainsForever(c, trains)
