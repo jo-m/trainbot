@@ -21,7 +21,7 @@ func Test_Open_Schema(t *testing.T) {
 }
 
 func Test_Backup(t *testing.T) {
-	t0 = mustParseTime("2023-06-10T16:20:58.805488032+02:00")
+	t0 = mustParseTime("2023-06-10T16:20:58.805+02:00")
 
 	tmp := t.TempDir()
 	dbpath := filepath.Join(tmp, "test.db")

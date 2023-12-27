@@ -220,7 +220,7 @@ func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch
 			Msg("found train")
 
 		// Dump stitched image.
-		dbTrain := db.DBTrain{StartTS: train.StartTS}
+		dbTrain := db.Train{StartTS: train.StartTS}
 		err := imutil.Dump(store.GetBlobPath(dbTrain.ImgFileName()), train.Image)
 		if err != nil {
 			log.Err(err).Send()
