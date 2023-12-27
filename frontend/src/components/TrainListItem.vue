@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Train } from '@/lib/db'
-import { getBlobThumbURL } from '@/lib/paths'
+import { getBlobThumbURL, imgFileName } from '@/lib/paths'
 import { DateTime } from 'luxon'
 import { useDisplay } from 'vuetify'
 import RelativeTime from '@/components/RelativeTime.vue'
@@ -49,7 +49,7 @@ const { mdAndUp } = useDisplay()
       <v-sheet
         class="ma-1 train-preview"
         :style="`background-image: url(${getBlobThumbURL(
-          train.image_file_path
+          imgFileName(train.start_ts)
         )}); background-position-x: ${train.speed_px_s > 0 ? 'right' : 'left'}`"
       >
       </v-sheet>

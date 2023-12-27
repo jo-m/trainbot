@@ -6,7 +6,7 @@ export const avgLengthM = (db: SqlJs.Database): number =>
     db,
     `SELECT
       SUM(ABS(length_px / px_per_m)) / COUNT(*)
-    FROM trains;`
+    FROM trains_v2;`
   ) as number
 
 export const histCountPerDayOfWeek = (db: SqlJs.Database): number[][] =>
@@ -15,7 +15,7 @@ export const histCountPerDayOfWeek = (db: SqlJs.Database): number[][] =>
       -- have to shift by 1, because SQLite thinks 0 = Sunday
       (CAST(strftime('%w', start_ts) AS INT) + 6) % 7 AS dow,
       COUNT(*)
-    FROM trains
+    FROM trains_v2
     GROUP BY dow
     ORDER BY dow;`)[0].values as number[][]
 
@@ -34,7 +34,7 @@ export const histHourOfDay = (db: SqlJs.Database): number[][] =>
   SELECT
     CAST(strftime('%H', start_ts) AS INT) AS hod,
     COUNT(*)
-  FROM trains
+  FROM trains_v2
   GROUP BY hod
   ORDER BY hod;`)[0].values as number[][]
 
@@ -44,7 +44,7 @@ export const histSpeedKPH = (db: SqlJs.Database, binSz: number = 10): number[][]
   WITH speed_rounded AS (
     SELECT
       CAST(ABS(speed_px_s / px_per_m * 3.6)/${binSz} AS INTEGER) * ${binSz} AS speed_rounded
-    FROM trains
+    FROM trains_v2
   )
   SELECT
     speed_rounded,

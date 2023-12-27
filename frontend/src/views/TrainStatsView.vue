@@ -27,15 +27,15 @@ const widthPx = 200
         <tbody>
           <tr>
             <td>Number of trains</td>
-            <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains;') }}</td>
+            <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains_v2;') }}</td>
           </tr>
           <tr>
             <td>Going right</td>
-            <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains WHERE speed_px_s > 0;') }}</td>
+            <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains_v2 WHERE speed_px_s > 0;') }}</td>
           </tr>
           <tr>
             <td>Going left</td>
-            <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains WHERE speed_px_s < 0;') }}</td>
+            <td>{{ queryOne(db, 'SELECT COUNT(*) FROM trains_v2 WHERE speed_px_s < 0;') }}</td>
           </tr>
           <tr>
             <td>Average length</td>

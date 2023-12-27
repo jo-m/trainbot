@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Train as TrainType } from '@/lib/db'
-import { getBlobURL } from '@/lib/paths'
+import { getBlobURL, gifFileName } from '@/lib/paths'
 import RelativeTime from '@/components/RelativeTime.vue'
 import FavoriteIcon from '@/components/FavoriteIcon.vue'
 
@@ -19,7 +19,7 @@ defineProps<{
         >
           <v-card>
             <v-img
-              :src="getBlobURL(train.gif_file_path)"
+              :src="getBlobURL(gifFileName(train.start_ts))"
               class="align-end"
               gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
               height="200px"
