@@ -9,8 +9,6 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
-const dbTSFormat = "2006-01-02 15:04:05.999Z07:00"
-
 // InsertTrain inserts a new train sighting into the database.
 // Returns the db id of the new row.
 func InsertTrain(db *sqlx.DB, t stitch.Train) (int64, error) {
@@ -27,7 +25,7 @@ func InsertTrain(db *sqlx.DB, t stitch.Train) (int64, error) {
 	VALUES (?, ?, ?, ?, ?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		t.StartTS.Format(dbTSFormat),
+		t.StartTS,
 		t.NFrames,
 		t.LengthPx,
 		t.SpeedPxS,
