@@ -28,19 +28,17 @@ export async function loadDB(): Promise<SqlJs.Database> {
 export interface Train {
   id: number
   start_ts: DateTime
-  end_ts: DateTime
   n_frames: number
   length_px: number
   speed_px_s: number
   accel_px_s_2: number
   px_per_m: number
-  image_file_path: string
-  gif_file_path: string
-  uploaded_at?: DateTime
+  uploaded: boolean
+  cleaned_up: boolean
 }
 
 function convertValue(colname: string, value: any): any {
-  if (value !== null && ['start_ts', 'end_ts', 'uploaded_at'].indexOf(colname) != -1) {
+  if (value !== null && ['start_ts'].indexOf(colname) != -1) {
     return DateTime.fromSQL(value, { setZone: true })
   }
   return value
@@ -92,7 +90,7 @@ export function getTrains(
   // Muahahah.
   const query = `
     SELECT *
-    FROM trains
+    FROM trains_v2
     WHERE ${whereStr}
     ORDER BY ${orderByStr}
     LIMIT ${limit} OFFSET ${offset}`
@@ -101,8 +99,8 @@ export function getTrains(
 
   const result = db.exec(query)
 
-  const filteredCount = db.exec(`SELECT COUNT(*) FROM trains WHERE ${whereStr}`)
-  const totalCount = db.exec(`SELECT COUNT(*) FROM trains`)
+  const filteredCount = db.exec(`SELECT COUNT(*) FROM trains_v2 WHERE ${whereStr}`)
+  const totalCount = db.exec(`SELECT COUNT(*) FROM trains_v2`)
 
   return {
     trains: convertTrains(result),
@@ -114,7 +112,7 @@ export function getTrains(
 export function getTrain(db: SqlJs.Database, id: number): Train | undefined {
   const query = `
   SELECT *
-  FROM trains
+  FROM trains_v2
   WHERE id = ${id}`
 
   console.log(query.trim())

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { inject, computed, defineProps } from 'vue'
+import { inject, computed } from 'vue'
 import { dbKey, getTrain, queryOne } from '@/lib/db'
-import { getBlobURL } from '@/lib/paths'
+import { getBlobURL, imgFileName, gifFileName } from '@/lib/paths'
 import type SqlJs from 'sql.js'
 import { useRouter } from 'vue-router'
 import RelativeTime from '@/components/RelativeTime.vue'
@@ -26,13 +26,13 @@ const train = computed(() => {
 
 const nextId = computed(
   () =>
-    queryOne(db, `SELECT id FROM trains WHERE id > ${id.value} ORDER BY id ASC LIMIT 1`) as
+    queryOne(db, `SELECT id FROM trains_v2 WHERE id > ${id.value} ORDER BY id ASC LIMIT 1`) as
       | number
       | undefined
 )
 const prevId = computed(
   () =>
-    queryOne(db, `SELECT id FROM trains WHERE id < ${id.value} ORDER BY id DESC LIMIT 1`) as
+    queryOne(db, `SELECT id FROM trains_v2 WHERE id < ${id.value} ORDER BY id DESC LIMIT 1`) as
       | number
       | undefined
 )
@@ -81,14 +81,6 @@ const prevId = computed(
             <td>{{ train.start_ts.toSQL() }} (<RelativeTime :ts="train.start_ts" />)</td>
           </tr>
           <tr>
-            <td>End timestamp</td>
-            <td>{{ train.end_ts.toSQL() }}</td>
-          </tr>
-          <tr v-if="train.uploaded_at">
-            <td>Upload timestamp</td>
-            <td>{{ train.uploaded_at.toSQL() }}</td>
-          </tr>
-          <tr>
             <td>Direction</td>
             <td>{{ train.speed_px_s > 0 ? 'Right' : 'Left' }}</td>
           </tr>
@@ -117,15 +109,15 @@ const prevId = computed(
     <v-divider class="mx-4 mb-1"></v-divider>
     <v-card-title>Image</v-card-title>
 
-    <a :href="getBlobURL(train?.image_file_path)" target="_blank">
-      <v-img cover :src="getBlobURL(train?.image_file_path)"></v-img>
+    <a :href="getBlobURL(imgFileName(train.start_ts))" target="_blank">
+      <v-img cover :src="getBlobURL(imgFileName(train.start_ts))"></v-img>
     </a>
 
     <v-divider class="mx-4 mb-1"></v-divider>
     <v-card-title>GIF</v-card-title>
 
-    <a :href="getBlobURL(train?.gif_file_path)" target="_blank">
-      <v-img width="10em" :src="getBlobURL(train?.gif_file_path)"></v-img>
+    <a :href="getBlobURL(gifFileName(train.start_ts))" target="_blank">
+      <v-img width="10em" :src="getBlobURL(gifFileName(train.start_ts))"></v-img>
     </a>
   </v-card>
 </template>

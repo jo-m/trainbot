@@ -20,10 +20,10 @@ watch(
 </script>
 
 <template>
-  sqlite3 data/db.sqlite3
+  sqlite3 trainbot/data/db.sqlite3
   <br />
 
-  DELETE FROM trains
+  DELETE FROM trains_v2
   <br />
   WHERE id IN ({{ Array.from(favs.favorites).join(', ') }});
 </template>
