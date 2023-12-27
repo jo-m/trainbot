@@ -20,11 +20,44 @@ func mustParseTime(s string) time.Time {
 }
 
 var (
-	t0 = mustParseTime("2023-06-10T16:20:58.805488032+02:00")
-	t1 = mustParseTime("2023-06-10T16:21:05.982318734+02:00")
-	t2 = mustParseTime("2023-11-10T12:57:45.897342187+01:00")
-	t3 = mustParseTime("2023-11-10T13:57:49.289348781+00:00")
+	t0 = mustParseTime("2023-06-10T16:20:58.805+02:00")
+	t1 = mustParseTime("2023-06-10T16:21:05.982+02:00")
+	t2 = mustParseTime("2023-11-10T12:57:45.897+01:00")
+	t3 = mustParseTime("2023-11-10T13:57:49.289+00:00")
 )
+
+// This is more of a documentation than a test..
+func Test_Train_Filenames(t *testing.T) {
+	tr := Train{
+		StartTS: mustParseTime("2023-12-24T09:58:52.660009478Z"),
+	}
+	assert.Equal(t, "train_20231224_095852.66_Z.jpg", tr.ImgFileName())
+	assert.Equal(t, "train_20231224_095852.66_Z.gif", tr.GIFFileName())
+
+	tr = Train{
+		StartTS: mustParseTime("2023-12-24T11:19:12.839262415Z"),
+	}
+	assert.Equal(t, "train_20231224_111912.839_Z.jpg", tr.ImgFileName())
+	assert.Equal(t, "train_20231224_111912.839_Z.gif", tr.GIFFileName())
+
+	tr = Train{
+		StartTS: mustParseTime("2023-10-28T17:31:50.709434526+01:00"),
+	}
+	assert.Equal(t, "train_20231028_173150.709_+01:00.jpg", tr.ImgFileName())
+	assert.Equal(t, "train_20231028_173150.709_+01:00.gif", tr.GIFFileName())
+
+	tr = Train{
+		StartTS: mustParseTime("2023-11-25T15:49:46.958831882+00:00"),
+	}
+	assert.Equal(t, "train_20231125_154946.958_Z.jpg", tr.ImgFileName())
+	assert.Equal(t, "train_20231125_154946.958_Z.gif", tr.GIFFileName())
+
+	tr = Train{
+		StartTS: mustParseTime("2023-03-28T06:32:16.516941205+01:00"),
+	}
+	assert.Equal(t, "train_20230328_063216.516_+01:00.jpg", tr.ImgFileName())
+	assert.Equal(t, "train_20230328_063216.516_+01:00.gif", tr.GIFFileName())
+}
 
 func Test_Train_Queries(t *testing.T) {
 	tmp := t.TempDir()
@@ -112,7 +145,7 @@ func Test_Train_TimesstampDBSerialization(t *testing.T) {
 	err = db.Select(&results, "SELECT start_ts FROM trains_v2 ORDER BY id DESC")
 	assert.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "2023-06-10T16:20:58.805488032+02:00", results[0].StartTS)
+	assert.Equal(t, "2023-06-10T16:20:58.805+02:00", results[0].StartTS)
 
 	// Another round.
 	id, err = InsertTrain(db, stitch.Train{StartTS: t2})
@@ -123,7 +156,7 @@ func Test_Train_TimesstampDBSerialization(t *testing.T) {
 	err = db.Select(&results, "SELECT start_ts FROM trains_v2 ORDER BY id DESC")
 	assert.NoError(t, err)
 	assert.Len(t, results, 2)
-	assert.Equal(t, "2023-11-10T12:57:45.897342187+01:00", results[0].StartTS)
+	assert.Equal(t, "2023-11-10T12:57:45.897+01:00", results[0].StartTS)
 }
 
 func Test_Temperature_Queries(t *testing.T) {

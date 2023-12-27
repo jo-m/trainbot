@@ -9,7 +9,7 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
-const dbTsFormat = "2006-01-02 15:04:05.999999999Z07:00"
+const dbTsFormat = "2006-01-02 15:04:05.999Z07:00"
 
 // InsertTrain inserts a new train sighting into the database.
 // Returns the db id of the new row.
@@ -40,25 +40,26 @@ func InsertTrain(db *sqlx.DB, t stitch.Train) (int64, error) {
 	return id, nil
 }
 
+// This should have been ".000_-07:00"... but it's too late now.
 const fileTSFormat = "20060102_150405.999_Z07:00"
 
-type DBTrain struct {
+type Train struct {
 	ID      int64     `db:"id"`
 	StartTS time.Time `db:"start_ts"`
 }
 
-func (t *DBTrain) GIFFileName() string {
+func (t *Train) GIFFileName() string {
 	tsString := t.StartTS.Format(fileTSFormat)
 	return fmt.Sprintf("train_%s.gif", tsString)
 }
 
-func (t *DBTrain) ImgFileName() string {
+func (t *Train) ImgFileName() string {
 	tsString := t.StartTS.Format(fileTSFormat)
 	return fmt.Sprintf("train_%s.jpg", tsString)
 }
 
 // GetNextUpload returns the next train sighting to upload from the database.
-func GetNextUpload(db *sqlx.DB) (*DBTrain, error) {
+func GetNextUpload(db *sqlx.DB) (*Train, error) {
 	const q = `
 	SELECT
 		id, start_ts
@@ -68,7 +69,7 @@ func GetNextUpload(db *sqlx.DB) (*DBTrain, error) {
 	LIMIT 1;
 	`
 
-	ret := DBTrain{}
+	ret := Train{}
 	err := db.Get(&ret, q)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func SetUploaded(db *sqlx.DB, id int64) error {
 }
 
 // GetNextCleanup returns the next train sighting for which we can delete the blobs locally.
-func GetNextCleanup(db *sqlx.DB) (*DBTrain, error) {
+func GetNextCleanup(db *sqlx.DB) (*Train, error) {
 	const keepLastN = 100
 
 	const q = `
@@ -119,7 +120,7 @@ func GetNextCleanup(db *sqlx.DB) (*DBTrain, error) {
 	OFFSET ?;
 	`
 
-	ret := DBTrain{}
+	ret := Train{}
 	err := db.Get(&ret, q, keepLastN-1)
 	if err != nil {
 		return nil, err
@@ -186,7 +187,7 @@ func GetAllBlobs(db *sqlx.DB) (map[string]struct{}, error) {
 	defer rows.Close()
 
 	ret := make(map[string]struct{})
-	var train DBTrain
+	var train Train
 	for rows.Next() {
 		err := rows.StructScan(&train)
 		if err != nil {
