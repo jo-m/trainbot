@@ -9,7 +9,7 @@ import (
 	"github.com/jo-m/trainbot/internal/pkg/stitch"
 )
 
-const dbTsFormat = "2006-01-02 15:04:05.999Z07:00"
+const dbTSFormat = "2006-01-02 15:04:05.999Z07:00"
 
 // InsertTrain inserts a new train sighting into the database.
 // Returns the db id of the new row.
@@ -27,7 +27,7 @@ func InsertTrain(db *sqlx.DB, t stitch.Train) (int64, error) {
 	VALUES (?, ?, ?, ?, ?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		t.StartTS.Format(dbTsFormat),
+		t.StartTS.Format(dbTSFormat),
 		t.NFrames,
 		t.LengthPx,
 		t.SpeedPxS,
@@ -43,16 +43,19 @@ func InsertTrain(db *sqlx.DB, t stitch.Train) (int64, error) {
 // This should have been ".000_-07:00"... but it's too late now.
 const fileTSFormat = "20060102_150405.999_Z07:00"
 
+// Train represents the basics of a train in the database.
 type Train struct {
 	ID      int64     `db:"id"`
 	StartTS time.Time `db:"start_ts"`
 }
 
+// GIFFileName returns the GIF file name for this train (derived from timestamp).
 func (t *Train) GIFFileName() string {
 	tsString := t.StartTS.Format(fileTSFormat)
 	return fmt.Sprintf("train_%s.gif", tsString)
 }
 
+// ImgFileName returns the image file name for this train (derived from timestamp).
 func (t *Train) ImgFileName() string {
 	tsString := t.StartTS.Format(fileTSFormat)
 	return fmt.Sprintf("train_%s.jpg", tsString)
@@ -77,6 +80,7 @@ func GetNextUpload(db *sqlx.DB) (*Train, error) {
 	return &ret, nil
 }
 
+// ErrNoRowAffected means that a row was expected to change - but none did.
 var ErrNoRowAffected = errors.New("no rows affected")
 
 // SetUploaded marks a train sighting as uploaded in the database.
@@ -164,7 +168,7 @@ func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
 	VALUES (?, ?)
 	RETURNING id;`
 	err := db.Get(&id, q,
-		ts.Format(dbTsFormat), tempDegC)
+		ts.Format(dbTSFormat), tempDegC)
 	if err != nil {
 		return 0, err
 	}

@@ -99,12 +99,16 @@ func Test_Train_Queries(t *testing.T) {
 	assert.Error(t, err)
 
 	// Test blobs listing query.
+	_, err = InsertTrain(db, stitch.Train{StartTS: t1})
+	assert.NoError(t, err)
+	_, err = InsertTrain(db, stitch.Train{StartTS: t2})
+	assert.NoError(t, err)
 	_, err = InsertTrain(db, stitch.Train{StartTS: t3})
 	assert.NoError(t, err)
 
 	blobs, err := GetAllBlobs(db)
 	assert.NoError(t, err)
-	assert.Len(t, blobs, 4)
+	assert.Len(t, blobs, 8)
 	assert.Contains(t, blobs, "train_20230610_162058.805_+02:00.gif")
 	assert.Contains(t, blobs, "train_20230610_162058.805_+02:00.jpg")
 
