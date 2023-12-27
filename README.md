@@ -203,11 +203,9 @@ Mounting plate for Raspberry Pi: https://www.tinkercad.com/things/djlEF6oQSY1
 The prints were ordered from JLCPCB.
 Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the 86mm stated in the picture on the Aliexpress product page are in reality a bit less. You can solve that by changing the 3d design, or by cutting off a bit from the print. It might however also depend on your specific case.
 
-
 ## Prometheus metrics/Grafana
 
 For debugging and tweaking a [Prometheus](https://prometheus.io/)-compatible endpoint can be exposed at port 18963 using `--prometheus=true`. A [Grafana dashboard](grafana/Onlytrains-dashboard.json) is also available.
-
 
 ## TODOs
 
@@ -215,3 +213,4 @@ For debugging and tweaking a [Prometheus](https://prometheus.io/)-compatible end
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
 - [ ] Add run/deploy instructions to README (including confighelper)
 - [ ] Maybe compress URL params - favorites list is getting longer and longer...
+- [ ] Remote blob cleanup is broken due to FTP LIST being restricted to 99998 entries by remote - use sftp instead
