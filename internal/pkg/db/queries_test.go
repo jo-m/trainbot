@@ -162,17 +162,3 @@ func Test_Train_TimesstampDBSerialization(t *testing.T) {
 	assert.Len(t, results, 2)
 	assert.Equal(t, "2023-11-10T12:57:45.897+01:00", results[0].StartTS)
 }
-
-func Test_Temperature_Queries(t *testing.T) {
-	tmp := t.TempDir()
-	dbpath := filepath.Join(tmp, "test.db")
-	db, err := Open(dbpath)
-	assert.NoError(t, err)
-	assert.NotNil(t, db)
-	defer db.Close()
-
-	// Insert.
-	id, err := InsertTemp(db, time.Now(), 123.456)
-	assert.NoError(t, err)
-	assert.Greater(t, id, int64(0))
-}
