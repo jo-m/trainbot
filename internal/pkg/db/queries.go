@@ -156,26 +156,6 @@ func SetCleanedUp(db *sqlx.DB, id int64) error {
 	return err
 }
 
-// InsertTemp inserts a new temperature measurement.
-// Returns the db id of the new row.
-func InsertTemp(db *sqlx.DB, ts time.Time, tempDegC float64) (int64, error) {
-	var id int64
-	const q = `
-	INSERT INTO temperatures (
-		timestamp,
-		temp_deg_c
-	)
-	VALUES (?, ?)
-	RETURNING id;`
-	err := db.Get(&id, q,
-		ts.Format(dbTSFormat), tempDegC)
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
-}
-
 // GetAllBlobs lists all blobs which the database knows about.
 // Does not include thumbnails.
 func GetAllBlobs(db *sqlx.DB) (map[string]struct{}, error) {

@@ -7,8 +7,7 @@ import {
   histCountPerDayOfWeek,
   dayOfWeekLabels,
   histHourOfDay,
-  histSpeedKPH,
-  tempDegCPast24hAvg
+  histSpeedKPH
 } from '@/lib/stats'
 
 import VerticalHist from '@/components/VerticalHist.vue'
@@ -69,21 +68,6 @@ const widthPx = 200
                 :data="histHourOfDay(db)"
                 :width-px="widthPx"
                 color="#009900"
-              ></VerticalHist>
-            </td>
-          </tr>
-          <tr>
-            <td>Avg core temperature 24h [°C]</td>
-            <td>
-              <VerticalHist
-                :data="tempDegCPast24hAvg(db)"
-                :width-px="widthPx"
-                :labels="
-                  Object.fromEntries(
-                    Array.from({ length: 24 }, (x, i) => [i, `00${i}:00`.slice(-5)])
-                  )
-                "
-                color="#cc0000"
               ></VerticalHist>
             </td>
           </tr>

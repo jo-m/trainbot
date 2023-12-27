@@ -83,6 +83,7 @@ ORDER BY id ASC;
 -- Truncate old tables.
 DELETE FROM trains_blob_cleanups;
 DELETE FROM trains;
+DELETE FROM temperatures;
 
 COMMIT;
 
