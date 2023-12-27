@@ -23,6 +23,7 @@ const driver = "sqlite"
 func buildDSN(path string, readOnly bool) string {
 	query := url.Values{}
 	query.Add("_txlock", "deferred")
+	query.Add("_time_format", "sqlite")
 	if readOnly {
 		query.Add("mode", "ro")
 	} else {
