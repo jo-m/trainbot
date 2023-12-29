@@ -54,7 +54,7 @@ Other transports are also possible, but not implemented.
 
 ## Deployment
 
-There are two parts to deploy: First, the Go binary which detects trains, and second the web frontend. Only the former is explained here, for the latter check out the `frontend/` directory and its `Makefile`.
+There are two parts to deploy: First, the Go binary which detects trains, and second the web frontend.
 
 How to get binaries?
 There are multiple options:
@@ -101,6 +101,45 @@ rsync --verbose --archive --rsh=ssh "$TRAINBOT_DEPLOY_TARGET_SSH_HOST:trainbot/d
 rm data/db.sqlite3-shm data/db.sqlite3-wal
 mv data/db.sqlite3.bak data/db.sqlite3
 ```
+
+### Frontend
+
+The frontend is a VueJS SPA app written in Typescript, compiled to a bundle of static files (HTML/JS/CSS).
+There is no web backend, the frontend simply loads the entire SQLite database from the server, and then does all the queries itself.
+This means that the frontend can be deployed entirely independently from the trainbot binary, as long as there is some way for the date (db + pics) to get to the web server.
+
+#### My setup
+
+My Raspberry Pi is not exposed to the internet, and I also already had a web hosting account with FTP access available.
+Thus, in my setup, the binary and the frontend are running on two entirely different machines in two different networks.
+
+The frontend is built and deployed via:
+
+```bash
+export FRONTEND_DEPLOY_TARGET_SSH_HOST=myuser@mywebserver:/var/www/trains/
+cd frontend
+make deploy
+```
+
+The binary on the Raspberry Pi in my home network will upload pictures and the updated db file via FTP to this webspace whenever a new train is detected.
+This is configured via the `ENABLE_UPLOAD=true` and `UPLOAD_...` env vars (or the corresponding CLI flags).
+
+Alternative uploaders (e.g. SFTP, SCP, WebDAV, ...) could be pretty easily implemented (but they are not because I do not need them).
+For this, the `Uploader` interface from `internal/pkg/upload/upload.go` needs to be implemented, and corresponding configuration options added.
+
+#### Hosting the frontend on the same machine
+
+It is possible to deploy the fronted on the same machine where trainbot runs.
+There is no finished solution provided in this repo, but some hints are here:
+
+- Install an arbitrary static web server (Nginx, Apache, Caddy, ...).
+  - A webserver could also added to the trainbot binary itself, see e.g. [here](https://eli.thegreenplace.net/2022/serving-static-files-and-web-apps-in-go/), PRs welcome.
+  - As wwwroot, this webserver needs the build output of the frontend, i.e. `cd frontend; make build; [s]cp dist /var/www/trains`.
+- Set up the trainbot binary to have its data directory somewhere inside the wwwroot via `--data-dir / DATA_DIR`.
+  - Assuming the wwwroot is `/var/www/trains`, trainbot would be running with `--data-dir=/var/www/trains/data`
+
+Note that this can lead to transient inconsistencies when the web server is delivering the sqlite file at the same time the binary is writing to it.
+The clean solution would be to add another "local FS" uploader to trainbot (see previous section).
 
 ## Development
 
