@@ -45,12 +45,17 @@ The assumptions are (there might be more implicit ones):
 1. Trains have a constant acceleration (might be 0) and do not stop and turn around while in front of the camera.
   1. In reality, this is often not true, there happens to be a stop signal right in front of my balcony...
 
-## Web frontend
+## Documentation
 
-The web frontend is completely independent from the Go binary.
-It consists of only static files (after the JS build process).
-The Go binary uploads images and the SQLite database to the web server via FTP.
-Other transports are also possible, but not implemented.
+As this is just a hobby project for me, the documentation is pretty sparse.
+This very README is the most important part of it.
+To deploy this project yourself, you should have some basic sysadmin, web servers, and ideally Go knowledge.
+When in doubt, the source of truth is ... the source code.
+
+All config options can be passed as ENV vars or CLI flags.
+See `config struct` on top of `cmd/trainbot/main.go`, or run `trainbot --help` to see all options.
+
+The two Makefiles (root and frontend/) also contain some hints.
 
 ## Deployment
 
@@ -104,7 +109,10 @@ mv data/db.sqlite3.bak data/db.sqlite3
 
 ### Frontend
 
-The frontend is a VueJS SPA app written in Typescript, compiled to a bundle of static files (HTML/JS/CSS).
+## Web frontend
+
+The frontend is a VueJS SPA app written in Typescript.
+It consists of only static files (after the JS build process).
 There is no web backend, the frontend simply loads the entire SQLite database from the server, and then does all the queries itself.
 This means that the frontend can be deployed entirely independently from the trainbot binary, as long as there is some way for the date (db + pics) to get to the web server.
 
