@@ -149,6 +149,29 @@ There is no finished solution provided in this repo, but some hints are here:
 Note that this can lead to transient inconsistencies when the web server is delivering the sqlite file at the same time the binary is writing to it.
 The clean solution would be to add another "local FS" uploader to trainbot (see previous section).
 
+### Hardware
+
+I use a Raspberry Pi 4 Mod B with 2GiB of RAM, and a Raspberry Pi Camera v3 (narrow lens).
+Distance from camera to tracks is ca. 50m.
+
+All this is installed on my balcony in a waterproof case, as seen in the [MagPi Magazine](https://magpi.raspberrypi.com/issues/131).
+
+The case is this one from AliExpress: https://www.aliexpress.com/item/1005003010275396.html
+
+#### 3D Prints
+
+- Mounting plate for Camera: https://www.tinkercad.com/things/1FowVwonymJ
+- Mounting plate for Raspberry Pi: https://www.tinkercad.com/things/djlEF6oQSY1
+- The prints were ordered from JLCPCB.
+
+**Errata (not corrected in the models linked above):**
+
+- The RPI mounting plate is 1-2mm too wide, because the 86mm stated in the picture on the Aliexpress product page are in reality a bit less.
+  - You can solve that by changing the 3d design, or by cutting off a bit from the print. It might however also depend on your specific case.
+- The RPI USB C power plug does not fit into the case, because the case is in the way.
+  I solved this by cutting it off and soldering the cable to the connector perpendicularly.
+  You can probably fix this by changing the 3D design to move the RPI to the left as far as possible.
+
 ## Development
 
 This repo is set up to compile for `x86_64` and `aarch64`.
@@ -236,19 +259,6 @@ mkvmerge -o test.mkv --timecodes 0:vid-timestamps.txt vid.h264
 
 * Zerolog is used as logging framework
 * "Library" code uses `panic()`, "application" code use `log.Panic()...`
-
-## Hardware setup
-
-My deployment is installed on my balcony in a waterproof case, as seen in the [MagPi Magazine](https://magpi.raspberrypi.com/issues/131).
-
-The case is this one from AliExpress: https://www.aliexpress.com/item/1005003010275396.html
-
-Mounting plate for Camera: https://www.tinkercad.com/things/1FowVwonymJ
-
-Mounting plate for Raspberry Pi: https://www.tinkercad.com/things/djlEF6oQSY1
-
-The prints were ordered from JLCPCB.
-Note that the mounting plate for the Raspberry Pi is 1-2mm too wide, because the 86mm stated in the picture on the Aliexpress product page are in reality a bit less. You can solve that by changing the 3d design, or by cutting off a bit from the print. It might however also depend on your specific case.
 
 ## Prometheus metrics/Grafana
 
