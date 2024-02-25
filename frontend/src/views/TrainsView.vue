@@ -174,7 +174,7 @@ function scrollUp() {
   />
 
   <!-- Filter Snackbar -->
-  <v-snackbar v-model="filterSnackbarShow" :timeout="2000">
+  <v-snackbar v-model="filterSnackbarShow" :timeout="4000">
     Current filter includes {{ filteredCount === totalCount ? 'all' : `${filteredCount} of` }}
     {{ totalCount }} trains.
 
