@@ -24,7 +24,8 @@ const agoHours = DateTime.now().diff(date, 'hours').hours
         <v-divider></v-divider>
         <v-card-text>
           The last data upload from trainbot was {{ date.toRelative() }}. This probably means that
-          trainbot is currently offline. Note that this frontend is hosted independently.
+          trainbot is currently offline/broken. Note that this frontend is hosted independently. The
+          DevOps team will fix this eventually.
         </v-card-text>
         <v-card-actions>
           <v-btn color="primary" variant="flat" block @click="showDialog = false">Close</v-btn>
