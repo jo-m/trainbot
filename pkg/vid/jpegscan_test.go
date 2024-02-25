@@ -68,9 +68,9 @@ func Fuzz_JPEGScanner_Scan(f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
 		buf := bytes.Buffer{}
 		for i := 0; i < 5; i++ {
-			n, err := buf.Write(img)
+			n, err := buf.Write(data)
 			require.NoError(t, err)
-			require.Equal(t, len(img), n)
+			require.Equal(t, len(data), n)
 		}
 
 		scan := NewJPEGScanner(&buf)
