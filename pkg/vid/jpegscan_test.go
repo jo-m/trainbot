@@ -59,6 +59,7 @@ func Test_JPEGScanner_Scan_Multiple(t *testing.T) {
 	assert.Len(t, data, 0)
 }
 
+// To run: go test -fuzz=Fuzz ./pkg/vid/
 func Fuzz_JPEGScanner_Scan(f *testing.F) {
 	img, err := os.ReadFile(testImage)
 	require.NoError(f, err)

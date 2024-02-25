@@ -150,6 +150,10 @@ func (s *JPEGScanner) Scan() ([]byte, error) {
 		}
 		segLen := uint16(segLenB[0])<<8 + uint16(segLenB[1]) // Includes includes length field itself but not the marker.
 
+		if segLen < 2 {
+			return nil, fmt.Errorf("invalid segment length: %d", segLen)
+		}
+
 		// Read rest of the segment, we do not parse it.
 		_, err = s.readBytes(int(segLen) - 2) // The length we have already read.
 		if err != nil {
