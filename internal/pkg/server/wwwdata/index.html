@@ -82,6 +82,7 @@
 				selectionState.img.y1 = -1
 
 				document.querySelector("#rectOptions").innerHTML = ""
+				document.querySelector("#rectOptionsEnv").innerHTML = ""
 				selectionState.active = true
 			} else {
 				selectionState.rect.x1 = event.layerX
@@ -106,7 +107,20 @@
 					selectionState.img.x1 - selectionState.img.x0,
 					selectionState.img.y1 - selectionState.img.y0
 				]
-				document.querySelector("#rectOptions").innerHTML = `-X ${Math.round(x)} -Y ${Math.round(y)} -W ${Math.round(w)} -H ${Math.round(h)}`
+
+				const rounded = {
+					x: Math.round(x),
+					y: Math.round(y),
+					w: Math.round(w),
+					h: Math.round(h),
+				}
+
+				document.querySelector("#rectOptions").innerHTML = `-X ${rounded.x} -Y ${rounded.y} -W ${rounded.w} -H ${rounded.h}`
+				document.querySelector("#rectOptionsEnv").innerHTML =
+`RECT_X=${rounded.x}
+RECT_Y=${rounded.y}
+RECT_W=${rounded.w}
+RECT_H=${rounded.h}`
 
 				selectionState.active = false
 			}
@@ -164,6 +178,7 @@
 		<img id="stream" src="stream.mjpeg" />
 	</div>
 	<pre id="rectOptions"></pre>
+	<pre id="rectOptionsEnv"></pre>
 	<button id="detectCameras">Detect v4l cameras</button>
 	<pre id="cameraOptions"></pre>
 </body>
