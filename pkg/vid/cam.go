@@ -21,7 +21,7 @@ const (
 	bufferSize        = 5
 )
 
-// CamConfig describes an available camera device with a given pixel format and frame size.
+// CamConfig describes an available v4l2 camera device with a given pixel format and frame size.
 type CamConfig struct {
 	// For example /dev/video0.
 	DeviceFile string
