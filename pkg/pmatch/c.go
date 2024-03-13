@@ -31,11 +31,11 @@ import (
 	"math"
 )
 
-// SearchRGBAC searches for the position of a (RGBA) patch in a (RGBA) image,
+// SearchRGBAC searches for the position of an (RGBA) patch in an (RGBA) image,
 // using cosine similarity.
 // Implemented in Cgo.
 // Panics if the patch is larger than the image in any dimension.
-// Note that the alpha channel is ignored.
+// The alpha channel is ignored.
 func SearchRGBAC(img, pat *image.RGBA) (int, int, float64) {
 	if pat.Bounds().Size().X > img.Bounds().Size().X ||
 		pat.Bounds().Size().Y > img.Bounds().Size().Y {

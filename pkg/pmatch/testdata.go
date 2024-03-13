@@ -11,7 +11,7 @@ import (
 var testdata []byte
 
 // LoadTestImg returns a test image to be used for tests and examples.
-// Image data is embedded in the binary, which makes this function independent of the environment.
+// Image data is embedded in the binary, which makes it easy to copy around test/example binaries.
 // Always returns a newly allocated image.
 func LoadTestImg() *image.YCbCr {
 	buf := bytes.NewBuffer(testdata)

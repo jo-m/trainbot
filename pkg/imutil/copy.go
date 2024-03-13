@@ -4,7 +4,7 @@ import (
 	"image"
 )
 
-// Copy creates a complete copy of an image (copies buffers).
+// Copy creates a deep copy of an image (copies underlying buffer).
 func Copy(in image.Image) (ret image.Image) {
 	switch i := in.(type) {
 	case *image.Gray:

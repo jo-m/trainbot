@@ -25,10 +25,10 @@ func imgPatchWindow(img, pat image.Image, offset image.Point) image.Image {
 	return iface.SubImage(window)
 }
 
-// ScoreRGBACosSlow computes the cosine similarity score for a (RGBA) patch
-// on a (RGBA) image.
-// This a completely un-optimized and thus rather slow implementation.
-// Note that the alpha channel is ignored.
+// ScoreRGBACosSlow computes the cosine similarity score for an (RGBA) patch
+// on an (RGBA) image.
+// This a slow implementation useful as ground truth for testing.
+// The alpha channel is ignored.
 func ScoreRGBACosSlow(img, pat *image.RGBA, offset image.Point) (cos float64) {
 	img = imgPatchWindow(img, pat, offset).(*image.RGBA)
 
@@ -60,11 +60,11 @@ func ScoreRGBACosSlow(img, pat *image.RGBA, offset image.Point) (cos float64) {
 	return float64(dot) / math.Sqrt(abs2)
 }
 
-// SearchRGBASlow searches for the position of a (RGBA) patch in a (RGBA) image,
+// SearchRGBASlow searches for the position of an (RGBA) patch in an (RGBA) image,
 // using cosine similarity.
-// This a completely un-optimized and thus rather slow implementation.
+// This a slow implementation useful as ground truth for testing.
 // Panics (due to out of bounds errors) if the patch is larger than the image in any dimension.
-// Note that the alpha channel is ignored.
+// The alpha channel is ignored.
 func SearchRGBASlow(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	// Search rect in img coordinates.
 	searchRect := image.Rectangle{

@@ -27,8 +27,9 @@ func Load(path string) (image.Image, error) {
 	return img, nil
 }
 
-// Dump will dump an image to a file.
-// Format is determined by file ending, PNG and JPG are supported.
+// Dump dumps an image to a file.
+// Format is determined by file ending.
+// PNG and JPG are supported.
 func Dump(path string, img image.Image) error {
 	// #nosec 304
 	f, err := os.Create(path)
@@ -60,7 +61,7 @@ func DumpJPEG(path string, img image.Image, quality int) error {
 	return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
 }
 
-// DumpGIF will dump a GIF image to a file.
+// DumpGIF dumps a GIF image to a file.
 func DumpGIF(path string, img *gif.GIF) error {
 	// #nosec 304
 	f, err := os.Create(path)

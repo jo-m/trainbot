@@ -15,7 +15,7 @@ import "image"
 
 // RGBAC computes the pixel average, and pixel mean deviation from average,
 // on an RGBA image, per channel.
-// Note that the alpha channel is ignored.
+// The alpha channel is ignored.
 // Scaled to [0, 1].
 // Implemented in Cgo.
 func RGBAC(img *image.RGBA) ([3]float64, [3]float64) {
