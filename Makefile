@@ -1,12 +1,12 @@
 .PHONY: format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
-DOCKER_BASE_IMAGE = debian:bullseye-20231120
+DOCKER_BASE_IMAGE = debian:bullseye-20240423
 # https://go.dev/dl/
-GO_VERSION = 1.21.5
-GO_ARCHIVE_SHA256 = e2bc0b3e4b64111ec117295c088bde5f00eeed1567999ff77bc859d7df70078e
+GO_VERSION = 1.22.2
+GO_ARCHIVE_SHA256 = 5901c52b7a78002aeff14a21f93e0f064f74ce1360fce51c6ee68cd471216a17
 # https://github.com/dominikh/go-tools/releases
-GO_STATICCHECK_VERSION = 2023.1.6
+GO_STATICCHECK_VERSION = 2023.1.7
 
 DEFAULT: format build_host build_arm64
 
