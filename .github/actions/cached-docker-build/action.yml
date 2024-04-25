@@ -14,7 +14,7 @@ runs:
   - name: Set up Docker Buildx
     uses: docker/setup-buildx-action@v3
   - name: Set up cache
-    uses: actions/cache@v3
+    uses: actions/cache@v4
     with:
       path: /tmp/buildx-cache
       key: buildx-${{ runner.os }}-${{github.job}}-${{ github.sha }}
