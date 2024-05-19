@@ -61,7 +61,7 @@ func NewFileSrc(path string, verbose bool) (src *FileSrc, err error) {
 		return nil, err
 	}
 
-	fps, err := parseFPS(vidProbe.RFrameRate)
+	fps, err := parseFPS(vidProbe.AvgFrameRate)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse fps '%s': %w", vidProbe.RFrameRate, err)
 	}
