@@ -120,10 +120,11 @@ func runTestDetailed(t *testing.T, c Config, r image.Rectangle, video string, tr
 
 func Test_AutoStitcher_Set0(t *testing.T) {
 	c := Config{
-		PixelsPerM:  50,
-		MinSpeedKPH: 10,
-		MaxSpeedKPH: 160,
-		MinLengthM:  10,
+		PixelsPerM:          50,
+		MinSpeedKPH:         10,
+		MaxSpeedKPH:         160,
+		MinLengthM:          10,
+		MaxFrameCountPerSeq: 1500,
 	}
 	r := image.Rect(0, 0, 300, 300)
 

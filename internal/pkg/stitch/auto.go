@@ -15,7 +15,6 @@ import (
 const (
 	goodCosScoreNoMove = 0.99
 	goodCosScoreMove   = 0.925
-	maxSeqLen          = 1500
 	minFramePeriodS    = 0.01
 	dxLowPassFactor    = 0.95
 	minContrastAvg     = 0.005
@@ -25,10 +24,11 @@ const (
 // Config is the configuration for a AutoStitcher.
 // All values must be > 0, except for MinSpeedKPH which might also be 0.
 type Config struct {
-	PixelsPerM  float64
-	MinSpeedKPH float64
-	MaxSpeedKPH float64
-	MinLengthM  float64
+	PixelsPerM          float64
+	MinSpeedKPH         float64
+	MaxSpeedKPH         float64
+	MinLengthM          float64
+	MaxFrameCountPerSeq int
 }
 
 func (c *Config) minPxPerFrame(framePeriodS float64) int {
@@ -264,8 +264,8 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		r.dxAbsLowPass = r.dxAbsLowPass*(dxLowPassFactor) + math.Abs(float64(dx))*(1-dxLowPassFactor)
 
 		// Bail out before we use too much memory.
-		if len(r.seq.dx) > maxSeqLen {
-			log.Debug().Msg("len(r.seq.dx) > maxSeqLen")
+		if len(r.seq.dx) > r.c.MaxFrameCountPerSeq {
+			log.Debug().Int("MaxFrameCountPerSeq", r.c.MaxFrameCountPerSeq).Msg("len(r.seq.dx) > MaxFrameCountPerSeq")
 			return r.TryStitchAndReset()
 		}
 

@@ -42,10 +42,11 @@ type config struct {
 	RectW uint `arg:"-W,--rect-w,env:RECT_W" help:"Rect to look at, width" placeholder:"N"`
 	RectH uint `arg:"-H,--rect-h,env:RECT_H" help:"Rect to look at, height" placeholder:"N"`
 
-	PixelsPerM  float64 `arg:"--px-per-m,env:PX_PER_M" default:"45" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)" placeholder:"K"`
-	MinSpeedKPH float64 `arg:"--min-speed-kph,env:MIN_SPEED_KPH" default:"25" help:"Assumed train min speed, km/h" placeholder:"K"`
-	MaxSpeedKPH float64 `arg:"--max-speed-kph,env:MAX_SPEED_KPH" default:"160" help:"Assumed train max speed, km/h" placeholder:"K"`
-	MinLengthM  float64 `arg:"--min-len-m,env:MIN_LEN_M" default:"5" help:"Minimum length of trains" placeholder:"K"`
+	PixelsPerM          float64 `arg:"--px-per-m,env:PX_PER_M" default:"45" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)" placeholder:"K"`
+	MinSpeedKPH         float64 `arg:"--min-speed-kph,env:MIN_SPEED_KPH" default:"25" help:"Assumed train min speed, km/h" placeholder:"K"`
+	MaxSpeedKPH         float64 `arg:"--max-speed-kph,env:MAX_SPEED_KPH" default:"160" help:"Assumed train max speed, km/h" placeholder:"K"`
+	MinLengthM          float64 `arg:"--min-len-m,env:MIN_LEN_M" default:"5" help:"Minimum length of trains" placeholder:"K"`
+	MaxFrameCountPerSeq int     `arg:"--max-frame-count-per-seq,env:MAX_FRAME_COUNT_PER_SEQ" default:"1500" help:"How many frames to accept max. before force-ending a train sequence. If you have high fps videos/long trains, you can increase it from the default, but the program will use more memory." placeholder:"N"`
 
 	CPUProfile  bool `arg:"--cpu-profile,env:CPU_PROFILE" help:"Write CPU profile"`
 	HeapProfile bool `arg:"--heap-profile,env:HEAP_PROFILE" help:"Write memory heap profiles"`
@@ -147,10 +148,11 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 	srcBuf := vid.NewSrcBuf(src, failedFramesMax)
 
 	stitcher := stitch.NewAutoStitcher(stitch.Config{
-		PixelsPerM:  c.PixelsPerM,
-		MinSpeedKPH: c.MinSpeedKPH,
-		MaxSpeedKPH: c.MaxSpeedKPH,
-		MinLengthM:  c.MinLengthM,
+		PixelsPerM:          c.PixelsPerM,
+		MinSpeedKPH:         c.MinSpeedKPH,
+		MaxSpeedKPH:         c.MaxSpeedKPH,
+		MinLengthM:          c.MinLengthM,
+		MaxFrameCountPerSeq: c.MaxFrameCountPerSeq,
 	})
 	defer func() {
 		train := stitcher.TryStitchAndReset()
