@@ -18,6 +18,7 @@ import (
 	"unsafe"
 )
 
+// Package errors.
 var (
 	ErrNotLittleEndian      = errors.New("only little endian supported for now")
 	ErrNeedAtLeastOneBuffer = errors.New("need at least one buffer")
@@ -302,7 +303,7 @@ func (p *Pipe) Run(h *Handle, workgroupSize [3]uint, pushConstantBuf []byte) err
 		C.uint32_t(workgroupSize[2]),
 	}
 
-	var pushConstantPtr *byte = nil
+	var pushConstantPtr *byte
 	if len(pushConstantBuf) > 0 {
 		pushConstantPtr = &pushConstantBuf[0]
 	}

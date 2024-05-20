@@ -47,6 +47,8 @@ func (r results) size() int {
 	return buf.Len()
 }
 
+// SearchVk holds the state needed for patch matching search via Vulkan.
+// Use NewSearchVk create an instance.
 type SearchVk struct {
 	searchRect    image.Rectangle
 	h             *vk.Handle
@@ -58,6 +60,7 @@ type SearchVk struct {
 	pipe          *vk.Pipe
 }
 
+// Destroy destroys a SearchVk and frees resources.
 func (s *SearchVk) Destroy() {
 	if s.pipe != nil {
 		s.pipe.Destroy(s.h)
@@ -81,6 +84,8 @@ func (s *SearchVk) Destroy() {
 	}
 }
 
+// NewSearchVk creates a new instance of SearchVk.
+// Destroy must be called to clean up.
 func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int) (*SearchVk, error) {
 	if patBounds.Size().X > imgBounds.Size().X ||
 		patBounds.Size().Y > imgBounds.Size().Y {
@@ -123,7 +128,7 @@ func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int)
 	}
 
 	// Create pipe.
-	binary.Write(&s.pushConstants, binary.LittleEndian, pushConstants{})
+	binary.Write(&s.pushConstants, binary.LittleEndian, pushConstants{}) // #nosec G104: bytes.Buffer.Write{} always returns err = nil
 	specInfo := []int{
 		// Local size.
 		localSizeX,
@@ -146,6 +151,7 @@ func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int)
 	return &s, nil
 }
 
+// Run runs a search.
 func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, err error) {
 	searchRect := image.Rectangle{
 		Min: img.Bounds().Min,
@@ -157,22 +163,25 @@ func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, er
 	}
 
 	// Write to buffers.
-	err = s.imgBuf.Write(s.h, unsafe.Pointer(&img.Pix[0]), bufsz(img))
+	err = s.imgBuf.Write(s.h, unsafe.Pointer(&img.Pix[0]), bufsz(img)) // #nosec G103
 	if err != nil {
 		return
 	}
 
-	err = s.patBuf.Write(s.h, unsafe.Pointer(&pat.Pix[0]), bufsz(pat))
+	err = s.patBuf.Write(s.h, unsafe.Pointer(&pat.Pix[0]), bufsz(pat)) // #nosec G103
 	if err != nil {
 		return
 	}
 
 	// Prepare push constants.
 	s.pushConstants.Reset()
-	binary.Write(
+	err = binary.Write(
 		&s.pushConstants,
 		binary.LittleEndian,
 		pushConstants{uint32(img.Stride), uint32(pat.Stride)})
+	if err != nil {
+		return
+	}
 
 	// Run.
 	err = s.pipe.Run(
@@ -190,14 +199,19 @@ func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, er
 	// Read results.
 	res := results{}
 	resMem := make([]byte, res.size())
-	err = s.resultsBuf.Read(s.h, unsafe.Pointer(&resMem[0]), s.resSize)
+	err = s.resultsBuf.Read(s.h, unsafe.Pointer(&resMem[0]), s.resSize) // #nosec G103
 	if err != nil {
 		return
 	}
-	binary.Read(bytes.NewReader(resMem), binary.LittleEndian, &res)
+	err = binary.Read(bytes.NewReader(resMem), binary.LittleEndian, &res)
+	if err != nil {
+		return
+	}
 	return int(res.MaxX), int(res.MaxY), float64(res.Max), nil
 }
 
+// SearchRGBAVk is a wrapper which allocates a SearchVk, runs a search, and then destroys the instance again.
+// Should only be used for testing, in real applications the instance should be reused.
 func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	h, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.Stride)
 	if err != nil {
