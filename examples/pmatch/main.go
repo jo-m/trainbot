@@ -64,6 +64,9 @@ func main() {
 
 	// Benchmark.
 	bench(func() {
-		fn(img, pat.(*image.RGBA))
+		_, _, _, err := fn(img, pat.(*image.RGBA))
+		if err != nil {
+			panic(err)
+		}
 	}, 100)
 }
