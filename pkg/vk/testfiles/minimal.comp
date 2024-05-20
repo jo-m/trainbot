@@ -1,0 +1,26 @@
+#version 450
+
+// Local size and constants, via specialization constants.
+layout(local_size_x_id = 0, local_size_y_id = 1, local_size_z_id = 2) in;
+layout(constant_id = 3) const int SIZE_X = 0;
+layout(constant_id = 4) const int SIZE_Y = 0;
+layout(constant_id = 5) const int VALUE = 0;
+
+// Input and output buffers.
+layout(std430, set = 0, binding = 0) buffer readonly _buf0 { uint buf0[]; };
+layout(std430, set = 0, binding = 1) buffer readonly _buf1 { uint buf1[]; };
+layout(std430, set = 0, binding = 2) buffer _buf2 { uint buf2[]; };
+
+void main() {
+  uint x = gl_GlobalInvocationID.x;
+  uint y = gl_GlobalInvocationID.y;
+
+  // Bail out if we are outside the size.
+  if (x > SIZE_X || y > SIZE_Y) {
+    return;
+  }
+
+  // Computation.
+  uint ix = y * SIZE_X + x;
+  buf2[ix] = buf0[ix] + buf1[ix] + VALUE;
+}

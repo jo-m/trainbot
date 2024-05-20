@@ -1,0 +1,81 @@
+#version 450
+
+// (Specialization) constants.
+layout(local_size_x_id = 0, local_size_y_id = 1, local_size_z_id = 2) in;
+layout(constant_id = 3) const int M = 0;
+layout(constant_id = 4) const int N = 0;
+layout(constant_id = 5) const int DU = 0;
+layout(constant_id = 6) const int DV = 0;
+
+layout(std430, push_constant) uniform _constants {
+  uint IS;
+  uint PS;
+}
+push_constants;
+
+struct results {
+  uint max_uint;
+  float max;
+  uint max_x;
+  uint max_y;
+};
+
+layout(std430, set = 0, binding = 0) buffer _buf0 { results res; };
+
+layout(std430, set = 0, binding = 1) buffer readonly _buf1 { uint img[]; };
+
+layout(std430, set = 0, binding = 2) buffer readonly _buf2 { uint pat[]; };
+
+uvec4 rgb_le(uint px) {
+  uvec4 ret = {
+      (px >> 0x00) & 0x000000ff,
+      (px >> 0x08) & 0x000000ff,
+      (px >> 0x10) & 0x000000ff,
+      (px >> 0x18) & 0x000000ff,
+  };
+  return ret;
+}
+
+void main() {
+  uint x = gl_GlobalInvocationID.x;
+  uint y = gl_GlobalInvocationID.y;
+
+  if (x > M || y > N) {
+    return;
+  }
+
+  uint imgPatStartIx = y * push_constants.IS / 4 + x;
+  float dot = 0, absI2 = 0, absP2 = 0;
+
+  for (uint v = 0; v < DV; v++) {
+    uint pxIi = v * push_constants.IS / 4;
+    uint pxPi = v * push_constants.PS / 4;
+
+    for (uint u = 0; u < DU; u++) {
+      uvec4 pxI = rgb_le(img[imgPatStartIx + pxIi + u]);
+      uvec4 pxP = rgb_le(pat[pxPi + u]);
+
+      for (int i = 0; i < 3; i++) {
+        dot += float(pxI[i]) * float(pxP[i]);
+        absI2 += float(pxI[i]) * float(pxI[i]);
+        absP2 += float(pxP[i]) * float(pxP[i]);
+      }
+    }
+  }
+
+  float cos = 1;
+  float abs2 = absI2 * absP2;
+  if (abs2 != 0) {
+    cos = clamp(dot / sqrt(abs2), 0, 1);
+  }
+
+  uint ucos = uint(cos * pow(2, 32));
+  atomicMax(res.max_uint, ucos);
+  memoryBarrierBuffer();
+  // This thread computed the max.
+  if (res.max_uint == ucos) {
+    res.max = cos;
+    res.max_x = x;
+    res.max_y = y;
+  }
+}
