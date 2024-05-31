@@ -10,10 +10,11 @@ import (
 
 func Test_AutoStitcher_Set1(t *testing.T) {
 	c := Config{
-		PixelsPerM:  42,
-		MinSpeedKPH: 10,
-		MaxSpeedKPH: 120,
-		MinLengthM:  10,
+		PixelsPerM:          42,
+		MinSpeedKPH:         10,
+		MaxSpeedKPH:         120,
+		MinLengthM:          10,
+		MaxFrameCountPerSeq: 1500,
 	}
 	r := image.Rect(0, 0, 206, 290)
 
