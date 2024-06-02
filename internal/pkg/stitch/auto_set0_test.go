@@ -1,10 +1,13 @@
 package stitch
 
 import (
+	"fmt"
 	"image"
 	"io"
+	"os"
 	"testing"
 
+	"github.com/jo-m/trainbot/internal/pkg/logging"
 	"github.com/jo-m/trainbot/internal/pkg/testutil"
 	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/jo-m/trainbot/pkg/vid"
@@ -16,11 +19,25 @@ import (
 
 const anyLengthMagic = 0xDEADBEEF
 
+func getFileLogger(t *testing.T, fileName string) (*os.File, zerolog.Logger) {
+	f, err := os.Create(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logger := log.Output(zerolog.ConsoleWriter{Out: f, NoColor: true})
+	logger = logger.Level(zerolog.DebugLevel).With().Caller().Logger()
+
+	return f, logger
+}
+
 // runTestSimple runs autostitching on a video file and checks the resulting train length.
 // lengthM == 0 means that no train is expected to be detected.
 func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, lengthM float64) []Train {
-	// logging.MustInit(logging.LogConfig{LogLevel: "debug", LogPretty: true})
-	log.Logger = zerolog.Nop()
+	logging.MustInit(logging.LogConfig{LogLevel: "debug", LogPretty: true})
+	var logFile *os.File
+	logFile, log.Logger = getFileLogger(t, video+".log")
+	defer logFile.Close()
 
 	src, err := vid.NewFileSrc(video, false)
 	require.NoError(t, err)
@@ -29,19 +46,19 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 	auto := NewAutoStitcher(c)
 
 	var trains []Train
-	// defer func() {
-	// 	if len(trains) == 0 {
-	// 		f, err := os.Create(fmt.Sprintf("%s.MISSING", filepath.Base(video)))
-	// 		if err == nil {
-	// 			f.Close()
-	// 		}
-	// 	}
+	defer func() {
+		if len(trains) == 0 {
+			f, err := os.Create(fmt.Sprintf("%s.MISSING", video))
+			if err == nil {
+				f.Close()
+			}
+		}
 
-	// 	for i, tr := range trains {
-	// 		fname := fmt.Sprintf("%s-%02d.jpg", filepath.Base(video), i)
-	// 		imutil.Dump(fname, tr.Image)
-	// 	}
-	// }()
+		for i, tr := range trains {
+			fname := fmt.Sprintf("%s-%02d.jpg", video, i)
+			imutil.Dump(fname, tr.Image)
+		}
+	}()
 	for {
 		frame, ts, err := src.GetFrame()
 		if err == io.EOF {
