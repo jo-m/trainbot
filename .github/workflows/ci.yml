@@ -40,6 +40,12 @@ jobs:
         id: cached-docker-build
         with:
           target: docker_test
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: testlogs
+          path: |
+            internal/pkg/stitch/testdata/*.mkv.log
   go_test_more:
     runs-on: ubuntu-latest
     steps:
@@ -50,6 +56,12 @@ jobs:
         id: cached-docker-build
         with:
           target: docker_test_more
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: testlogs
+          path: |
+            internal/pkg/stitch/testdata/*.mkv.log
   go_bench:
     runs-on: ubuntu-latest
     steps:
