@@ -79,19 +79,19 @@ FROM scratch AS export
 COPY --from=build /src/build/ /
 
 # Run lint
-FROM source as lint
+FROM source AS lint
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make lint
 
 # Run tests
-FROM source as test
+FROM source AS test
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make test
 
 # Run more tests
-FROM source as test_more
+FROM source AS test_more
 RUN curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
 RUN unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
 RUN --mount=type=cache,target=~/.cache/go-build \
@@ -99,7 +99,7 @@ RUN --mount=type=cache,target=~/.cache/go-build \
     make test_more
 
 # Run bench
-FROM source as bench
+FROM source AS bench
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make bench
