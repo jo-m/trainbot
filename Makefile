@@ -47,8 +47,9 @@ build_host:
 	go build -o build/confighelper ./cmd/confighelper
 	go build -o build/pmatch ./examples/pmatch
 
+TRAINBOT_AARCH_CROSS ?= aarch64-linux-gnu-gcc
 build_arm64: export CGO_ENABLED=1
-build_arm64: export CC=aarch64-linux-gnu-gcc
+build_arm64: export CC=$(TRAINBOT_AARCH_CROSS)
 build_arm64: export GOOS=linux
 build_arm64: export GOARCH=arm64
 build_arm64: export GOARM=7
