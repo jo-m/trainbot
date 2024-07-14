@@ -264,6 +264,45 @@ mkvmerge -o test.mkv --timecodes 0:vid-timestamps.txt vid.h264
 
 For debugging and tweaking a [Prometheus](https://prometheus.io/)-compatible endpoint can be exposed at port 18963 using `--prometheus=true`. A [Grafana dashboard](grafana/Onlytrains-dashboard.json) is also available.
 
+## Flow chart for frame data
+```
+
+           libcamera-vid
+                 │
+                 ▼
+        ┌─────────────────┐
+        │                 │
+        │   source queue  │
+        │                 │
+        └─────────────────┘
+                 │
+                 ▼
+             findOffset ──────► discard
+                 │
+              record
+                 │
+                 ▼
+          ┌────────────┐
+          │            │
+          │  sequence  │
+          │            │
+          └────────────┘
+                 │
+                 ▼
+               fitDx
+                 │
+                 ▼
+              stitch
+                 │
+                 ▼
+           ┌───────────┐
+           │           │
+           │   image   │
+           │           │
+           └───────────┘
+
+```
+
 ## TODOs
 
 - [ ] Fix false positives in darkness
