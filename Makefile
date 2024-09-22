@@ -118,7 +118,7 @@ run_videofile:
 		--input="internal/pkg/stitch/testdata/set0/day.mp4" \
 		-X 0 -Y 0 -W 300 -H 300
 
-# Usage: make deploy_trainbot host=TRAINBOT_DEPLOY_TARGET_SSH_HOST
+# Usage: make deploy_trainbot host=$TRAINBOT_DEPLOY_TARGET_SSH_HOST
 # Example: make deploy_trainbot host=pi@10.20.0.12
 deploy_trainbot: docker_build
 	test -n "$(host)" # missing target host, usage: make deploy_trainbot host=TRAINBOT_DEPLOY_TARGET_SSH_HOST !
