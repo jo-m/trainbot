@@ -308,5 +308,4 @@ For debugging and tweaking a [Prometheus](https://prometheus.io/)-compatible end
 - [ ] Fix false positives in darkness
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
 - [ ] Add run/deploy instructions to README (including confighelper)
-- [ ] Maybe compress URL params - favorites list is getting longer and longer...
 - [ ] Remote blob cleanup is broken due to FTP LIST being restricted to 99998 entries by remote - use sftp instead
