@@ -84,7 +84,7 @@ COPY --chown=build:build . /src/
 FROM source AS build
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
-    make build_host
+    make build_host_vk
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     make build_arm64

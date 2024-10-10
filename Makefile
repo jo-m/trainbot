@@ -1,4 +1,4 @@
-.PHONY: format lint test test_vk test_more bench bench_vk check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
+.PHONY: format lint test test_vk test_more bench bench_vk check build_host build_host_vk build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20240926
