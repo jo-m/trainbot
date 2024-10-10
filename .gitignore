@@ -3,6 +3,7 @@
 /build/
 /prof-*.gz
 /env
+/.direnv
 
 /internal/pkg/stitch/*.jpg
 /internal/pkg/stitch/*.MISSING
