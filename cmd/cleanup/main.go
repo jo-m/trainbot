@@ -53,6 +53,7 @@ func parseCheckArgs() config {
 //	cd data/blobs
 //	find . > blobs.txt
 func loadFilesList(name string) []string {
+	// #nosec G304
 	f, err := os.Open(name)
 	if err != nil {
 		log.Panic().Err(err).Send()
