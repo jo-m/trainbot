@@ -1,4 +1,7 @@
-// Package main (pmatch) is a simple binary to demonstrate the usage of the pmatch package.
+//go:build vk
+// +build vk
+
+// Package main (pmatchVk) is a simple binary to demonstrate the usage of the pmatch package.
 package main
 
 import (
@@ -17,6 +20,11 @@ const (
 )
 
 func bench(fn func(), count int) {
+	// Warmup.
+	for i := 0; i < 10; i++ {
+		fn()
+	}
+
 	t0 := time.Now()
 	for i := 0; i < count; i++ {
 		fn()
@@ -33,10 +41,19 @@ func main() {
 		panic(err)
 	}
 
-	fn := pmatch.SearchRGBA
+	inst, err := pmatch.NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.(*image.RGBA).Stride)
+	if err != nil {
+		panic(err)
+	}
+	defer inst.Destroy()
+
+	fn := inst.Run
 
 	// Test.
-	x, y, cos := fn(img, pat.(*image.RGBA))
+	x, y, cos, err := fn(img, pat.(*image.RGBA))
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("x=%d y=%d cos=%f\n", x, y, cos)
 	if x != px {
 		panic("x detected incorrectly")
@@ -50,6 +67,9 @@ func main() {
 
 	// Benchmark.
 	bench(func() {
-		fn(img, pat.(*image.RGBA))
+		_, _, _, err := fn(img, pat.(*image.RGBA))
+		if err != nil {
+			panic(err)
+		}
 	}, 100)
 }

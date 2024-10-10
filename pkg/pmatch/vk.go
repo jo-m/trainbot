@@ -1,3 +1,6 @@
+//go:build vk
+// +build vk
+
 package pmatch
 
 import (

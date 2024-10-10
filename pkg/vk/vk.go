@@ -1,3 +1,6 @@
+//go:build vk
+// +build vk
+
 package vk
 
 // See pkg/pmatch/c.go for docs on CC flags.

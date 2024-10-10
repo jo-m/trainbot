@@ -1,4 +1,4 @@
-.PHONY: generate format lint test test_more bench check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
+.PHONY: format lint generate_vk test test_vk test_more bench bench_vk check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20240926
@@ -10,15 +10,12 @@ GO_STATICCHECK_VERSION = 2024.1.1
 
 DEFAULT: format build_host build_arm64
 
-generate:
-	go generate ./...
-
 format:
 	bash -c "shopt -s globstar; clang-format -i **/*.c **/*.h **/*.comp"
 	gofmt -w .
 	go mod tidy
 
-lint: generate
+lint:
 	bash -c "shopt -s globstar; clang-format --dry-run --Werror **/*.c **/*.h **/*.comp"
 	gofmt -l .; test -z "$$(gofmt -l .)"
 	go vet ./...
@@ -29,24 +26,33 @@ lint: generate
 	go run github.com/securego/gosec/v2/cmd/gosec@latest -exclude G307,G115 ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-test: generate
+generate_vk:
+	go generate --tags=vk ./...
+
+test:
 	go test -v ./...
 
-test_more: generate
+test_vk: generate_vk
+	go test -v --tags=vk ./...
+
+test_more:
 	# This needs additional test data which is not committed to the repo.
 	# Instructions:
 	#	curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
 	#	unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
 	go test -v --tags=moretests -timeout=30m -run Test_AutoStitcher_Set ./...
 
-bench: generate
+bench:
 	go test -v -run=Nothing -bench=Benchmark_ ./...
+
+bench_vk: generate_vk
+	go test -v --tags=vk -run=Nothing -bench=Benchmark_ ./...
 
 check: lint test bench
 
 build_host: export CGO_ENABLED=1
 build_host: export CC=gcc
-build_host: generate
+build_host:
 	mkdir -p build
 	go build -o build/trainbot ./cmd/trainbot
 	go build -o build/confighelper ./cmd/confighelper
@@ -58,7 +64,7 @@ build_arm64: export CC=$(TRAINBOT_AARCH_CROSS)
 build_arm64: export GOOS=linux
 build_arm64: export GOARCH=arm64
 build_arm64: export GOARM=7
-build_arm64: generate
+build_arm64:
 	mkdir -p build
 	go build -o build/trainbot-arm64 ./cmd/trainbot
 	go build -o build/confighelper-arm64 ./cmd/confighelper
@@ -106,11 +112,12 @@ docker_bench:
 clean:
 	rm -rf build/
 	rm -f prof-*.gz
+	find . -name '*.spv' -delete
 
-run_confighelper: generate
+run_confighelper:
 	go run ./cmd/confighelper/ --input /dev/video2 --live-reload
 
-run_camera: generate
+run_camera:
 	go run ./cmd/trainbot \
 		--log-pretty \
 		\
@@ -120,7 +127,7 @@ run_camera: generate
 		--camera-w 1920 --camera-h 1080 \
 		-X 1064 -Y 178 -W 366 -H 334
 
-run_videofile: generate
+run_videofile:
 	go build -o build/trainbot ./cmd/trainbot/
 	./build/trainbot \
 		--log-pretty \
