@@ -318,3 +318,4 @@ For debugging and tweaking a [Prometheus](https://prometheus.io/)-compatible end
 - [ ] Fix false positives in darkness
 - [ ] Add machine learning to classify trains (MobileNet, EfficientNet, https://mediapipe-studio.webapps.google.com/demo/image_classifier)
 - [ ] Remote blob cleanup is broken due to FTP LIST being restricted to 99998 entries by remote - use sftp instead
+- [ ] Select image processing methods depending on build tags (Vulkan)
