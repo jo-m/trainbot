@@ -6,7 +6,7 @@ import (
 
 const four = 4
 
-// RGBA computes the pixel average, and pixel mean deviation from average,
+// RGBA computes the pixel average, and average absolute deviation of each pixel,
 // on an RGBA image, per channel.
 // The alpha channel is ignored.
 // Scaled to [0, 1].

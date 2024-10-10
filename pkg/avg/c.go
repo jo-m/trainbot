@@ -13,7 +13,7 @@ package avg
 import "C"
 import "image"
 
-// RGBAC computes the pixel average, and pixel mean deviation from average,
+// RGBAC computes the pixel average, and average absolute deviation of each pixel,
 // on an RGBA image, per channel.
 // The alpha channel is ignored.
 // Scaled to [0, 1].
