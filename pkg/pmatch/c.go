@@ -13,7 +13,7 @@ package pmatch
 // - https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
 // - https://gcc.gnu.org/onlinedocs/gcc/AArch64-Options.html
 
-// #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
+// #cgo CFLAGS: -Wall -Werror -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
 //
 // #cgo amd64 CFLAGS: -march=native

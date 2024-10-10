@@ -2,7 +2,7 @@ package avg
 
 // See pkg/pmatch/c.go for docs on CC flags.
 
-// #cgo CFLAGS: -Wall -Wextra -pedantic -std=c99
+// #cgo CFLAGS: -Wall -Werror -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
 //
 // #cgo amd64 CFLAGS: -march=native
