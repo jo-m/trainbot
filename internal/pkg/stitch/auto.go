@@ -250,7 +250,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 	// Check for minimal contrast and brightness.
 	avg, avgDev := avg.RGBAC(frameRGBA)
 	prometheus.RecordBrightnessContrast(sum3(avg)/3, sum3(avgDev)/3)
-	if sum3(avg)/3 < minContrastAvg || sum3(avgDev)/3 < minContrastAvgDev {
+	if sum3(avgDev)/3 < minContrastAvgDev {
 		log.Trace().Interface("avgDev", avgDev).Interface("avg", avg).Msg("contrast too low, discarding")
 		prometheus.RecordFrameDisposition("low_contrast")
 		return nil
