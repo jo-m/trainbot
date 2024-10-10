@@ -1,4 +1,4 @@
-.PHONY: format lint generate_vk test test_vk test_more bench bench_vk check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
+.PHONY: format lint test test_vk test_more bench bench_vk check build_host build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20240926
@@ -16,6 +16,8 @@ GO_VULNCHECK_VERSION = v1.1.3
 
 DEFAULT: format build_host build_arm64
 
+GO_BUILD_TAGS =
+
 format:
 	bash -c "shopt -s globstar; clang-format -i **/*.c **/*.h **/*.comp"
 	gofmt -w .
@@ -32,27 +34,28 @@ lint:
 	go run github.com/securego/gosec/v2/cmd/gosec@$(GO_SEC_VERSION) -exclude G307,G115 ./...
 	go run golang.org/x/vuln/cmd/govulncheck@$(GO_VULNCHECK_VERSION) ./...
 
-generate_vk:
-	go generate --tags=vk ./...
+generate:
+	go generate --tags=$(GO_BUILD_TAGS) ./...
 
-test:
-	go test -v ./...
+test: generate
+	go test -v --tags=$(GO_BUILD_TAGS) ./...
 
-test_vk: generate_vk
-	go test -v --tags=vk ./...
+test_vk: GO_BUILD_TAGS = vk
+test_vk: test
 
+test_more: GO_BUILD_TAGS = moretests
 test_more:
 	# This needs additional test data which is not committed to the repo.
 	# Instructions:
 	#	curl -o internal/pkg/stitch/testdata/more-testdata.zip https://trains.jo-m.ch/testdata.zip
 	#	unzip -d internal/pkg/stitch/testdata internal/pkg/stitch/testdata/more-testdata.zip
-	go test -v --tags=moretests -timeout=30m -run Test_AutoStitcher_Set ./...
+	go test -v --tags=$(GO_BUILD_TAGS) -timeout=30m -run Test_AutoStitcher_Set ./...
 
 bench:
-	go test -v -run=Nothing -bench=Benchmark_ ./...
+	go test -v --tags=$(GO_BUILD_TAGS) -run=Nothing -bench=Benchmark_ ./...
 
-bench_vk: generate_vk
-	go test -v --tags=vk -run=Nothing -bench=Benchmark_ ./...
+bench_vk: GO_BUILD_TAGS = vk
+bench_vk: bench
 
 check: lint test bench
 
@@ -60,9 +63,14 @@ build_host: export CGO_ENABLED=1
 build_host: export CC=gcc
 build_host:
 	mkdir -p build
-	go build -o build/trainbot ./cmd/trainbot
-	go build -o build/confighelper ./cmd/confighelper
-	go build -o build/pmatch ./examples/pmatch
+	go build --tags=$(GO_BUILD_TAGS) -o build/trainbot ./cmd/trainbot
+	go build --tags=$(GO_BUILD_TAGS) -o build/confighelper ./cmd/confighelper
+	go build --tags=$(GO_BUILD_TAGS) -o build/pmatch ./examples/pmatch
+
+build_host_vk: GO_BUILD_TAGS = vk
+build_host_vk: generate build_host
+build_host_vk:
+	go build --tags=$(GO_BUILD_TAGS) -o build/pmatchVk ./examples/pmatchVk
 
 TRAINBOT_AARCH_CROSS ?= aarch64-linux-gnu-gcc
 build_arm64: export CGO_ENABLED=1
@@ -72,9 +80,9 @@ build_arm64: export GOARCH=arm64
 build_arm64: export GOARM=7
 build_arm64:
 	mkdir -p build
-	go build -o build/trainbot-arm64 ./cmd/trainbot
-	go build -o build/confighelper-arm64 ./cmd/confighelper
-	go build -o build/pmatch-arm64 ./examples/pmatch
+	go build --tags=$(GO_BUILD_TAGS) -o build/trainbot-arm64 ./cmd/trainbot
+	go build --tags=$(GO_BUILD_TAGS) -o build/confighelper-arm64 ./cmd/confighelper
+	go build --tags=$(GO_BUILD_TAGS) -o build/pmatch-arm64 ./examples/pmatch
 
 DOCKER_FLAGS = $(DOCKER_CLI_FLAGS)
 DOCKER_FLAGS += --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
@@ -134,7 +142,7 @@ run_camera:
 		-X 1064 -Y 178 -W 366 -H 334
 
 run_videofile:
-	go build -o build/trainbot ./cmd/trainbot/
+	go build --tags=$(GO_BUILD_TAGS) -o build/trainbot ./cmd/trainbot/
 	./build/trainbot \
 		--log-pretty \
 		--log-level=info \
