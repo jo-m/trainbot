@@ -2,6 +2,10 @@
 // +build vk
 
 // Package main (pmatchVk) is a simple binary to demonstrate the usage of the pmatch package.
+// It uses the Vulkan compute implementation.
+// Usage:
+//
+//	go run --tags=vk ./examples/pmatchVk/
 package main
 
 import (
