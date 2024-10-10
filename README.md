@@ -195,6 +195,15 @@ make docker_build
 # Find binaries in build/ after this has completed.
 ```
 
+## Vulkan
+
+To work with the Vulkan code, you need to activate the `vk` build tag.
+For VSCode, add the following to `.vscode/settings.json`:
+
+```
+"go.buildTags": "vk,moretests"
+```
+
 ## V4L Settings
 
 ```bash
