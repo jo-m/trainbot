@@ -11,19 +11,19 @@ require (
 	github.com/mattn/go-mjpeg v0.0.3
 	github.com/mccutchen/palettor v1.0.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/prometheus/client_golang v1.20.4
+	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/u2takey/ffmpeg-go v0.5.0
 	github.com/vladimirvivien/go4vl v0.0.5
 	go-hep.org/x/hep v0.35.0
 	gonum.org/v1/gonum v0.15.1
-	gonum.org/v1/plot v0.14.0
+	gonum.org/v1/plot v0.15.0
 	modernc.org/sqlite v1.33.1
 )
 
 require (
-	git.sr.ht/~sbinet/gg v0.5.0 // indirect
+	git.sr.ht/~sbinet/gg v0.6.0 // indirect
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/klauspost/compress v1.17.10 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kr/text v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
