@@ -1,7 +1,7 @@
 .PHONY: run run_local format build deploy docker_build list
 
 # https://hub.docker.com/_/node/
-DOCKER_BASE_IMAGE = node:20.9.0-alpine3.18
+DOCKER_BASE_IMAGE = node:22.10.0-alpine3.20
 FRONTEND_DEPLOY_TARGET_SSH_HOST_ = ${FRONTEND_DEPLOY_TARGET_SSH_HOST}
 VITE_FRONTEND_BASE_URL_ = ${VITE_FRONTEND_BASE_URL}
 
@@ -9,24 +9,24 @@ run:
 	VITE_BASE_URL=http://localhost:5173/ \
 	VITE_DB_URL=http://localhost:5173/data/db.sqlite3 \
 	VITE_BLOBS_URL=http://localhost:5173/data/blobs \
-		yarn run dev
+		npm run dev
 
 run_local:
 	# This requires some data in ../data.
 	VITE_BASE_URL=http://localhost:5173/ \
 	VITE_DB_URL=http://localhost:5173/_data/db.sqlite3 \
 	VITE_BLOBS_URL=http://localhost:5173/_data/blobs \
-		yarn run dev
+		npm run dev
 
 format:
-	yarn run format
+	npm run format
 
 build:
 	test -n "$(VITE_FRONTEND_BASE_URL_)" # missing env var, please set up env file from env.example and source it
 	VITE_BASE_URL=$(VITE_FRONTEND_BASE_URL_) \
 	VITE_DB_URL=$(VITE_FRONTEND_BASE_URL_)/data/db.sqlite3 \
 	VITE_BLOBS_URL=$(VITE_FRONTEND_BASE_URL_)/data/blobs \
-		yarn run build
+		npm run build
 
 deploy: build
 	test -n "$(FRONTEND_DEPLOY_TARGET_SSH_HOST_)" # missing env var, please set up env file from env.example and source it

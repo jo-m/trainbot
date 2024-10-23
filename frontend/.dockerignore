@@ -1,6 +1,6 @@
 *
 !package.json
-!yarn.lock
+!package-lock.json
 
 !env.d.ts
 !index.html
