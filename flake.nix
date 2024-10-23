@@ -42,6 +42,9 @@
         vulkan-tools
         vulkan-tools-lunarg
         vulkan-volk
+
+        # Frontend
+        nodejs_22
       ];
 
       LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
