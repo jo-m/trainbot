@@ -215,6 +215,7 @@ func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, er
 
 // SearchRGBAVk is a wrapper which allocates a SearchVk, runs a search, and then destroys the instance again.
 // Should only be used for testing, in real applications the instance should be reused.
+// Deprecated: do not use, only for testing.
 func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	h, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.Stride)
 	if err != nil {
