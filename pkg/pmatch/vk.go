@@ -89,7 +89,7 @@ func (s *SearchVk) Destroy() {
 
 // NewSearchVk creates a new instance of SearchVk.
 // Destroy must be called to clean up.
-func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int) (*SearchVk, error) {
+func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int, validate bool) (*SearchVk, error) {
 	if patBounds.Size().X > imgBounds.Size().X ||
 		patBounds.Size().Y > imgBounds.Size().Y {
 		panic("patch too large")
@@ -105,7 +105,7 @@ func NewSearchVk(imgBounds, patBounds image.Rectangle, imgStride, patStride int)
 
 	// Create instance.
 	var err error
-	s.h, err = vk.NewHandle(true)
+	s.h, err = vk.NewHandle(validate)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, er
 // Should only be used for testing, in real applications the instance should be reused.
 // Deprecated: do not use, only for testing.
 func SearchRGBAVk(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
-	h, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.Stride)
+	h, err := NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.Stride, false)
 	if err != nil {
 		panic(err)
 	}

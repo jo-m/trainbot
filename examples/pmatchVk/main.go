@@ -45,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	inst, err := pmatch.NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.(*image.RGBA).Stride)
+	inst, err := pmatch.NewSearchVk(img.Bounds(), pat.Bounds(), img.Stride, pat.(*image.RGBA).Stride, false)
 	if err != nil {
 		panic(err)
 	}
