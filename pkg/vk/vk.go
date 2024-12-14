@@ -227,7 +227,7 @@ func (h *Handle) NewPipe(shader []byte, bufs []*Buffer, specConstants []int, pus
 		return nil, ErrNeedAtLeastOneBuffer
 	}
 
-	// Buffers and descriptor typs.
+	// Buffers and descriptor types.
 	cBuffers := make([]C.vk_buffer, len(bufs))
 	descTypes := make([]C.VkDescriptorType, len(bufs))
 	for i, buf := range bufs {
