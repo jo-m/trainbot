@@ -36,7 +36,7 @@
         # Cross
         pkgsCross.aarch64-multiplatform.buildPackages.gcc # Provides aarch64-unknown-linux-gnu-gcc
 
-        # Vulkan bare tools and depencencies
+        # Vulkan bare tools and dependencies
         glslang
         vulkan-headers
         vulkan-loader
