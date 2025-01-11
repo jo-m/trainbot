@@ -98,6 +98,9 @@ func parseCheckArgs() config {
 	}
 
 	r := c.getRect()
+	if r.Size().X == 0 && r.Size().Y == 0 {
+		p.Fail("no rect set (use --rect-.. parameters to set crop region)")
+	}
 	if r.Size().X < rectSizeMin || r.Size().Y < rectSizeMin {
 		p.Fail(fmt.Sprintf("rect is too small (minimum width and height is %d px)", rectSizeMin))
 	}
