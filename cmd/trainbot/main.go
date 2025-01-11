@@ -99,10 +99,10 @@ func parseCheckArgs() config {
 
 	r := c.getRect()
 	if r.Size().X < rectSizeMin || r.Size().Y < rectSizeMin {
-		p.Fail("rect is too small")
+		p.Fail(fmt.Sprintf("rect is too small (minimum width and height is %d px)", rectSizeMin))
 	}
 	if r.Size().X > rectSizeMax || r.Size().Y > rectSizeMax {
-		p.Fail("rect is too large")
+		p.Fail(fmt.Sprintf("rect is too large (maximum width and height is %d px)", rectSizeMax))
 	}
 
 	return c
