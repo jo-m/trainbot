@@ -30,6 +30,8 @@ type config struct {
 	CameraW   int    `arg:"--camera-w" default:"1920" help:"Camera frame size width, ignored for picam3"`
 	CameraH   int    `arg:"--camera-h" default:"1080" help:"Camera frame size height, ignored for picam3"`
 
+	Rotate180 bool `arg:"--rotate-180,env:ROTATE_180" help:"Rotate camera picture 180 degrees (only picam3)"`
+
 	ProbeOnly bool `arg:"--probe-only" help:"Only print v4l camera probe output and exit"`
 }
 
@@ -77,7 +79,7 @@ func main() {
 	if c.InputFile == inputFilePiCam3 {
 		src, err = vid.NewPiCam3Src(vid.PiCam3Config{
 			Focus:     0,
-			Rotate180: false,
+			Rotate180: c.Rotate180,
 			Format:    vid.FourCCMJPEG,
 			FPS:       5,
 		})
