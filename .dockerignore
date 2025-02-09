@@ -8,3 +8,6 @@
 !examples
 !internal/pkg
 !pkg
+
+internal/pkg/stitch/testdata/set1/*
+internal/pkg/stitch/testdata/set2/*
