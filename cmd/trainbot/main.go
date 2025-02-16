@@ -42,6 +42,8 @@ type config struct {
 	RectW uint `arg:"-W,--rect-w,env:RECT_W" help:"Rect to look at, width" placeholder:"N"`
 	RectH uint `arg:"-H,--rect-h,env:RECT_H" help:"Rect to look at, height" placeholder:"N"`
 
+	Rotate180 bool `arg:"--rotate-180,env:ROTATE_180" help:"Rotate camera picture 180 degrees (only picam3)"`
+
 	PixelsPerM          float64 `arg:"--px-per-m,env:PX_PER_M" default:"45" help:"Pixels per meter, can be reconstructed from sleepers: they are usually 0.6m apart (in Europe)" placeholder:"K"`
 	MinSpeedKPH         float64 `arg:"--min-speed-kph,env:MIN_SPEED_KPH" default:"25" help:"Assumed train min speed, km/h" placeholder:"K"`
 	MaxSpeedKPH         float64 `arg:"--max-speed-kph,env:MAX_SPEED_KPH" default:"160" help:"Assumed train max speed, km/h" placeholder:"K"`
@@ -117,7 +119,7 @@ func openSrc(c config) (vid.Src, error) {
 		return vid.NewPiCam3Src(vid.PiCam3Config{
 			Rect:      c.getRect(),
 			Focus:     0,
-			Rotate180: false,
+			Rotate180: c.Rotate180,
 			Format:    vid.FourCCFromString(c.CameraFormatFourCC),
 			FPS:       30,
 		})
