@@ -17,6 +17,8 @@ func iabs(i int) int {
 
 // AssertImagesAlmostEqual asserts that two images are almost equal.
 func AssertImagesAlmostEqual(t *testing.T, truth image.Image, test image.Image) {
+	t.Helper()
+
 	assert.Equal(t, truth.Bounds().Size(), test.Bounds().Size(), "image size not equal")
 	if truth.Bounds().Size() != test.Bounds().Size() {
 		return

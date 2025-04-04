@@ -20,6 +20,8 @@ import (
 const anyLengthMagic = 0xDEADBEEF
 
 func getFileLogger(t *testing.T, fileName string) (*os.File, zerolog.Logger) {
+	t.Helper()
+
 	f, err := os.Create(fileName)
 	if err != nil {
 		t.Fatal(err)
@@ -34,6 +36,8 @@ func getFileLogger(t *testing.T, fileName string) (*os.File, zerolog.Logger) {
 // runTestSimple runs autostitching on a video file and checks the resulting train length.
 // lengthM == 0 means that no train is expected to be detected.
 func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, lengthM float64) []Train {
+	t.Helper()
+
 	logging.MustInit(logging.LogConfig{LogLevel: "debug", LogPretty: true})
 	var logFile *os.File
 	logFile, log.Logger = getFileLogger(t, video+".log")
@@ -115,6 +119,8 @@ func runTestSimple(t *testing.T, c Config, r image.Rectangle, video string, leng
 // runTestDetailed also checks for speed, acceleration, and direction, and compares the stitched image.
 // Always expects one train to be detected.
 func runTestDetailed(t *testing.T, c Config, r image.Rectangle, video string, truthImg string, lengthM, speed, accel float64, direction bool) {
+	t.Helper()
+
 	trains := runTestSimple(t, c, r, video, lengthM)
 	assert.Len(t, trains, 1, "expected exactly one train")
 

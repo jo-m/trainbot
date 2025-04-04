@@ -11,6 +11,8 @@ import (
 )
 
 func getFileSize(t *testing.T, path string) int {
+	t.Helper()
+
 	stat, err := os.Stat(path)
 	require.NoError(t, err)
 
