@@ -3,16 +3,8 @@
 # https://hub.docker.com/_/debian
 DOCKER_BASE_IMAGE = debian:bullseye-20250317
 # https://go.dev/dl/
-GO_VERSION = 1.23.6
-GO_ARCHIVE_SHA256 = 9379441ea310de000f33a4dc767bd966e72ab2826270e038e78b2c53c2e7802d
-# https://github.com/dominikh/go-tools/releases
-GO_STATICCHECK_VERSION = 2024.1.1
-# https://github.com/mgechev/revive/releases
-GO_REVIVE_VERSION = v1.6.0
-# https://github.com/securego/gosec/releases
-GO_SEC_VERSION = v2.22.0
-# https://pkg.go.dev/golang.org/x/vuln?tab=versions
-GO_VULNCHECK_VERSION = v1.1.4
+GO_VERSION = 1.24.2
+GO_ARCHIVE_SHA256 = 68097bd680839cbc9d464a0edce4f7c333975e27a90246890e9f1078c7e702ad
 
 DEFAULT: format build_host build_arm64
 
@@ -27,12 +19,12 @@ lint:
 	bash -c "shopt -s globstar; clang-format --dry-run --Werror **/*.c **/*.h **/*.comp"
 	gofmt -l .; test -z "$$(gofmt -l .)"
 	go vet ./...
-	go run honnef.co/go/tools/cmd/staticcheck@$(GO_STATICCHECK_VERSION) -checks=all ./...
-	go run github.com/mgechev/revive@$(GO_REVIVE_VERSION) -set_exit_status ./...
+	go tool staticcheck -checks=all ./...
+	go tool revive -set_exit_status ./...
 	# G307: Poor file permissions used when creating a file with os.Create
 	# G115: Type conversion which leads to integer overflow
-	go run github.com/securego/gosec/v2/cmd/gosec@$(GO_SEC_VERSION) -exclude G307,G115 ./...
-	go run golang.org/x/vuln/cmd/govulncheck@$(GO_VULNCHECK_VERSION) ./...
+	go tool gosec -exclude G307,G115 ./...
+	go tool govulncheck ./...
 
 generate:
 	go generate --tags=$(GO_BUILD_TAGS) ./...
@@ -88,7 +80,6 @@ DOCKER_FLAGS = $(DOCKER_CLI_FLAGS)
 DOCKER_FLAGS += --build-arg DOCKER_BASE_IMAGE="$(DOCKER_BASE_IMAGE)"
 DOCKER_FLAGS += --build-arg GO_VERSION="$(GO_VERSION)"
 DOCKER_FLAGS += --build-arg GO_ARCHIVE_SHA256="$(GO_ARCHIVE_SHA256)"
-DOCKER_FLAGS += --build-arg GO_STATICCHECK_VERSION="$(GO_STATICCHECK_VERSION)"
 
 docker_image:
 	docker buildx build $(DOCKER_FLAGS)   \

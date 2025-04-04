@@ -65,17 +65,17 @@ RUN curl -OL "https://golang.org/dl/${GO_ARCHIVE}"               && \
 WORKDIR /src
 USER build
 
-# Install staticcheck
-ARG GO_STATICCHECK_VERSION
-RUN --mount=type=cache,target=~/.cache/go-build \
-    --mount=type=cache,target=~/go/pkg/mod      \
-    go install "honnef.co/go/tools/cmd/staticcheck@${GO_STATICCHECK_VERSION}"
-
 # Get Go project modules
 COPY --chown=build:build go.mod go.sum /src/
 RUN --mount=type=cache,target=~/.cache/go-build \
     --mount=type=cache,target=~/go/pkg/mod      \
     go mod download
+
+# Build staticcheck
+ARG GO_STATICCHECK_VERSION
+RUN --mount=type=cache,target=~/.cache/go-build \
+    --mount=type=cache,target=~/go/pkg/mod      \
+    go tool staticcheck -h
 
 # Copy sources
 COPY --chown=build:build . /src/
