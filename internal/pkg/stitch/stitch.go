@@ -9,10 +9,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/jo-m/trainbot/internal/pkg/prometheus"
 	"github.com/mccutchen/palettor"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
 )
 
 const (

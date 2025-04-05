@@ -1,4 +1,4 @@
-module github.com/jo-m/trainbot
+module jo-m.ch/go/trainbot
 
 go 1.24.1
 

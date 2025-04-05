@@ -5,11 +5,11 @@ import (
 	"math"
 	"time"
 
-	"github.com/jo-m/trainbot/internal/pkg/prometheus"
-	"github.com/jo-m/trainbot/pkg/avg"
-	"github.com/jo-m/trainbot/pkg/imutil"
-	"github.com/jo-m/trainbot/pkg/pmatch"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
+	"jo-m.ch/go/trainbot/pkg/avg"
+	"jo-m.ch/go/trainbot/pkg/imutil"
+	"jo-m.ch/go/trainbot/pkg/pmatch"
 )
 
 const (

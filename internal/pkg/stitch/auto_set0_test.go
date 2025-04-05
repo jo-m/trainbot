@@ -7,14 +7,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/internal/pkg/testutil"
-	"github.com/jo-m/trainbot/pkg/imutil"
-	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"jo-m.ch/go/trainbot/internal/pkg/logging"
+	"jo-m.ch/go/trainbot/internal/pkg/testutil"
+	"jo-m.ch/go/trainbot/pkg/imutil"
+	"jo-m.ch/go/trainbot/pkg/vid"
 )
 
 const anyLengthMagic = 0xDEADBEEF

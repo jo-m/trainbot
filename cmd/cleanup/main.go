@@ -19,10 +19,10 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/jmoiron/sqlx"
-	"github.com/jo-m/trainbot/internal/pkg/db"
-	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/internal/pkg/upload"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/db"
+	"jo-m.ch/go/trainbot/internal/pkg/logging"
+	"jo-m.ch/go/trainbot/internal/pkg/upload"
 )
 
 type config struct {

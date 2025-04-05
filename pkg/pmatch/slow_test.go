@@ -6,9 +6,9 @@ import (
 	_ "image/png"
 	"testing"
 
-	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"jo-m.ch/go/trainbot/pkg/imutil"
 )
 
 const (

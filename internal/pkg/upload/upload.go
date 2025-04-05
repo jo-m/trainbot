@@ -12,8 +12,8 @@ import (
 	"sort"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/jo-m/trainbot/internal/pkg/db"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/db"
 )
 
 const (

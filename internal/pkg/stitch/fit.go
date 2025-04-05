@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/jo-m/trainbot/pkg/ransac"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/pkg/ransac"
 )
 
 const modelNParams = 2

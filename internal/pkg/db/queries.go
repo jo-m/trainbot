@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/jo-m/trainbot/internal/pkg/stitch"
+	"jo-m.ch/go/trainbot/internal/pkg/stitch"
 )
 
 // InsertTrain inserts a new train sighting into the database.

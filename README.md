@@ -68,7 +68,7 @@ There are two parts to deploy: First, the Go binary which detects trains, and se
 How to get binaries?
 There are multiple options:
 
-1. `go install github.com/jo-m/trainbot/cmd/trainbot@latest` - Let Go build and install the binary on your system.
+1. `go install jo-m.ch/go/trainbot/cmd/trainbot@latest`
 2. Grab a binary from the latest CI run at https://github.com/jo-m/trainbot/actions
 3. Build via tooling in this repo - see [Development](#development)
 

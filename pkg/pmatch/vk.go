@@ -11,7 +11,7 @@ import (
 	"image"
 	"unsafe"
 
-	"github.com/jo-m/trainbot/pkg/vk"
+	"jo-m.ch/go/trainbot/pkg/vk"
 )
 
 //go:generate glslangValidator -V -o vk.spv vk.comp

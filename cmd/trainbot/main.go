@@ -18,15 +18,15 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/jmoiron/sqlx"
-	"github.com/jo-m/trainbot/internal/pkg/db"
-	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/internal/pkg/prometheus"
-	"github.com/jo-m/trainbot/internal/pkg/stitch"
-	"github.com/jo-m/trainbot/internal/pkg/upload"
-	"github.com/jo-m/trainbot/pkg/imutil"
-	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/db"
+	"jo-m.ch/go/trainbot/internal/pkg/logging"
+	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
+	"jo-m.ch/go/trainbot/internal/pkg/stitch"
+	"jo-m.ch/go/trainbot/internal/pkg/upload"
+	"jo-m.ch/go/trainbot/pkg/imutil"
+	"jo-m.ch/go/trainbot/pkg/vid"
 )
 
 type config struct {

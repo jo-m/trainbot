@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/mattn/go-mjpeg"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/pkg/vid"
 )
 
 // Server is a simple MJPEG HTTP streaming server.

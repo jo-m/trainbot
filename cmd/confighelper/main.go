@@ -9,10 +9,10 @@ import (
 	"net/http"
 
 	"github.com/alexflint/go-arg"
-	"github.com/jo-m/trainbot/internal/pkg/logging"
-	"github.com/jo-m/trainbot/internal/pkg/server"
-	"github.com/jo-m/trainbot/pkg/vid"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/logging"
+	"jo-m.ch/go/trainbot/internal/pkg/server"
+	"jo-m.ch/go/trainbot/pkg/vid"
 )
 
 const (

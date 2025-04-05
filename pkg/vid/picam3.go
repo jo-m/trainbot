@@ -12,8 +12,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/pkg/imutil"
 )
 
 // Hardcoded values for the Raspberry Pi Camera Module v3.

@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jo-m/trainbot/internal/pkg/stitch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"jo-m.ch/go/trainbot/internal/pkg/stitch"
 )
 
 func Test_Open_Schema(t *testing.T) {

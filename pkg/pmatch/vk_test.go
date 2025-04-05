@@ -7,9 +7,9 @@ import (
 	"image"
 	"testing"
 
-	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"jo-m.ch/go/trainbot/pkg/imutil"
 )
 
 func Test_SearchRGBAVk_Simple(t *testing.T) {

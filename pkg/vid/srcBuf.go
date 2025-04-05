@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/jo-m/trainbot/internal/pkg/prometheus"
-	"github.com/jo-m/trainbot/pkg/imutil"
 	"github.com/rs/zerolog/log"
+	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
+	"jo-m.ch/go/trainbot/pkg/imutil"
 )
 
 const queueSize = 200
