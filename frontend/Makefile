@@ -1,7 +1,7 @@
 .PHONY: run run_local format build deploy docker_build list
 
 # https://hub.docker.com/_/node/
-DOCKER_BASE_IMAGE = node:22.12.0-alpine
+DOCKER_BASE_IMAGE = node:24.0.2-alpine3.20
 FRONTEND_DEPLOY_TARGET_SSH_HOST_ = ${FRONTEND_DEPLOY_TARGET_SSH_HOST}
 VITE_FRONTEND_BASE_URL_ = ${VITE_FRONTEND_BASE_URL}
 

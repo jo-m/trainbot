@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
@@ -49,7 +49,7 @@
         vulkan-volk
 
         # Frontend
-        nodejs_22
+        nodejs_24
       ];
 
       LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
