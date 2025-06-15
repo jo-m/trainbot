@@ -206,8 +206,7 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	}
 
 	encoder := "x264enc"
-	elems, err := gst.NewElementMany("appsrc", "videoconvert", encoder, "h264parse", "mp4mux" /*"autovideosink"*/, "filesink")
-	//elems, err := gst.NewElementMany("appsrc", "videoconvert", "autovideosink")
+	elems, err := gst.NewElementMany("appsrc", "videoconvert", encoder, "h264parse", "mp4mux", "filesink")
 	if err != nil {
 		return nil, err
 	}
@@ -217,13 +216,12 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 
 	src := app.SrcFromElement(elems[0])
 	elems[5].SetArg("location", "/tmp/test.mp4")
-	//elems[4].SetArg("sync", "false")
 
 	// Specify the format we want to provide as application into the pipeline
 	// by creating a video info with the given format and creating caps from it for the appsrc element.
 	videoInfo := video.NewInfo().
-		WithFormat(video.FormatRGBA, 300, 300). /*uint(seq.frames[0].Bounds().Dx()), uint(seq.frames[0].Bounds().Dy()))*/
-		WithFPS(gst.Fraction(2, 1))             // FIXME
+		WithFormat(video.FormatRGBA, uint(seq.frames[0].Bounds().Dx()), uint(seq.frames[0].Bounds().Dy())).
+		WithFPS(gst.Fraction(30, 1)) // FIXME
 
 	src.SetCaps(videoInfo.ToCaps())
 	src.SetProperty("format", gst.FormatTime)
