@@ -4,11 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/gif"
 	"math"
 	"time"
 
+	"github.com/go-gst/go-glib/glib"
+	"github.com/go-gst/go-gst/gst"
+	"github.com/go-gst/go-gst/gst/app"
+	"github.com/go-gst/go-gst/gst/video"
 	"github.com/mccutchen/palettor"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
@@ -184,6 +189,146 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	return &g, nil
 }
 
+func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
+	// https://github.com/go-gst/go-gst/blob/v1.4.0/examples/appsrc/main.go
+
+	// SW: x264enc
+	// HW on RPi: v4l2h264enc
+	// HW on PC AMD: va264enc
+
+	// appsrc ! x264enc ! mp4mux ! filesync location=/tmp/test.mp4
+
+	gst.Init(nil)
+
+	pipeline, err := gst.NewPipeline("")
+	if err != nil {
+		return nil, err
+	}
+
+	encoder := "x264enc"
+	elems, err := gst.NewElementMany("appsrc", "videoconvert", encoder, "h264parse", "mp4mux" /*"autovideosink"*/, "filesink")
+	//elems, err := gst.NewElementMany("appsrc", "videoconvert", "autovideosink")
+	if err != nil {
+		return nil, err
+	}
+
+	pipeline.AddMany(elems...)
+	gst.ElementLinkMany(elems...)
+
+	src := app.SrcFromElement(elems[0])
+	elems[5].SetArg("location", "/tmp/test.mp4")
+	//elems[4].SetArg("sync", "false")
+
+	// Specify the format we want to provide as application into the pipeline
+	// by creating a video info with the given format and creating caps from it for the appsrc element.
+	videoInfo := video.NewInfo().
+		WithFormat(video.FormatRGBA, 300, 300). /*uint(seq.frames[0].Bounds().Dx()), uint(seq.frames[0].Bounds().Dy()))*/
+		WithFPS(gst.Fraction(2, 1))             // FIXME
+
+	src.SetCaps(videoInfo.ToCaps())
+	src.SetProperty("format", gst.FormatTime)
+
+	// Initialize a frame counter
+	var i int
+	//palette := video.FormatRGB8P.Palette()
+
+	// Since our appsrc element operates in pull mode (it asks us to provide data),
+	// we add a handler for the need-data callback and provide new data from there.
+	// In our case, we told gstreamer that we do 2 frames per second. While the
+	// buffers of all elements of the pipeline are still empty, this will be called
+	// a couple of times until all of them are filled. After this initial period,
+	// this handler will be called (on average) twice per second.
+	src.SetCallbacks(&app.SourceCallbacks{
+		NeedDataFunc: func(self *app.Source, _ uint) {
+
+			// If we've reached the end of the palette, end the stream.
+			if i == len(seq.frames) {
+				src.EndStream()
+				return
+			}
+
+			log.Debug().Int("frame", i).Msg("Producing frame")
+
+			// Create a buffer that can hold exactly one video RGBA frame.
+			buffer := gst.NewBufferWithSize(videoInfo.Size())
+
+			// For each frame we produce, we set the timestamp when it should be displayed
+			// The autovideosink will use this information to display the frame at the right time.
+			buffer.SetPresentationTimestamp(gst.ClockTime(time.Duration(i) * 33 * time.Millisecond)) // FIXME
+
+			// Produce an image frame for this iteration.
+			pixels := seq.frames[i].(*image.RGBA).Pix
+			//pixels := produceImageFrame(palette[i])
+
+			// At this point, buffer is only a reference to an existing memory region somewhere.
+			// When we want to access its content, we have to map it while requesting the required
+			// mode of access (read, read/write).
+			// See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
+			//
+			// There are convenience wrappers for building buffers directly from byte sequences as
+			// well.
+			buffer.Map(gst.MapWrite).WriteData(pixels)
+			buffer.Unmap()
+
+			//buffer := gst.NewBufferFromBytes(pixels)
+
+			// Push the buffer onto the pipeline.
+			self.PushBuffer(buffer)
+
+			log.Debug().Msg("buffer pushed")
+
+			i++
+		},
+	})
+
+	mainLoop := glib.NewMainLoop(glib.MainContextDefault(), false)
+
+	pipeline.Ref()
+	defer pipeline.Unref()
+
+	pipeline.SetState(gst.StatePlaying)
+
+	// Retrieve the bus from the pipeline and add a watch function
+	pipeline.GetPipelineBus().AddWatch(func(msg *gst.Message) bool {
+		log.Warn().Str("msg", msg.String()).Msg("gstreamer message")
+		switch msg.Type() {
+		case gst.MessageEOS:
+			//time.Sleep(5 * time.Second)
+			//pipeline.SetState(gst.StateNull)
+			//time.Sleep(5 * time.Second)
+			//mainLoop.Quit()
+			//time.Sleep(5 * time.Second)
+			//return false
+		}
+		//if err := handleMessage(msg); err != nil {
+		//	fmt.Println(err)
+		//	loop.Quit()
+		//	return false
+		//}
+		return true
+	})
+
+	mainLoop.Run()
+	//mainLoop.RunError()
+
+	return nil, errors.New("look at /tmp/test.mp4 :)")
+}
+func produceImageFrame(c color.Color) []uint8 {
+	width := 300
+	height := 300
+	upLeft := image.Point{0, 0}
+	lowRight := image.Point{width, height}
+	img := image.NewRGBA(image.Rectangle{upLeft, lowRight})
+
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			img.Set(x, y, c)
+		}
+	}
+
+	return img.Pix
+}
+
 // fitAndStitch tries to stitch an image from a sequence.
 // Will first try to fit a constant acceleration speed model for smoothing.
 // Might modify seq (drops leading frames with no movement).
@@ -241,7 +386,8 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		return nil, fmt.Errorf("unable to assemble image: %w", err)
 	}
 
-	gif, err := createGIF(seq, img)
+	//gif, err := createGIF(seq, img)
+	gif, err := createH264(seq, img)
 	if err != nil {
 		panic(err)
 	}
