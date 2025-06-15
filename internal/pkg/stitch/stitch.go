@@ -8,6 +8,7 @@ import (
 	"image/draw"
 	"image/gif"
 	"math"
+	"os"
 	"time"
 
 	"github.com/go-gst/go-glib/glib"
@@ -119,8 +120,9 @@ type Train struct {
 
 	Conf Config
 
-	Image *image.RGBA `json:"-"`
-	GIF   *gif.GIF    `json:"-"`
+	Image     *image.RGBA `json:"-"`
+	GIF       *gif.GIF    `json:"-"`
+	TrainClip *TrainClip  `json:"-"`
 }
 
 // LengthM returns the absolute length in m.
@@ -189,23 +191,28 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	return &g, nil
 }
 
-func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
+func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 	// https://github.com/go-gst/go-gst/blob/v1.4.0/examples/appsrc/main.go
 
-	// SW: x264enc
-	// HW on RPi: v4l2h264enc
-	// HW on PC AMD: va264enc
-
-	// appsrc ! x264enc ! mp4mux ! filesync location=/tmp/test.mp4
-
 	gst.Init(nil)
+
+	dest_file, err := os.CreateTemp(dest_dir, ".temp-createH264.mp4.*")
+	if err != nil {
+		return nil, err
+	}
+	dest_file.Close()
+	dest_path := dest_file.Name()
 
 	pipeline, err := gst.NewPipeline("")
 	if err != nil {
 		return nil, err
 	}
 
+	// SW: x264enc
+	// HW on RPi: v4l2h264enc
+	// HW on PC AMD: va264enc
 	encoder := "x264enc"
+
 	elems, err := gst.NewElementMany("appsrc", "videoconvert", encoder, "h264parse", "mp4mux", "filesink")
 	if err != nil {
 		return nil, err
@@ -215,7 +222,7 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	gst.ElementLinkMany(elems...)
 
 	src := app.SrcFromElement(elems[0])
-	elems[5].SetArg("location", "/tmp/test.mp4")
+	elems[5].SetArg("location", dest_path)
 
 	// Specify the format we want to provide as application into the pipeline
 	// by creating a video info with the given format and creating caps from it for the appsrc element.
@@ -241,11 +248,12 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 
 			// If we've reached the end of the palette, end the stream.
 			if i == len(seq.frames) {
+				log.Debug().Msg("all frames pushed to gstreamer appsrc")
 				src.EndStream()
 				return
 			}
 
-			log.Debug().Int("frame", i).Msg("Producing frame")
+			log.Trace().Int("frame", i).Msg("Producing frame")
 
 			// Create a buffer that can hold exactly one video RGBA frame.
 			buffer := gst.NewBufferWithSize(videoInfo.Size())
@@ -273,7 +281,7 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 			// Push the buffer onto the pipeline.
 			self.PushBuffer(buffer)
 
-			log.Debug().Msg("buffer pushed")
+			log.Trace().Msg("buffer pushed")
 
 			i++
 		},
@@ -288,7 +296,7 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 
 	// Retrieve the bus from the pipeline and add a watch function
 	pipeline.GetPipelineBus().AddWatch(func(msg *gst.Message) bool {
-		log.Warn().Str("msg", msg.String()).Msg("gstreamer message")
+		log.Debug().Str("msg", msg.String()).Msg("gstreamer message")
 		switch msg.Type() {
 		case gst.MessageEOS:
 			//time.Sleep(5 * time.Second)
@@ -309,7 +317,7 @@ func createH264(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	mainLoop.Run()
 	//mainLoop.RunError()
 
-	return nil, errors.New("look at /tmp/test.mp4 :)")
+	return &TrainClip{Path: dest_path}, nil
 }
 func produceImageFrame(c color.Color) []uint8 {
 	width := 300
@@ -325,6 +333,10 @@ func produceImageFrame(c color.Color) []uint8 {
 	}
 
 	return img.Pix
+}
+
+type TrainClip struct {
+	Path string
 }
 
 // fitAndStitch tries to stitch an image from a sequence.
@@ -385,7 +397,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 	}
 
 	//gif, err := createGIF(seq, img)
-	gif, err := createH264(seq, img)
+	trainClip, err := createH264(seq, c.TempDestDir)
 	if err != nil {
 		panic(err)
 	}
@@ -399,6 +411,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		-a,
 		c,
 		img,
-		gif,
+		nil,
+		trainClip,
 	}, nil
 }

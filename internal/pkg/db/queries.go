@@ -53,6 +53,12 @@ func (t *Train) GIFFileName() string {
 	return fmt.Sprintf("train_%s.gif", tsString)
 }
 
+// FileNameWithExt returns a file name for this train with the given file extension, derived from timestamp.
+func (t Train) FileNameWithExt(extension string) string {
+	tsString := t.StartTS.Format(fileTSFormat)
+	return fmt.Sprintf("train_%s.%s", tsString, extension)
+}
+
 // ImgFileName returns the image file name for this train (derived from timestamp).
 func (t *Train) ImgFileName() string {
 	tsString := t.StartTS.Format(fileTSFormat)
