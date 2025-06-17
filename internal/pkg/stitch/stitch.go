@@ -233,9 +233,7 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 	src.SetCaps(videoInfo.ToCaps())
 	src.SetProperty("format", gst.FormatTime)
 
-	// Initialize a frame counter
-	var i int
-	//palette := video.FormatRGB8P.Palette()
+	frame_no := 0
 
 	// Since our appsrc element operates in pull mode (it asks us to provide data),
 	// we add a handler for the need-data callback and provide new data from there.
@@ -247,23 +245,23 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 		NeedDataFunc: func(self *app.Source, _ uint) {
 
 			// If we've reached the end of the palette, end the stream.
-			if i == len(seq.frames) {
+			if frame_no == len(seq.frames) {
 				log.Debug().Msg("all frames pushed to gstreamer appsrc")
 				src.EndStream()
 				return
 			}
 
-			log.Trace().Int("frame", i).Msg("Producing frame")
+			log.Trace().Int("frame", frame_no).Msg("Producing frame")
 
 			// Create a buffer that can hold exactly one video RGBA frame.
 			buffer := gst.NewBufferWithSize(videoInfo.Size())
 
 			// For each frame we produce, we set the timestamp when it should be displayed
 			// The autovideosink will use this information to display the frame at the right time.
-			buffer.SetPresentationTimestamp(gst.ClockTime(time.Duration(i) * 33 * time.Millisecond)) // FIXME
+			buffer.SetPresentationTimestamp(gst.ClockTime(seq.startTS.Sub(seq.ts[frame_no])))
 
 			// Produce an image frame for this iteration.
-			pixels := seq.frames[i].(*image.RGBA).Pix
+			pixels := seq.frames[frame_no].(*image.RGBA).Pix
 			//pixels := produceImageFrame(palette[i])
 
 			// At this point, buffer is only a reference to an existing memory region somewhere.
@@ -283,7 +281,7 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 
 			log.Trace().Msg("buffer pushed")
 
-			i++
+			frame_no++
 		},
 	})
 
