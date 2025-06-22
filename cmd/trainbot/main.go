@@ -263,7 +263,7 @@ func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch
 
 		// Move Train Clip
 		if train.TrainClip != nil {
-			filename := dbTrain.FileNameWithExt(filepath.Ext(train.TrainClip.Path))
+			filename := dbTrain.FileNameWithExt(train.TrainClip.Ext)
 			err = os.Rename(train.TrainClip.Path, store.GetBlobPath(filename))
 			if err != nil {
 				log.Err(err).Send()

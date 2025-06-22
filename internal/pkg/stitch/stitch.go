@@ -197,7 +197,8 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 
 	gst.Init(nil)
 
-	dest_file, err := os.CreateTemp(dest_dir, ".temp-createH264.mp4.*")
+	file_extension := "mp4"
+	dest_file, err := os.CreateTemp(dest_dir, fmt.Sprintf(".temp-createH264.%s.*", file_extension))
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +322,7 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 	mainLoop.Run()
 	//mainLoop.RunError()
 
-	return &TrainClip{Path: dest_path}, nil
+	return &TrainClip{Path: dest_path, Ext: "mp4"}, nil
 }
 func produceImageFrame(c color.Color) []uint8 {
 	width := 300
@@ -341,6 +342,7 @@ func produceImageFrame(c color.Color) []uint8 {
 
 type TrainClip struct {
 	Path string
+	Ext  string
 }
 
 // fitAndStitch tries to stitch an image from a sequence.
