@@ -194,6 +194,8 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 
 func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 	// https://github.com/go-gst/go-gst/blob/v1.4.0/examples/appsrc/main.go
+	//
+	// to debug gstreamer, use the GST_DEBUG and (optionally) GST_DEBUG_FILE env vars
 
 	gst.Init(nil)
 
