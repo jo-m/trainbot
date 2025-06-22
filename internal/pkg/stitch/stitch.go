@@ -400,7 +400,11 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		return nil, fmt.Errorf("unable to assemble image: %w", err)
 	}
 
-	//gif, err := createGIF(seq, img)
+	gif, err := createGIF(seq, img)
+	if err != nil {
+		panic(err)
+	}
+
 	trainClip, err := createH264(seq, c.TempDestDir)
 	if err != nil {
 		panic(err)
@@ -415,7 +419,7 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		-a,
 		c,
 		img,
-		nil,
+		gif,
 		trainClip,
 	}, nil
 }
