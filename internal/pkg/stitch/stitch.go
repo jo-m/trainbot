@@ -305,13 +305,11 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 		log.Debug().Str("msg", msg.String()).Msg("gstreamer message")
 		switch msg.Type() {
 		case gst.MessageEOS:
-			//time.Sleep(5 * time.Second)
-			//pipeline.SetState(gst.StateNull)
-			//time.Sleep(5 * time.Second)
-			//mainLoop.Quit()
-			//time.Sleep(5 * time.Second)
-			//return false
+			pipeline.SetState(gst.StateNull)
+			mainLoop.Quit()
+			return false
 		}
+		// FIXME: abort on gstreamer errors
 		//if err := handleMessage(msg); err != nil {
 		//	fmt.Println(err)
 		//	loop.Quit()
