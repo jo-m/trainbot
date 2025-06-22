@@ -19,6 +19,7 @@ import (
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
 	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
+	"jo-m.ch/go/trainbot/pkg/imutil"
 )
 
 const (
@@ -261,7 +262,9 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 			buffer.SetPresentationTimestamp(gst.ClockTime(seq.startTS.Sub(seq.ts[frame_no])))
 
 			// Produce an image frame for this iteration.
-			pixels := seq.frames[frame_no].(*image.RGBA).Pix
+			// We can't write the pixels from image directly, since it may be a SubImage
+			frameRGBA := imutil.ToRGBA(seq.frames[frame_no])
+			pixels := frameRGBA.Pix
 			//pixels := produceImageFrame(palette[i])
 
 			// At this point, buffer is only a reference to an existing memory region somewhere.
@@ -271,6 +274,10 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 			//
 			// There are convenience wrappers for building buffers directly from byte sequences as
 			// well.
+			if len(pixels) > len(buffer.Bytes()) {
+				imutil.Dump("too_long.png", seq.frames[frame_no])
+				panic(fmt.Errorf("image frame pixels are too long for gstreamer buffer: %v > %v", len(pixels), len(buffer.Bytes())))
+			}
 			buffer.Map(gst.MapWrite).WriteData(pixels)
 			buffer.Unmap()
 
