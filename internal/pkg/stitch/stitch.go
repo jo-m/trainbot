@@ -260,7 +260,7 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 
 			// For each frame we produce, we set the timestamp when it should be displayed
 			// The autovideosink will use this information to display the frame at the right time.
-			buffer.SetPresentationTimestamp(gst.ClockTime(startTS.Sub(seq.ts[frame_no])))
+			buffer.SetPresentationTimestamp(gst.ClockTime(seq.ts[frame_no].Sub(startTS)))
 
 			// Produce an image frame for this iteration.
 			// We can't write the pixels from image directly, since it may be a SubImage
