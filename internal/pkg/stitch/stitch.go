@@ -235,6 +235,7 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 	src.SetProperty("format", gst.FormatTime)
 
 	frame_no := 0
+	startTS := seq.ts[0]
 
 	// Since our appsrc element operates in pull mode (it asks us to provide data),
 	// we add a handler for the need-data callback and provide new data from there.
@@ -259,7 +260,7 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 
 			// For each frame we produce, we set the timestamp when it should be displayed
 			// The autovideosink will use this information to display the frame at the right time.
-			buffer.SetPresentationTimestamp(gst.ClockTime(seq.startTS.Sub(seq.ts[frame_no])))
+			buffer.SetPresentationTimestamp(gst.ClockTime(startTS.Sub(seq.ts[frame_no])))
 
 			// Produce an image frame for this iteration.
 			// We can't write the pixels from image directly, since it may be a SubImage
