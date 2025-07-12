@@ -7,17 +7,15 @@ import (
 	"image/color"
 	"image/draw"
 	"image/gif"
+	"io"
 	"math"
 	"os"
 	"time"
 
-	"github.com/go-gst/go-glib/glib"
-	"github.com/go-gst/go-gst/gst"
-	"github.com/go-gst/go-gst/gst/app"
-	"github.com/go-gst/go-gst/gst/video"
 	"github.com/mccutchen/palettor"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
 	"jo-m.ch/go/trainbot/pkg/imutil"
 )
@@ -193,12 +191,6 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 }
 
 func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
-	// https://github.com/go-gst/go-gst/blob/v1.4.0/examples/appsrc/main.go
-	//
-	// to debug gstreamer, use the GST_DEBUG and (optionally) GST_DEBUG_FILE env vars
-
-	gst.Init(nil)
-
 	file_extension := "mp4"
 	dest_file, err := os.CreateTemp(dest_dir, fmt.Sprintf(".temp-createH264.%s.*", file_extension))
 	if err != nil {
@@ -207,124 +199,58 @@ func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
 	dest_file.Close()
 	dest_path := dest_file.Name()
 
-	pipeline, err := gst.NewPipeline("")
-	if err != nil {
-		return nil, err
-	}
+	//// SW: x264enc
+	//// HW on RPi: v4l2h264enc
+	//// HW on PC AMD: va264enc
+	//encoder := "x264enc"
 
-	// SW: x264enc
-	// HW on RPi: v4l2h264enc
-	// HW on PC AMD: va264enc
-	encoder := "x264enc"
+	//	WithFPS(gst.Fraction(30, 1)) // FIXME
 
-	elems, err := gst.NewElementMany("appsrc", "videoconvert", encoder, "h264parse", "mp4mux", "filesink")
-	if err != nil {
-		return nil, err
-	}
+	reader, writer := io.Pipe()
+	input_args := ffmpeg.KwArgs{"format": "rawvideo", "pix_fmt": "rgba", "video_size": fmt.Sprintf("%dx%d", uint(seq.frames[0].Bounds().Dx()), uint(seq.frames[0].Bounds().Dy()))}
+	input := ffmpeg.Input("pipe:", input_args).WithInput(reader)
+	output := input.Output(dest_path, ffmpeg.KwArgs{"format": "mp4"}).OverWriteOutput()
 
-	pipeline.AddMany(elems...)
-	gst.ElementLinkMany(elems...)
+	//startTS := seq.ts[0]
 
-	src := app.SrcFromElement(elems[0])
-	elems[5].SetArg("location", dest_path)
-
-	// Specify the format we want to provide as application into the pipeline
-	// by creating a video info with the given format and creating caps from it for the appsrc element.
-	videoInfo := video.NewInfo().
-		WithFormat(video.FormatRGBA, uint(seq.frames[0].Bounds().Dx()), uint(seq.frames[0].Bounds().Dy())).
-		WithFPS(gst.Fraction(30, 1)) // FIXME
-
-	src.SetCaps(videoInfo.ToCaps())
-	src.SetProperty("format", gst.FormatTime)
-
-	frame_no := 0
-	startTS := seq.ts[0]
-
-	// Since our appsrc element operates in pull mode (it asks us to provide data),
-	// we add a handler for the need-data callback and provide new data from there.
-	// In our case, we told gstreamer that we do 2 frames per second. While the
-	// buffers of all elements of the pipeline are still empty, this will be called
-	// a couple of times until all of them are filled. After this initial period,
-	// this handler will be called (on average) twice per second.
-	src.SetCallbacks(&app.SourceCallbacks{
-		NeedDataFunc: func(self *app.Source, _ uint) {
-
-			// If we've reached the end of the palette, end the stream.
-			if frame_no == len(seq.frames) {
-				log.Debug().Msg("all frames pushed to gstreamer appsrc")
-				src.EndStream()
-				return
-			}
-
+	errChan := make(chan error)
+	go func() {
+		for frame_no := range len(seq.frames) {
 			log.Trace().Int("frame", frame_no).Msg("Producing frame")
 
-			// Create a buffer that can hold exactly one video RGBA frame.
-			buffer := gst.NewBufferWithSize(videoInfo.Size())
-
-			// For each frame we produce, we set the timestamp when it should be displayed
-			// The autovideosink will use this information to display the frame at the right time.
-			buffer.SetPresentationTimestamp(gst.ClockTime(seq.ts[frame_no].Sub(startTS)))
+			//		// For each frame we produce, we set the timestamp when it should be displayed
+			//		// The autovideosink will use this information to display the frame at the right time.
+			//		buffer.SetPresentationTimestamp(gst.ClockTime(seq.ts[frame_no].Sub(startTS)))
 
 			// Produce an image frame for this iteration.
 			// We can't write the pixels from image directly, since it may be a SubImage
+			// TODO: we could skip this copy, by writing from the SubImage directly to the writer
 			frameRGBA := imutil.ToRGBA(seq.frames[frame_no])
 			pixels := frameRGBA.Pix
-			//pixels := produceImageFrame(palette[i])
 
-			// At this point, buffer is only a reference to an existing memory region somewhere.
-			// When we want to access its content, we have to map it while requesting the required
-			// mode of access (read, read/write).
-			// See: https://gstreamer.freedesktop.org/documentation/plugin-development/advanced/allocation.html
-			//
-			// There are convenience wrappers for building buffers directly from byte sequences as
-			// well.
-			if len(pixels) > len(buffer.Bytes()) {
-				imutil.Dump("too_long.png", seq.frames[frame_no])
-				panic(fmt.Errorf("image frame pixels are too long for gstreamer buffer: %v > %v", len(pixels), len(buffer.Bytes())))
+			_, err = writer.Write(pixels)
+			if err != nil {
+				errChan <- err
 			}
-			buffer.Map(gst.MapWrite).WriteData(pixels)
-			buffer.Unmap()
-
-			//buffer := gst.NewBufferFromBytes(pixels)
-
-			// Push the buffer onto the pipeline.
-			self.PushBuffer(buffer)
-
 			log.Trace().Msg("buffer pushed")
-
-			frame_no++
-		},
-	})
-
-	mainLoop := glib.NewMainLoop(glib.MainContextDefault(), false)
-
-	pipeline.Ref()
-	defer pipeline.Unref()
-
-	pipeline.SetState(gst.StatePlaying)
-
-	// Retrieve the bus from the pipeline and add a watch function
-	pipeline.GetPipelineBus().AddWatch(func(msg *gst.Message) bool {
-		log.Debug().Str("msg", msg.String()).Msg("gstreamer message")
-		switch msg.Type() {
-		case gst.MessageEOS:
-			pipeline.SetState(gst.StateNull)
-			mainLoop.Quit()
-			return false
 		}
-		// FIXME: abort on gstreamer errors
-		//if err := handleMessage(msg); err != nil {
-		//	fmt.Println(err)
-		//	loop.Quit()
-		//	return false
-		//}
-		return true
-	})
+		log.Debug().Msg("all frames pushed to ffmpeg pipe")
+		writer.Close()
+		errChan <- nil
+	}()
 
-	mainLoop.Run()
-	//mainLoop.RunError()
+	log.Trace().Msg("Waiting for ffmpeg to finish ...")
+	err = output.WithErrorOutput(os.Stderr).Run()
+	if err != nil {
+		return nil, err
+	}
+	log.Trace().Msg("Waiting for raw frame writer to return ...")
+	err = <-errChan
+	if err != nil {
+		return nil, err
+	}
 
-	return &TrainClip{Path: dest_path, Ext: "mp4"}, nil
+	return &TrainClip{Path: dest_path, Ext: file_extension}, nil
 }
 func produceImageFrame(c color.Color) []uint8 {
 	width := 300
