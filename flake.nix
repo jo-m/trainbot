@@ -31,7 +31,7 @@
         clang-tools
         gnumake
         curl
-        unstablePkgs.go
+        unstablePkgs.go_1_25
 
         # Cross
         pkgsCross.aarch64-multiplatform.buildPackages.gcc # Provides aarch64-unknown-linux-gnu-gcc
