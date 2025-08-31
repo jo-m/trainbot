@@ -1,4 +1,6 @@
-ARG DOCKER_BASE_IMAGE
+# We set a nonsense default value so Docker will stop complaining about missing default,
+# while still requiring a sensible value set.
+ARG DOCKER_BASE_IMAGE=scratch
 FROM ${DOCKER_BASE_IMAGE} AS source
 
 # Install general build tools
