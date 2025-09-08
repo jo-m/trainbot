@@ -29,6 +29,7 @@ type Config struct {
 	MaxSpeedKPH         float64
 	MinLengthM          float64
 	MaxFrameCountPerSeq int
+	TempDestDir         string
 }
 
 func (c *Config) minPxPerFrame(framePeriodS float64) int {

@@ -77,7 +77,7 @@ func (c *config) mustOpenDB() *sqlx.DB {
 
 const (
 	rectSizeMin = 100
-	rectSizeMax = 500
+	rectSizeMax = 1000
 
 	failedFramesMax = 50
 
@@ -158,6 +158,7 @@ func detectTrainsForever(c config, trainsOut chan<- *stitch.Train) {
 		MaxSpeedKPH:         c.MaxSpeedKPH,
 		MinLengthM:          c.MinLengthM,
 		MaxFrameCountPerSeq: c.MaxFrameCountPerSeq,
+		TempDestDir:         c.DataDir,
 	})
 	defer func() {
 		train := stitcher.TryStitchAndReset()
@@ -251,12 +252,25 @@ func processTrains(store upload.DataStore, dbx *sqlx.DB, trainsIn <-chan *stitch
 		}
 
 		// Dump GIF.
-		err = imutil.DumpGIF(store.GetBlobPath(dbTrain.GIFFileName()), train.GIF)
-		if err != nil {
-			log.Err(err).Send()
-			continue
+		if train.GIF != nil {
+			err = imutil.DumpGIF(store.GetBlobPath(dbTrain.GIFFileName()), train.GIF)
+			if err != nil {
+				log.Err(err).Send()
+				continue
+			}
+			log.Debug().Str("gifFileName", dbTrain.GIFFileName()).Msg("wrote GIF")
 		}
-		log.Debug().Str("gifFileName", dbTrain.GIFFileName()).Msg("wrote GIF")
+
+		// Move Train Clip
+		if train.TrainClip != nil {
+			filename := dbTrain.FileNameWithExt(train.TrainClip.Ext)
+			err = os.Rename(train.TrainClip.Path, store.GetBlobPath(filename))
+			if err != nil {
+				log.Err(err).Send()
+				continue
+			}
+			log.Debug().Str("trainClipFileName", filename).Msg("moved train clip")
+		}
 
 		id, err := db.InsertTrain(dbx, *train)
 		if err != nil {
