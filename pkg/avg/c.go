@@ -5,7 +5,7 @@ package avg
 // #cgo CFLAGS: -Wall -Werror -Wextra -pedantic -std=c99
 // #cgo CFLAGS: -O2
 //
-// #cgo amd64 CFLAGS: -march=native
+// #cgo amd64 CFLAGS: -march=x86-64 -mtune=generic
 //
 // #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
 //

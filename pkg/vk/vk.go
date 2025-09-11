@@ -9,7 +9,7 @@ package vk
 // #cgo CFLAGS: -O2
 // #cgo LDFLAGS: -lvulkan
 //
-// #cgo amd64 CFLAGS: -march=native
+// #cgo amd64 CFLAGS: -march=x86-64 -mtune=generic
 //
 // #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
 //
