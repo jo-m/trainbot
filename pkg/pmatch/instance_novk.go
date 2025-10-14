@@ -5,6 +5,7 @@ package pmatch
 
 import "image"
 
+// PMatchC implements Instance.
 type PMatchC struct{}
 
 // Destroy implements Instance.
@@ -23,6 +24,7 @@ func (p *PMatchC) SearchRGBA(img *image.RGBA, pat *image.RGBA) (int, int, float6
 // Compile time interface check.
 var _ Instance = (*PMatchC)(nil)
 
-func NewInstance(imgBounds, patBounds image.Rectangle, imgStride, patStride int) Instance {
+// NewInstance instantiates PMatchC.
+func NewInstance() Instance {
 	return &PMatchC{}
 }

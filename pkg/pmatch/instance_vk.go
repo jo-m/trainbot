@@ -3,15 +3,26 @@
 
 package pmatch
 
-import "image"
+import (
+	"image"
+
+	"github.com/rs/zerolog/log"
+)
+
+type params struct {
+	ImgBounds, PatBounds image.Rectangle
+	ImgStride, PatStride int
+}
 
 type PMatchVk struct {
-	vk *SearchVk
+	pool map[params]*SearchVk
 }
 
 // Destroy implements Instance.
 func (p *PMatchVk) Destroy() {
-	p.vk.Destroy()
+	for _, inst := range p.pool {
+		inst.Destroy()
+	}
 }
 
 // Kind implements Instance.
@@ -21,7 +32,26 @@ func (p *PMatchVk) Kind() string {
 
 // SearchRGBA implements Instance.
 func (p *PMatchVk) SearchRGBA(img *image.RGBA, pat *image.RGBA) (int, int, float64) {
-	maxX, maxY, maxCos, err := p.vk.Run(img, pat)
+	params := params{img.Bounds(), pat.Bounds(), img.Stride, pat.Stride}
+
+	inst, ok := p.pool[params]
+
+	if !ok {
+		log.Warn().Interface("params", params).Msg("allocating instance") // TODO: Remove.
+
+		var err error
+		inst, err = NewSearchVk(params.ImgBounds, params.PatBounds, params.ImgStride, params.PatStride, true) // TODO: false.
+		if err != nil {
+			panic(err)
+		}
+		p.pool[params] = inst
+
+		if len(p.pool) > 50 {
+			panic("too many instances are being allocated, check your image pipeline")
+		}
+	}
+
+	maxX, maxY, maxCos, err := inst.Run(img, pat)
 	if err != nil {
 		panic(err)
 	}
@@ -31,11 +61,6 @@ func (p *PMatchVk) SearchRGBA(img *image.RGBA, pat *image.RGBA) (int, int, float
 // Compile time interface check.
 var _ Instance = (*PMatchVk)(nil)
 
-func NewInstance(imgBounds, patBounds image.Rectangle, imgStride, patStride int) Instance {
-	vk, err := NewSearchVk(imgBounds, patBounds, imgStride, patStride, true) // TODO: false.
-	if err != nil {
-		panic(err)
-	}
-
-	return &PMatchVk{vk: vk}
+func NewInstance() Instance {
+	return &PMatchVk{pool: map[params]*SearchVk{}}
 }

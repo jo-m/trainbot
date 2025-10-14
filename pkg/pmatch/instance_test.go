@@ -16,10 +16,7 @@ func Test_NewInstance(t *testing.T) {
 	pat, err := imutil.Sub(img, image.Rect(x0, y0, x0+w, y0+h))
 	require.NoError(t, err)
 
-	patRgba, ok := pat.(*image.RGBA)
-	require.True(t, ok)
-
-	inst := NewInstance(img.Bounds(), pat.Bounds(), img.Stride, patRgba.Stride)
+	inst := NewInstance()
 	defer inst.Destroy()
 
 	x, y, score := inst.SearchRGBA(img, pat.(*image.RGBA))
