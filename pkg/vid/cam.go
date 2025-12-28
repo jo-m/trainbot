@@ -204,6 +204,7 @@ func (s *CamSrc) GetFPS() float64 {
 
 // getFrame retrieves a raw frame buffer from the camera.
 func (s *CamSrc) getFrame() ([]byte, *time.Time, error) {
+	//lint:ignore SA1019 TODO: Fix this later.
 	frame := <-s.cam.GetOutput()
 	ts := time.Now()
 	return frame, &ts, nil
