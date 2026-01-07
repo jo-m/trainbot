@@ -182,6 +182,23 @@ func (b *Buffer) Read(h *Handle, dst unsafe.Pointer, size int) error {
 	return nil
 }
 
+// Zero zeroes out the buffer contents.
+func (b *Buffer) Zero(h *Handle, size int) error {
+	if !b.valid {
+		panic("invalid instance")
+	}
+	if !h.valid {
+		panic("invalid instance")
+	}
+
+	result := C.vk_buffer_zero(h.ptr(), b.ptr(), C.size_t(size))
+
+	if result != C.VK_SUCCESS {
+		return fmt.Errorf("zeroing buffer failed: %w", &Result{result})
+	}
+	return nil
+}
+
 // BufSz returns the size in bytes for a numeric slice.
 func BufSz[T float32 | int32 | uint32](buf []T) int {
 	return int(unsafe.Sizeof(buf[0])) * len(buf)

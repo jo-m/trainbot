@@ -49,6 +49,8 @@ VkResult vk_buffer_read(vk_handle* handle, void* dst, const vk_buffer* src,
 VkResult vk_buffer_write(vk_handle* handle, vk_buffer* dst, const void* src,
                          const size_t sz);
 
+VkResult vk_buffer_zero(vk_handle* handle, vk_buffer* dst, const size_t sz);
+
 void vk_buffer_destroy(vk_handle* handle, vk_buffer* buf);
 
 typedef struct vk_descriptors {
