@@ -9,7 +9,7 @@ package vk
 // #cgo CFLAGS: -O2
 // #cgo LDFLAGS: -lvulkan
 //
-// #cgo amd64 CFLAGS: -march=native
+// #cgo amd64 CFLAGS: -march=x86-64 -mtune=generic
 //
 // #cgo arm64 CFLAGS: -mcpu=cortex-a72 -mtune=cortex-a72
 //
@@ -178,6 +178,23 @@ func (b *Buffer) Read(h *Handle, dst unsafe.Pointer, size int) error {
 
 	if result != C.VK_SUCCESS {
 		return fmt.Errorf("reading from buffer failed: %w", &Result{result})
+	}
+	return nil
+}
+
+// Zero zeroes out the buffer contents.
+func (b *Buffer) Zero(h *Handle, size int) error {
+	if !b.valid {
+		panic("invalid instance")
+	}
+	if !h.valid {
+		panic("invalid instance")
+	}
+
+	result := C.vk_buffer_zero(h.ptr(), b.ptr(), C.size_t(size))
+
+	if result != C.VK_SUCCESS {
+		return fmt.Errorf("zeroing buffer failed: %w", &Result{result})
 	}
 	return nil
 }

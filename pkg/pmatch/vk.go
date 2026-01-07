@@ -165,6 +165,12 @@ func (s *SearchVk) Run(img, pat *image.RGBA) (maxX, maxY int, maxCos float64, er
 		return
 	}
 
+	// Reset results buffer to zero.
+	err = s.resultsBuf.Zero(s.h, s.resSize)
+	if err != nil {
+		return
+	}
+
 	// Write to buffers.
 	err = s.imgBuf.Write(s.h, unsafe.Pointer(&img.Pix[0]), bufsz(img)) // #nosec G103
 	if err != nil {

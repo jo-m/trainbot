@@ -342,6 +342,19 @@ VkResult vk_buffer_write(vk_handle* handle, vk_buffer* dst, const void* src,
   return VK_SUCCESS;
 }
 
+VkResult vk_buffer_zero(vk_handle* handle, vk_buffer* dst, const size_t sz) {
+  if (sz > dst->sz) {
+    return VK_ERROR_UNKNOWN;
+  }
+
+  void* mapped = NULL;
+  RET_ON_ERR(
+      vkMapMemory(handle->device, dst->buffer_memory, 0, sz, 0, &mapped));
+  memset(mapped, 0, sz);
+  vkUnmapMemory(handle->device, dst->buffer_memory);
+  return VK_SUCCESS;
+}
+
 void vk_buffer_destroy(vk_handle* handle, vk_buffer* buf) {
   vkFreeMemory(handle->device, buf->buffer_memory, NULL);
   vkDestroyBuffer(handle->device, buf->buffer, NULL);

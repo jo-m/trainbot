@@ -95,16 +95,20 @@ type AutoStitcher struct {
 
 	seq          sequence
 	dxAbsLowPass float64
+
+	pm pmatch.Instance
 }
 
 // NewAutoStitcher creates a new AutoStitcher.
 func NewAutoStitcher(c Config) *AutoStitcher {
 	return &AutoStitcher{
 		c: c,
+
+		pm: pmatch.NewInstance(),
 	}
 }
 
-func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, cos float64) {
+func (r *AutoStitcher) findOffset(prev, curr *image.RGBA, maxDx int) (dx int, cos float64) {
 	t0 := time.Now()
 	defer func() {
 		log.Trace().Dur("dur", time.Since(t0)).Msg("findOffset() duration")
@@ -153,7 +157,7 @@ func findOffset(prev, curr *image.RGBA, maxDx int) (dx int, cos float64) {
 	// We expect this x value to be found by the search if the frame has not moved.
 	xZero := sliceRect.Min.Sub(subRect.Min).X
 
-	x, _, cos := pmatch.SearchRGBAC(sub.(*image.RGBA), slice.(*image.RGBA))
+	x, _, cos := r.pm.SearchRGBA(sub.(*image.RGBA), slice.(*image.RGBA))
 	return x - xZero, cos
 }
 
@@ -256,7 +260,7 @@ func (r *AutoStitcher) Frame(frameColor image.Image, ts time.Time) *Train {
 		return nil
 	}
 
-	dx, cos := findOffset(r.prevFrameRGBA, frameRGBA, maxDx)
+	dx, cos := r.findOffset(r.prevFrameRGBA, frameRGBA, maxDx)
 	log.Debug().Uint64("prevFrameIx", r.prevFrameIx).Int("dx", dx).Float64("cos", cos).Msg("received frame")
 
 	isActive := len(r.seq.dx) > 0

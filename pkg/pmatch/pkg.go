@@ -4,4 +4,5 @@
 // 1. Naive Go implementation - rather slow, but hopefully correct
 // 2. Slightly optimized Go version
 // 3. Cgo version - fastest
+// 4. Vulkan - even faster
 package pmatch
