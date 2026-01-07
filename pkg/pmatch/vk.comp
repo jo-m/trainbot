@@ -40,7 +40,7 @@ void main() {
   uint x = gl_GlobalInvocationID.x;
   uint y = gl_GlobalInvocationID.y;
 
-  if (x > M || y > N) {
+  if (x >= M || y >= N) {
     return;
   }
 
