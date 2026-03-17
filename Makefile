@@ -1,10 +1,10 @@
 .PHONY: format lint test test_vk test_more bench bench_vk check build_host build_host_vk build_arm64 docker_build docker_lint docker_test docker_test_more docker_bench clean run_confighelper run_camera run_videofile list
 
 # https://hub.docker.com/_/debian
-DOCKER_BASE_IMAGE = debian:bookworm-20251229
+DOCKER_BASE_IMAGE = debian:bookworm-20260316
 # https://go.dev/dl/
-GO_VERSION = 1.25.5
-GO_ARCHIVE_SHA256 = 9e9b755d63b36acf30c12a9a3fc379243714c1c6d3dd72861da637f336ebb35b
+GO_VERSION = 1.25.8
+GO_ARCHIVE_SHA256 = ceb5e041bbc3893846bd1614d76cb4681c91dadee579426cf21a63f2d7e03be6
 
 DEFAULT: format build_host build_arm64
 
