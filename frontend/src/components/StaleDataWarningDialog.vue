@@ -23,9 +23,9 @@ const agoHours = DateTime.now().diff(date, 'hours').hours
         <v-card-title>Stale Data Warning</v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-          The last data upload was {{ date.toRelative() }}. This probably means that the Raspberry
-          Pi on my balcony is currently offline/broken. Note that this frontend is hosted
-          independently. This will be fixed eventually.
+          Onlytrains is no longer being maintained due to time constraints.
+          Current data will however remain online for an undetermined amount of time.
+          The last data upload was {{ date.toRelative() }}.
         </v-card-text>
         <v-card-actions>
           <v-btn color="primary" variant="flat" block @click="showDialog = false">Close</v-btn>

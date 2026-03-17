@@ -1,5 +1,7 @@
 # Onlytrains
 
+**⚠️ Onlytrains is no longer being maintained due to time constraints. ⚠️**
+
 <img src="frontend/src/assets/logo-day.svg" height="100" width="100">
 
 Watches a piece of train track, detects passing trains, and stitches together images of them.
