@@ -15,8 +15,8 @@ func RandGray(seed int64, w, h int) *image.Gray {
 	rect := image.Rect(0, 0, w, h)
 	img := image.NewGray(rect)
 
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
+	for y := range h {
+		for x := range w {
 			px := color.Gray{Y: uint8(rnd.Int())}
 			img.Set(x, y, px)
 		}
@@ -34,8 +34,8 @@ func RandRGBA(seed int64, w, h int) *image.RGBA {
 	rect := image.Rect(0, 0, w, h)
 	img := image.NewRGBA(rect)
 
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
+	for y := range h {
+		for x := range w {
 			px := color.RGBA{uint8(rnd.Int()), uint8(rnd.Int()), uint8(rnd.Int()), uint8(rnd.Int())}
 			img.Set(x, y, px)
 		}

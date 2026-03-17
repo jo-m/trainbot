@@ -15,7 +15,7 @@ func Test_sample(t *testing.T) {
 	src := rand.NewSource(123)
 	rnd := rand.New(src)
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		xs, ys := sample(rnd, x, y, 4)
 
 		xset := map[float64]struct{}{}

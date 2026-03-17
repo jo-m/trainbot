@@ -69,7 +69,7 @@ func isFTPErr(err error, code int) bool {
 func (f *FTP) createDirs(dirsPath string) error {
 	components := strings.Split(dirsPath, "/")
 
-	for i := 0; i < len(components); i++ {
+	for i := range components {
 		dir := path.Join(components[:i+1]...)
 		err := f.conn.MakeDir(dir)
 		if err != nil {

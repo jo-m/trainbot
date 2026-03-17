@@ -30,19 +30,19 @@ func SearchRGBA(img, pat *image.RGBA) (maxX, maxY int, maxCos float64) {
 	is, ps := img.Stride, pat.Stride
 
 	var maxCos2 float64
-	for y := 0; y < n; y++ {
-		for x := 0; x < m; x++ {
+	for y := range n {
+		for x := range m {
 
 			imgPatStartIx := y*is + x*four
 
 			var dot, absI2, absP2 uint64
 
-			for v := 0; v < dv; v++ {
+			for v := range dv {
 				pxIi := v * is
 				pxPi := v * ps
 
-				for u := 0; u < du; u++ {
-					for rgb := 0; rgb < 3; rgb++ {
+				for u := range du {
+					for rgb := range 3 {
 						pxI := img.Pix[imgPatStartIx+pxIi+u*four+rgb]
 						pxP := pat.Pix[pxPi+u*four+rgb]
 

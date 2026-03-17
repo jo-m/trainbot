@@ -18,7 +18,7 @@ const (
 
 func bench(fn func(), count int) {
 	t0 := time.Now()
-	for i := 0; i < count; i++ {
+	for range count {
 		fn()
 	}
 	dt := time.Since(t0)

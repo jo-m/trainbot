@@ -17,9 +17,9 @@ func RGBA(img *image.RGBA) ([3]float64, [3]float64) {
 	m, n := img.Bounds().Dx(), img.Bounds().Dy()
 	s := img.Stride
 
-	for y := 0; y < n; y++ {
+	for y := range n {
 		ys := y * s
-		for x := 0; x < m; x++ {
+		for x := range m {
 			ix := ys + x*four
 			sum[0] += int64(img.Pix[ix+0])
 			sum[1] += int64(img.Pix[ix+1])
@@ -35,9 +35,9 @@ func RGBA(img *image.RGBA) ([3]float64, [3]float64) {
 	}
 
 	sum = [3]int64{0, 0, 0}
-	for y := 0; y < n; y++ {
+	for y := range n {
 		ys := y * s
-		for x := 0; x < m; x++ {
+		for x := range m {
 			ix := ys + x*four
 
 			sum[0] += iabs(int64(img.Pix[ix+0]) - avgPx[0])

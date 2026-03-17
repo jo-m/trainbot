@@ -73,7 +73,7 @@ func genLine() string {
 	// #nosec 404
 	n := rand.Intn(maxLen) + 1
 	s := strings.Builder{}
-	for i := 0; i < n; i++ {
+	for range n {
 		// #nosec 404
 		s.WriteString(strconv.FormatInt(int64(rand.Intn(maxVal)), 10))
 		s.WriteByte(',')

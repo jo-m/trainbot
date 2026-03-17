@@ -175,7 +175,7 @@ func NewCamSrc(c CamConfig) (ret *CamSrc, err error) {
 	}
 
 	// We now skip some initial frames, because some cameras will return garbage in the first frame(s).
-	for i := 0; i < skipInitialFrames; i++ {
+	for range skipInitialFrames {
 		_, _, err := ret.getFrame()
 		if err != nil {
 			_ = cam.Close()

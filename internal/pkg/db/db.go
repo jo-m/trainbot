@@ -80,7 +80,7 @@ func doBackup(destPath string, srcDB *sql.DB) error {
 	}
 	defer srcConn.Close()
 
-	return srcConn.Raw(func(srcConn interface{}) error {
+	return srcConn.Raw(func(srcConn any) error {
 		backup, ok := srcConn.(backup)
 		if !ok {
 			return errors.New("source connection does not implement NewBackup()")

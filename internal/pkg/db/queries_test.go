@@ -113,7 +113,7 @@ func Test_Train_Queries(t *testing.T) {
 	assert.Contains(t, blobs, "train_20230610_162058.805_+02:00.jpg")
 
 	// Check cleanup query with positive results.
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		id, err := InsertTrain(db, stitch.Train{StartTS: t0.Add(time.Second * time.Duration(i+1))})
 		require.NoError(t, err)
 

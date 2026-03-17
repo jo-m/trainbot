@@ -1,5 +1,4 @@
 //go:build moretests
-// +build moretests
 
 package stitch
 
