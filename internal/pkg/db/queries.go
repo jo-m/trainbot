@@ -49,14 +49,18 @@ type Train struct {
 
 // GIFFileName returns the GIF file name for this train (derived from timestamp).
 func (t *Train) GIFFileName() string {
-	tsString := t.StartTS.Format(fileTSFormat)
-	return fmt.Sprintf("train_%s.gif", tsString)
+	return t.FileNameWithExt("gif")
 }
 
 // ImgFileName returns the image file name for this train (derived from timestamp).
 func (t *Train) ImgFileName() string {
+	return t.FileNameWithExt("jpg")
+}
+
+// FileNameWithExt returns a file name for this train with the given file extension, derived from timestamp.
+func (t Train) FileNameWithExt(extension string) string {
 	tsString := t.StartTS.Format(fileTSFormat)
-	return fmt.Sprintf("train_%s.jpg", tsString)
+	return fmt.Sprintf("train_%s.%s", tsString, extension)
 }
 
 // GetNextUpload returns the next train sighting to upload from the database.
