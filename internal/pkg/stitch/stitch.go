@@ -4,19 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/gif"
+	"io"
 	"math"
+	"os"
 	"time"
 
 	"github.com/mccutchen/palettor"
 	"github.com/nfnt/resize"
 	"github.com/rs/zerolog/log"
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"jo-m.ch/go/trainbot/internal/pkg/prometheus"
+	"jo-m.ch/go/trainbot/pkg/imutil"
 )
 
 const (
-	maxMemoryMB = 1024 * 1024 * 50
+	maxMemoryMB = 1024 * 1024 * 50 * 10
 )
 
 func isign(x int) int {
@@ -114,8 +119,9 @@ type Train struct {
 
 	Conf Config
 
-	Image *image.RGBA `json:"-"`
-	GIF   *gif.GIF    `json:"-"`
+	Image     *image.RGBA `json:"-"`
+	GIF       *gif.GIF    `json:"-"`
+	TrainClip *TrainClip  `json:"-"`
 }
 
 // LengthM returns the absolute length in m.
@@ -184,6 +190,89 @@ func createGIF(seq sequence, stitched image.Image) (*gif.GIF, error) {
 	return &g, nil
 }
 
+func createH264(seq sequence, dest_dir string) (*TrainClip, error) {
+	file_extension := "mp4"
+	dest_file, err := os.CreateTemp(dest_dir, fmt.Sprintf(".temp-createH264.%s.*", file_extension))
+	if err != nil {
+		return nil, err
+	}
+	dest_file.Close()
+	dest_path := dest_file.Name()
+
+	//// SW: x264enc
+	//// HW on RPi: v4l2h264enc
+	//// HW on PC AMD: va264enc
+	//encoder := "x264enc"
+
+	//	WithFPS(gst.Fraction(30, 1)) // FIXME
+
+	reader, writer := io.Pipe()
+	input_args := ffmpeg.KwArgs{"format": "rawvideo", "pix_fmt": "rgba", "video_size": fmt.Sprintf("%dx%d", uint(seq.frames[0].Bounds().Dx()), uint(seq.frames[0].Bounds().Dy()))}
+	input := ffmpeg.Input("pipe:", input_args).WithInput(reader)
+	output := input.Output(dest_path, ffmpeg.KwArgs{"format": "mp4"}).OverWriteOutput()
+
+	//startTS := seq.ts[0]
+
+	errChan := make(chan error)
+	go func() {
+		for frame_no := range len(seq.frames) {
+			log.Trace().Int("frame", frame_no).Msg("Producing frame")
+
+			//		// For each frame we produce, we set the timestamp when it should be displayed
+			//		// The autovideosink will use this information to display the frame at the right time.
+			//		buffer.SetPresentationTimestamp(gst.ClockTime(seq.ts[frame_no].Sub(startTS)))
+
+			// Produce an image frame for this iteration.
+			// We can't write the pixels from image directly, since it may be a SubImage
+			// TODO: we could skip this copy, by writing from the SubImage directly to the writer
+			frameRGBA := imutil.ToRGBA(seq.frames[frame_no])
+			pixels := frameRGBA.Pix
+
+			_, err = writer.Write(pixels)
+			if err != nil {
+				errChan <- err
+			}
+			log.Trace().Msg("buffer pushed")
+		}
+		log.Debug().Msg("all frames pushed to ffmpeg pipe")
+		writer.Close()
+		errChan <- nil
+	}()
+
+	log.Trace().Msg("Waiting for ffmpeg to finish ...")
+	err = output.WithErrorOutput(os.Stderr).Run()
+	if err != nil {
+		return nil, err
+	}
+	log.Trace().Msg("Waiting for raw frame writer to return ...")
+	err = <-errChan
+	if err != nil {
+		return nil, err
+	}
+
+	return &TrainClip{Path: dest_path, Ext: file_extension}, nil
+}
+func produceImageFrame(c color.Color) []uint8 {
+	width := 300
+	height := 300
+	upLeft := image.Point{0, 0}
+	lowRight := image.Point{width, height}
+	img := image.NewRGBA(image.Rectangle{upLeft, lowRight})
+
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			img.Set(x, y, c)
+		}
+	}
+
+	return img.Pix
+}
+
+type TrainClip struct {
+	Path string
+	Ext  string
+}
+
 // fitAndStitch tries to stitch an image from a sequence.
 // Will first try to fit a constant acceleration speed model for smoothing.
 // Might modify seq (drops leading frames with no movement).
@@ -246,6 +335,11 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		panic(err)
 	}
 
+	trainClip, err := createH264(seq, c.TempDestDir)
+	if err != nil {
+		panic(err)
+	}
+
 	prometheus.RecordFitAndStitchResult("success")
 	return &Train{
 		t0,
@@ -256,5 +350,6 @@ func fitAndStitch(seq sequence, c Config) (*Train, error) {
 		c,
 		img,
 		gif,
+		trainClip,
 	}, nil
 }
